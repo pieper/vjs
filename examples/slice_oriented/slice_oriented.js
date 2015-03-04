@@ -16,6 +16,8 @@ function init(slice) {
         mouse.x = (event.clientX / threeD.offsetWidth) * 2 - 1;
         mouse.y = -(event.clientY / threeD.offsetHeight) * 2 + 1;
 
+
+
         var intersects = raycaster.intersectObjects(scene.children);
 
         for (var intersect in intersects) {
@@ -66,11 +68,11 @@ function init(slice) {
     // scene
     var scene = new THREE.Scene();
     // camera
-    var camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+    var camera = new THREE.OrthographicCamera(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, 1, 10000000);
     camera.position.x = 400;
-    camera.lookAt(scene.position);
     // controls
     controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+    controls.noRotate = true;
 
 
     // create volume object
@@ -109,28 +111,6 @@ function init(slice) {
 
     // Create VJS Volume Core and View
     var vjsVolumeCore = new VJS.Volume.Core(volume.J, volume.max, volume.min, transforms, ijk, ras);
-    // Probe needs a volume
-    probe.setVolumeCore(vjsVolumeCore);
-    var vjsVolumeView = new VJS.Volume.View(vjsVolumeCore);
-
-    // Get 2 Views fromt same volume!
-
-    // IJK BBox Oriented in RAS Space volume
-    var material = new THREE.MeshBasicMaterial({
-        wireframe: true,
-        color: 0x61F2F3
-    });
-    var IJKBBoxOriented = vjsVolumeView.IJKBBoxOriented(material);
-    scene.add(IJKBBoxOriented);
-
-    // RAS BBox
-    var materialRASBBox = new THREE.MeshBasicMaterial({
-        wireframe: true,
-        color: 0x2196F3
-    });
-    var RASBBox = vjsVolumeView.RASBBox(materialRASBBox);
-    scene.add(RASBBox);
-
 
     // Create Slice
 
@@ -138,6 +118,8 @@ function init(slice) {
     var tSize = 4096.0;
     var tNumber = 4;
     vjsVolumeCore.createTexture(tNumber, tSize);
+    // Probe needs a volume
+    probe.setVolumeCore(vjsVolumeCore);
 
     var normalorigin = VJS.Adaptor.Xtk2ThreejsVec3(slice.z);
     var normaldirection = VJS.Adaptor.Xtk2ThreejsVec3(slice.ec);
@@ -145,21 +127,13 @@ function init(slice) {
     // Create VJS Slice Core and View
     var vjsSliceCore = new VJS.Slice.Core(normalorigin, normaldirection, vjsVolumeCore);
     vjsSliceCore.Slice();
-    var intersectionRASBBoxSlice = new VJS.Slice.View(vjsSliceCore);
 
-    // Get 2 Views fromt same slice!
-
-    // Interserction Slice/RAS BBox
-    var materialIntersection = new THREE.MeshBasicMaterial({
-        color: 0x2196F3
-    });
-    var intersections = intersectionRASBBoxSlice.SliceRASBBoxIntersection(materialIntersection);
-    for (var i = 0; i < intersections.length; i++) {
-        scene.add(intersections[i]);
-    }
+    // Get View from slice!
 
     // Plane filled with volume's texture
     var vjsSliceView = new VJS.Slice.View(vjsSliceCore);
+    vjsSliceView._Convention = 'RADIOLOGY';
+    vjsSliceView._Orientation = 'SAGITTAL';
     plane = vjsSliceView.RASSlice(tSize, tNumber);
     scene.add(plane);
 

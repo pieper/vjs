@@ -4,7 +4,8 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, volume, mouse, raycaster, plane, threeD, probe, rasijk, ijkdimensions;
+var controls, renderer, stats, volume, mouse, raycaster, plane, threeD, probe, probeROI,
+    rasijk, ijkdimensions;
 
 // FUNCTIONS
 function init(slice) {
@@ -16,6 +17,8 @@ function init(slice) {
         mouse.x = (event.clientX / threeD.offsetWidth) * 2 - 1;
         mouse.y = -(event.clientY / threeD.offsetHeight) * 2 + 1;
 
+
+
         var intersects = raycaster.intersectObjects(scene.children);
 
         for (var intersect in intersects) {
@@ -26,8 +29,60 @@ function init(slice) {
                 var ras2 = new THREE.Vector3().copy(intersects[intersect].point);
                 probe.updateUI(ras2);
 
+                // update position of selected!
+                var ras = new THREE.Vector3().copy(intersects[intersect].point);
+                probeROI.updateSelected(ras);
+
+                var probeRoiSelected = probeROI.getSelected();
+                if (probeRoiSelected) {
+                    // draw/update 2 handles!
+                    if (probeROI.getHandles().length === 2) {
+                        var roi = probeROI.updateROI();
+                        scene.add(roi);
+                    }
+                }
+
+
             }
         }
+    }
+
+    function onDocumentMouseDown(event) {
+        event.preventDefault();
+
+        raycaster.setFromCamera(mouse, camera);
+
+        var intersects = raycaster.intersectObjects(scene.children);
+
+        for (var intersect in intersects) {
+            var ras = new THREE.Vector3().copy(intersects[intersect].point);
+            // hit handles
+            if ('probeROI' === intersects[intersect].object.name) {
+                // select it, disable controls!
+                probeROI.setSelected(intersects[intersect].object);
+                controls.enabled = false;
+                break;
+            }
+            // hit plane !
+            if (plane.uuid === intersects[intersect].object.uuid && probeROI.getHandles().length < 2) {
+                var handle = probeROI.addHandle(ras);
+                scene.add(handle);
+            }
+        }
+    }
+
+    function onDocumentMouseUp(event) {
+        event.preventDefault();
+
+        controls.enabled = true;
+
+        // if 2 handles, update stats
+        if (probeROI.getHandles().length === 2) {
+
+            probeROI.update();
+        }
+
+        probeROI.setSelected(null);
     }
 
     // this function is executed on each animation frame
@@ -63,14 +118,18 @@ function init(slice) {
     probe = new VJS.Widgets.Probe();
     threeD.appendChild(probe.domElement);
 
+    // probe ROI
+    probeROI = new VJS.Widgets.ProbeROI();
+    threeD.appendChild(probeROI.domElement);
+
     // scene
     var scene = new THREE.Scene();
     // camera
-    var camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+    var camera = new THREE.OrthographicCamera(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, 1, 10000000);
     camera.position.x = 400;
-    camera.lookAt(scene.position);
     // controls
     controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+    controls.noRotate = true;
 
 
     // create volume object
@@ -111,26 +170,8 @@ function init(slice) {
     var vjsVolumeCore = new VJS.Volume.Core(volume.J, volume.max, volume.min, transforms, ijk, ras);
     // Probe needs a volume
     probe.setVolumeCore(vjsVolumeCore);
-    var vjsVolumeView = new VJS.Volume.View(vjsVolumeCore);
-
-    // Get 2 Views fromt same volume!
-
-    // IJK BBox Oriented in RAS Space volume
-    var material = new THREE.MeshBasicMaterial({
-        wireframe: true,
-        color: 0x61F2F3
-    });
-    var IJKBBoxOriented = vjsVolumeView.IJKBBoxOriented(material);
-    scene.add(IJKBBoxOriented);
-
-    // RAS BBox
-    var materialRASBBox = new THREE.MeshBasicMaterial({
-        wireframe: true,
-        color: 0x2196F3
-    });
-    var RASBBox = vjsVolumeView.RASBBox(materialRASBBox);
-    scene.add(RASBBox);
-
+    // Probe ROI needs a volume
+    probeROI.setVolumeCore(vjsVolumeCore);
 
     // Create Slice
 
@@ -145,21 +186,13 @@ function init(slice) {
     // Create VJS Slice Core and View
     var vjsSliceCore = new VJS.Slice.Core(normalorigin, normaldirection, vjsVolumeCore);
     vjsSliceCore.Slice();
-    var intersectionRASBBoxSlice = new VJS.Slice.View(vjsSliceCore);
 
-    // Get 2 Views fromt same slice!
-
-    // Interserction Slice/RAS BBox
-    var materialIntersection = new THREE.MeshBasicMaterial({
-        color: 0x2196F3
-    });
-    var intersections = intersectionRASBBoxSlice.SliceRASBBoxIntersection(materialIntersection);
-    for (var i = 0; i < intersections.length; i++) {
-        scene.add(intersections[i]);
-    }
+    // Get View from slice!
 
     // Plane filled with volume's texture
     var vjsSliceView = new VJS.Slice.View(vjsSliceCore);
+    vjsSliceView._Convention = 'RADIOLOGY';
+    vjsSliceView._Orientation = 'SAGITTAL';
     plane = vjsSliceView.RASSlice(tSize, tNumber);
     scene.add(plane);
 
@@ -167,6 +200,8 @@ function init(slice) {
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
     renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
+    renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
+    renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
 
     // start animation
     animate();
