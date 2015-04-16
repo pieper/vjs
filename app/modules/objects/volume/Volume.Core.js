@@ -9,6 +9,8 @@ VJS.volume = VJS.volume || {};
  * Doesn't deal with the visualization of the volume.
  *
  * @constructor
+ * @class
+ *
  * @param {Array} data - Raw data that represents the volume
  * @param {Number} max - Maximum intensity in the volume. Used for data
  *     normalization. (should probably by rgb array...)
@@ -20,7 +22,11 @@ VJS.volume = VJS.volume || {};
  * @param {Number} nbTexture - Number of textures to be generated from the raw data.
  * @param {Number} maxTextureSize - Size of each texture to be generated from the raw data.
  */
-VJS.volume.core = function(data, max, min, transforms, ijk, ras, nbTexture, maxTextureSize) {
+VJS.volume.core = function(data, max, min, transforms, ijk, ras, nbTexture, maxTextureSize, rawobject) {
+
+    // header and rawdata = 1 object
+    this.format(rawobject);
+
     // general information
     this._data = data;
     this._textures = null;
@@ -49,10 +55,49 @@ VJS.volume.core = function(data, max, min, transforms, ijk, ras, nbTexture, maxT
 
     this.computeConvenienceVars();
 
+
+
+};
+
+VJS.volume.core.prototype.format = function(rawobject) {
+    // which file type?
+    // format it accordingly....
+    var type = 'nii';
+    window.console.log(type);
+
+    // get min and max values from raw data....
+    window.console.log(rawobject);
+    var minMax = this.arrayMinMax(new Uint8Array(rawobject.data.image[0]));
+    window.console.log(minMax);
+};
+
+VJS.volume.core.prototype.arrayMinMax = function(data) {
+    var _min = Infinity;
+    var _max = -Infinity;
+
+    // buffer the length
+    var _datasize = data.length;
+
+    var i = 0;
+    for (i = 0; i < _datasize; i++) {
+
+        if (!isNaN(data[i])) {
+
+            var _value = data[i];
+            _min = Math.min(_min, _value);
+            _max = Math.max(_max, _value);
+
+        }
+
+    }
+
+    return [_min, _max];
 };
 
 /**
  * Convenience method to generate extra information about the volume.
+ *
+ * @private
  */
 VJS.volume.core.prototype.computeConvenienceVars = function() {
     this._halfDimensions = new THREE.Vector3(
@@ -67,6 +112,8 @@ VJS.volume.core.prototype.computeConvenienceVars = function() {
 /**
  * Generate textures from the raw data. Number of textures and size of each
  * texture depends on what was provided to the contructor.
+ *
+ * @private
  */
 VJS.volume.core.prototype.createTexture = function() {
     //
@@ -117,6 +164,8 @@ VJS.volume.core.prototype.createTexture = function() {
 /**
  * Return value of voxel.
  * Should return RBG array probably...
+ *
+ * @public
  *
  * @param {Number} i - I index of the voxel (i.e. in plane Column index).
  * @param {Number} j - J index of the voxel (i.e. in plane Row index).

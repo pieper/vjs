@@ -4,7 +4,9 @@ var VJS = VJS || {};
 VJS.slice = VJS.slice || {};
 
 /**
- * @author Nicolas Rannou / https://github.com/NicolasRannou
+ *
+ * Custom shader for the slice object. Should be a shader directory. We can add this shader to any object...
+ * @member
  *
  */
 

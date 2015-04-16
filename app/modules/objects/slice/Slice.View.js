@@ -3,10 +3,35 @@
 var VJS = VJS || {};
 VJS.slice = VJS.slice || {};
 
+/**
+ * View class of slice component. Provides method to generate and interact all
+ * slice related visualization.
+ *
+ * It includes the slice, the border of the slice, the slice normal, the
+ * intersection between the slice, the slice center of mass, the data bouding
+ * box, etc.
+ *
+ * Doesn't hold any slice-related generic logic.
+ *
+ * @constructor
+ * @class
+ *
+ * @param {VJS.slice.core} sliceCore - Core slice instance.
+ *
+ */
 VJS.slice.view = function(sliceCore) {
     this._sliceCore = sliceCore;
 };
 
+/**
+ * Get a threeJS object that represents a slice.
+ * It is fully configured and just have to be added to the renderer.
+ * !!!! Make sure to call slice.core.slice() before. (should be hidden)
+ * Object is displayed in RAS space. This should be an option somewhere...
+ *
+ * @return THREE.Object
+ *
+ */
 VJS.slice.view.prototype.RASSlice = function() {
     //
     // create material from target Volume

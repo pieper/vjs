@@ -2,5 +2,8 @@
   "name": "vjs",
   "version": "0.0.0",
   "dependencies": {
+    "fetch": "latest",
+    "es6-promise": "latest",
+    "dicomParser": "chafey/dicomParser#master"
   }
 }
