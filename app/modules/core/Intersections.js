@@ -38,6 +38,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
     // 1- Move Plane origin and orientation in IJK space
     // 2- Test Edges/ IJK Plane intersections
     // 3- Return intersection Edge/ IJK Plane if it touches the Oriented BBox
+    // NOTE: Return intersection in Normal's space (toOBBSpaceInvert applied...)
 
 
     var intersections = [];

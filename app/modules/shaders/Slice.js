@@ -26,7 +26,7 @@ VJS.shaders.slice = {
                 type: 'f',
                 value: 0.0
             },
-            'uTextureFrames' : {
+            'uTextureFrames': {
                 type: 'tv',
                 value: null
             },
@@ -46,9 +46,9 @@ VJS.shaders.slice = {
             // Get pixel color given IJK coordinate and texture
             //
             'vec4 getIJKValue(sampler2D textureFrames[16], ',
-                             'vec3 ijkCoordinates, ',
-                             'vec3 ijkDimensions, ',
-                             'float uTextureSize) {',
+            'vec3 ijkCoordinates, ',
+            'vec3 ijkDimensions, ',
+            'float uTextureSize) {',
             // IJK coord to texture
             'highp float index = ijkCoordinates[0] + ijkCoordinates[1]*ijkDimensions[0] + ijkCoordinates[2]*ijkDimensions[0]*ijkDimensions[1];',
 
@@ -153,8 +153,8 @@ VJS.shaders.slice = {
             // try to map IJK to value...
             'vec3 ijkCoordinates = vec3(floor(ijkPos[0]), floor(ijkPos[1]), floor(ijkPos[2]));',
             'vec4 ijkValue = getIJKValue(',
-                //'t00, t01, t02, t03, t04, t05, t06, t07, t08, t09, t10, t11, t12, t13, t14, t15,',
-                'uTextureFrames, ijkCoordinates, uIJKDims, uTextureSize);',
+            //'t00, t01, t02, t03, t04, t05, t06, t07, t08, t09, t10, t11, t12, t13, t14, t15,',
+            'uTextureFrames, ijkCoordinates, uIJKDims, uTextureSize);',
             'color.rgb = ijkValue.rgb;',
             //'gl_FragColor = vec4(ijkPos[0]/float(uIJKDims[0]), ijkPos[1]/float(uIJKDims[1]), ijkPos[2]/float(uIJKDims[2]), 1.0);',
             'gl_FragColor = vec4(color, 1.0);',

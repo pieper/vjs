@@ -75,9 +75,9 @@ function positionAndTime(obj) {
     }
 }
 
-VJS.Parsers.Dicom.fillDimensionIndexSequence = function(imageModel) {
+VJS.Parsers.Dicom.fillDimensionIndexSequence = function(data) {
     return function() {
-        imageModel.dimensionIndexSequence.push({
+        data.push({
             'dimensionDescriptionLabel': $(this).find('[tag="00209421"] Value').text()
         });
     };
@@ -93,32 +93,20 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
 
     var filename = VJS.Parsers.Dicom.urlToFilename(url);
 
+    var $dom = $(dom);
+
     // Create an image
     var imageModel = new VJS.image.model();
 
-    var $dom = $(dom);
+    imageModel.concatenationUID = VJS.Parsers.Dicom.getImageConcatenationUID($dom);
+    imageModel.seriesUID = VJS.Parsers.Dicom.getImageSeriesUID($dom);
+    imageModel.seriesNumber = VJS.Parsers.Dicom.getImageSeriesNumber($dom);
 
-    var numberOfFrames = $dom.find('[tag="00280008"]').text();
-    window.console.log('numberOfFrames', numberOfFrames);
-    if (numberOfFrames === '') {
-        numberOfFrames = 1;
-    }
-
-    var concatenationUID = $dom.find('[tag="00209161"]').text();
-    imageModel.concatenationUID = concatenationUID;
-
-    var seriesUID = $dom.find('[tag="0020000E"]').text();
-    imageModel.seriesUID = seriesUID;
-
-    var seriesNumber = $dom.find('[tag="00200011"]').text();
-    imageModel.seriesNumber = seriesNumber;
     // all dim uids in this SOP
     //var dimensionOrganizationSequence = $dom.find('[tag="00209221"]').text();
 
     // list of dims with more info...
-    var $dimensionIndexSequence = $dom.find('[tag="00209222"]');
-    imageModel.dimensionIndexSequence = [];
-    $dimensionIndexSequence.children().each(VJS.Parsers.Dicom.fillDimensionIndexSequence(imageModel));
+    imageModel.dimensionIndexSequence = VJS.Parsers.Dicom.getImageDimensionIndexSequence($dom);
 
     var rows = parseInt($dom.find('[tag="00280010"]').text(), 10);
     imageModel._rows = rows;
@@ -131,13 +119,13 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
 
     // generate the frames!
 
-
     // get the pixel data for this frame!
     var imageFilePath = filename + '-raw.8b';
     // no... save all frame only 1 time..!
     dcmjs.utils.execute('dcm2pnm', ['--verbose', '--all-frames', '--write-raw-pnm', filename, imageFilePath]);
 
     //var $sharedFunctionalGroupsSequence = $dom.find('[tag="52009229"]');
+    var numberOfFrames = VJS.Parsers.Dicom.getImageNumberOfFrames($dom);
 
     for (var i = 0; i < numberOfFrames; i++) {
         // run in //
@@ -328,3 +316,74 @@ VJS.Parsers.Dicom.loadAndParse = function(files) {
     });
 
 };
+
+// 
+//IMAGE RELATED CONVENIENCE METHODS
+//
+VJS.Parsers.Dicom.getImageNumberOfFrames = function(imageJqueryDom) {
+    // try to access number of frames through its DICOM tag
+    var numberOfFrames = imageJqueryDom.find('[tag="00280008"]').text();
+
+    // if not available, assume we only have 1 frame
+    if (numberOfFrames === '') {
+        numberOfFrames = 1;
+    }
+    return numberOfFrames;
+};
+
+VJS.Parsers.Dicom.getImageConcatenationUID = function(imageJqueryDom) {
+    // try to access concatenationUID through its DICOM tag
+    var concatenationUID = imageJqueryDom.find('[tag="00209161"]').text();
+
+    // if not available, assume we only have 1 frame
+    if (concatenationUID === '') {
+        concatenationUID = 1;
+    }
+    return concatenationUID;
+};
+
+VJS.Parsers.Dicom.getImageSeriesUID = function(imageJqueryDom) {
+    // try to access seriesUID through its DICOM tag
+    var seriesUID = imageJqueryDom.find('[tag="0020000E"]').text();
+
+    // if not available, assume we only have 1 frame
+    if (seriesUID === '') {
+        seriesUID = 1;
+    }
+    return seriesUID;
+};
+
+VJS.Parsers.Dicom.getImageSeriesNumber = function(imageJqueryDom) {
+    // try to access seriesNumber through its DICOM tag
+    var seriesNumber = imageJqueryDom.find('[tag="00200011"]').text();
+
+    // if not available, assume we only have 1 frame
+    if (seriesNumber === '') {
+        seriesNumber = 1;
+    }
+    return seriesNumber;
+};
+
+VJS.Parsers.Dicom.getImageDimensionIndexSequence = function(imageJqueryDom) {
+    var dimensionIndexSequence = imageJqueryDom.find('[tag="00209222"]');
+    var data = [];
+    // pass it an array!
+    dimensionIndexSequence.children().each(VJS.Parsers.Dicom.fillDimensionIndexSequence(data));
+    return data;
+};
+
+//
+//STACK RELATED CONVENIENCE METHODS
+//
+
+//
+//FRAME RELATED CONVENIENCE METHODS
+//
+// getFrame
+// getFrameSpacing
+// getFrame...
+// getStach
+// getStack...
+// getImage ...
+
+// merge!

@@ -108,7 +108,7 @@ VJS.stack.view.prototype.threejsslice = function(origin, normal) {
         'halfDimensions': this.vjsModel._halfDimensions,
         'orientation': this.vjsModel._orientation,
         'center': this.vjsModel._halfDimensions,
-        'toOBBSpace': new THREE.Matrix4(),//this.vjsModel._lps2IJK,
+        'toOBBSpace': new THREE.Matrix4(), //this.vjsModel._lps2IJK,
         'toOBBSpaceInvert': new THREE.Matrix4() //this.vjsModel._ijk2LPS,
     };
 
@@ -253,10 +253,10 @@ VJS.stack.view.prototype.threejsslice = function(origin, normal) {
     //     side: THREE.DoubleSide
     // });
 
-    var material = new THREE.MeshBasicMaterial({
-        wireframe: true,
-        color: 0x61F2F3
-    });
+    // var material = new THREE.MeshBasicMaterial({
+    //     wireframe: true,
+    //     color: 0x61F2F3
+    // });
 
     // CREATE HIGH_RES SHADER
     window.console.log(VJS);
@@ -266,8 +266,8 @@ VJS.stack.view.prototype.threejsslice = function(origin, normal) {
 
     // create 16 luminance textures!
     var textures = [];
-    for (var k = 0; k < this.vjsModel._nbTextures; k++) {
-        var tex = new THREE.DataTexture(this.vjsModel._rawData[k], this.vjsModel._textureSize, this.vjsModel._textureSize, THREE.LuminanceFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+    for (var m = 0; m < this.vjsModel._nbTextures; m++) {
+        var tex = new THREE.DataTexture(this.vjsModel._rawData[m], this.vjsModel._textureSize, this.vjsModel._textureSize, THREE.LuminanceFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
         tex.needsUpdate = true;
         textures.push(tex);
     }
@@ -276,7 +276,7 @@ VJS.stack.view.prototype.threejsslice = function(origin, normal) {
 
     // array of 16 textures
     uniforms.uTextureFrames.value = textures;
-    uniforms.uIJKDims.value = new THREE.Vector3(this.vjsModel._columns, this.vjsModel._rows, this.vjsModel._nbFrames);//[this.vjsModel._columns, this.vjsModel._rows, this.vjsModel._nbFrames];
+    uniforms.uIJKDims.value = new THREE.Vector3(this.vjsModel._columns, this.vjsModel._rows, this.vjsModel._nbFrames); //[this.vjsModel._columns, this.vjsModel._rows, this.vjsModel._nbFrames];
     uniforms.uLPSToIJK.value = this.vjsModel._lps2IJK;
 
     window.console.log(uniforms);

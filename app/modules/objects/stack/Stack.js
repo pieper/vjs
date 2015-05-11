@@ -144,7 +144,7 @@ VJS.stack.model.prototype.prepare = function() {
         this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * nbChannels));
     }
 
-        // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
+    // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
     for (var jj = 0; jj < requiredPixels; jj++) {
 
         var frameIndex = Math.floor(jj / (this._rows * this._columns));
@@ -158,7 +158,7 @@ VJS.stack.model.prototype.prepare = function() {
         // NORMAALIZE IN THE SHADERS!
         // could track min/max here...?
 
-        this._rawData[textureIndex][inTextureIndex] = this.frame[frameIndex].pixelData[inFrameIndex];//Math.floor( Math.random() * 255 );
+        this._rawData[textureIndex][inTextureIndex] = this.frame[frameIndex].pixelData[inFrameIndex]; //Math.floor( Math.random() * 255 );
 
         // // normalize value
         // var normalizedValue = 255 * ((this._data[j] - this._min) / (this._max - this._min));
