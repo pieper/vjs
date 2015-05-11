@@ -44,7 +44,7 @@ module.exports = function (grunt) {
         ]
       },
       js: {
-        files: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/lib/**/*.js'],
+        files: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/lib/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js'],
         tasks: ['jshint', 'jsbeautifier'] //'jsdoc'
       },
       styles: {
@@ -122,10 +122,10 @@ module.exports = function (grunt) {
         jshintrc: '.jshintrc',
         reporter: require('jshint-stylish')
       },
-      all: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/lib/**/*.js']
+      all: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js']
     },
     jsbeautifier : {
-      files: ["<%= vjs.app %>/**/*.js", '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/lib/**/*.js'],
+      files: ["<%= vjs.app %>/**/*.js", '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js'],
       options: {
           config: ".jshintrc"
       }
@@ -141,16 +141,6 @@ module.exports = function (grunt) {
       css: ['<%= vjs.dist %>/**/*.css'],
       options: {
         dirs: ['<%= vjs.dist %>']
-      }
-    },
-    imagemin: {
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= vjs.app %>/images',
-          src: '{,*/}*.{png,jpg,jpeg}',
-          dest: '<%= vjs.dist %>/images'
-        }]
       }
     },
     minifyHtml: {
@@ -255,7 +245,6 @@ module.exports = function (grunt) {
     'clean:dist',
     'copy',
     'useminPrepare',
-    'imagemin',
     'concat',
     'autoprefixer',
     'uglify',
