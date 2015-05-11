@@ -50,6 +50,8 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         normal: new THREE.Vector3(t1.x - t0.x, t1.y - t0.y, t1.z - t0.z).normalize()
     };
 
+    window.console.log(planeOBB);
+
     // 12 edges (i.e. ray)/plane intersection tests
 
     // RAYS STARTING FROM THE FIRST CORNER (0, 0, 0)

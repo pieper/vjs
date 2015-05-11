@@ -160,7 +160,7 @@ window.onload = function() {
     sliceX.init();
 
     volume = new X.volume();
-    volume.file = '../../data/lesson17_cropped.nii.gz';
+    volume.file = 'https://googledrive.com/host/0B8u7h0aKnydhfnRHc0V2OGFmRVhILXp6N3lVSFd4OUUzUThrTERlM2NJeTNPRmFEY0xTcnM/l17.min.nii.gz';
     // volume.file = 'data/CT.nii.gz';
     volume.reslicing = true;
     sliceX.add(volume);

@@ -3,6 +3,19 @@
 var VJS = VJS || {};
 VJS.slice = VJS.slice || {};
 
+/**
+ * @classDesc Core of slice component. Holds all information related to the slice.
+ * Provides core slice-related functionnalities.
+ *
+ * Doesn't deal with the visualization of the volume.
+ *
+ * @constructor
+ * @class
+ *
+ * @param {Array} origin - sdfsdf
+ * @param {Array} normal - sdfsdf
+ * @param {VJS.volume.core} volumeCore - sdfsdf
+ */
 VJS.slice.core = function(origin, normal, volumeCore) {
     this._origin = origin;
     this._normal = normal;
@@ -15,9 +28,21 @@ VJS.slice.core = function(origin, normal, volumeCore) {
     this._volumeCore = volumeCore;
 };
 
+
+/**
+ * Compute all required information to generate a slice view.
+ *
+ * @public
+ */
 VJS.slice.core.prototype.slice = function() {
     // update all information according to Normal and Origin!   // normalize slice direction
     this._normal.normalize();
+
+    // BENEFITS TO GENERATE THE GEOMETRY BEFORE
+    // -MUCH CLEANER
+    // - LESS PIXEL TO BE PROCESSED IN SHADERS
+    // - REMOVE IF LOOPS IN SHADERS
+    // MOREOVER NOT MUCH MORE EXPESIVE THAN PLANE BBOX
 
     // Should directly get the intersection between OBB and plane
     // need volume 3 directions
@@ -97,11 +122,8 @@ VJS.slice.core.prototype.slice = function() {
 
         var origs = new THREE.Vector3(0, 0, 0).subVectors(l0.origin, l1.origin).normalize();
         intersect = origs.dot(this._normal);
-        window.console.log(intersect);
 
-        // why epsilon so big?
         if (Math.abs(intersect) < epsilon) {
-            window.console.log('intersection...!');
             var x = l0.direction.dot(l1.direction);
             var y = base.dot(l1.direction);
 

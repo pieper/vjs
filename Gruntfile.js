@@ -44,12 +44,16 @@ module.exports = function (grunt) {
         ]
       },
       js: {
-        files: ['<%= vjs.app %>/**/*.js'],
-        tasks: ['jshint', 'jsbeautifier']
+        files: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/lib/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js'],
+        tasks: ['jshint', 'jsbeautifier'] //'jsdoc'
       },
       styles: {
         files: ['<%= vjs.app %>/**/*.css'],
         tasks: ['copy:styles', 'autoprefixer:server']
+      },
+      karma: {
+        files: ['<%= vjs.app %>/**/*.Test.js'],
+        tasks: ['karma:unit'] //NOTE the :run flag
       }
     },
     autoprefixer: {
@@ -118,10 +122,10 @@ module.exports = function (grunt) {
         jshintrc: '.jshintrc',
         reporter: require('jshint-stylish')
       },
-      all: ['<%= vjs.app %>/**/*.js']
+      all: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js']
     },
     jsbeautifier : {
-      files: ["<%= vjs.app %>/**/*.js"],
+      files: ["<%= vjs.app %>/**/*.js", '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js'],
       options: {
           config: ".jshintrc"
       }
@@ -137,16 +141,6 @@ module.exports = function (grunt) {
       css: ['<%= vjs.dist %>/**/*.css'],
       options: {
         dirs: ['<%= vjs.dist %>']
-      }
-    },
-    imagemin: {
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= vjs.app %>/images',
-          src: '{,*/}*.{png,jpg,jpeg}',
-          dest: '<%= vjs.dist %>/images'
-        }]
       }
     },
     minifyHtml: {
@@ -202,6 +196,22 @@ module.exports = function (grunt) {
     },
     cssmin: {
       dist: {}
+    },
+    jsdoc : {
+      dist : {
+        src: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/lib/**/*.js'],
+        options: {
+          destination: '<%= vjs.app %>/doc',
+          template: 'node_modules/jaguarjs-jsdoc',
+          configure: 'jsdoc.conf.json'
+        }
+      }
+    },
+    karma: {
+      unit: {
+        configFile: 'karma.conf.js',
+        singleRun: true
+      }
     }
   });
 
@@ -227,19 +237,20 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test', [
     'clean:server',
-    'connect:test'
+    //'connect:test',
+    'karma:unit'
   ]);
 
   grunt.registerTask('build', [
     'clean:dist',
     'copy',
     'useminPrepare',
-    'imagemin',
     'concat',
     'autoprefixer',
     'uglify',
     'usemin',
-    'minifyHtml'
+    'minifyHtml',
+    'jsdoc'
   ]);
 
   grunt.registerTask('default', [

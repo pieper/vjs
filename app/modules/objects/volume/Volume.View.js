@@ -3,10 +3,15 @@
 var VJS = VJS || {};
 VJS.volume = VJS.volume || {};
 
-//
-// HOLDS DATA AND PROVIDE SOME FUNCTIONS TO ACCESS DATA EASILY
-//
-
+/**
+ * View of volume module. Holds all visualization specific methods.
+ * Doesn't hold any volume-related generic logic.
+ *
+ * @constructor
+ *
+ * @param {VJS.volume.core} volumeCore - Core volume instance.
+ *
+ */
 VJS.volume.view = function(volumeCore) {
     // general information
     this._volumeCore = volumeCore;
