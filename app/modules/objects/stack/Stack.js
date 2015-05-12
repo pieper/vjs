@@ -11,14 +11,9 @@ VJS.stack = VJS.stack || {};
  */
 VJS.stack.model = function() {
     this.uid = null; // first stack ID -> (0020, 9056)
-    this.frame = [];
-    // 'geometry': {
-    //     'imagePosition': null, // Image Position
-    //     'imageOrientation': null // Image Orientation ...how 
-    //         //...
-    // },
-    //     'frame': []
-    // };
+    this._stackID = -1;
+    this._frame = [];
+
     this._rows = 0;
     this._columns = 0;
     this._nbFrames = 0;
@@ -50,29 +45,29 @@ VJS.stack.model.prototype.prepare = function() {
     // 1,1,2,3 will be next
     // 1,1,3,1 wil be next
     window.console.log(this);
-    this.frame.sort(VJS.stack.model.prototype.orderFrameOnDimensionIndices);
+    this._frame.sort(VJS.stack.model.prototype.orderFrameOnDimensionIndices);
     // get height of the stack (i.e. number of frames)
-    this._nbFrames = this.frame.length;
+    this._nbFrames = this._frame.length;
     // can we calculate that? might have to parse all frames to make sure it is consistent...
-    this._rows = this.frame[0]._rows;
-    this._columns = this.frame[0]._columns;
-    this._pixelSpacing.row = this.frame[0].pixelSpacing.row;
-    this._pixelSpacing.column = this.frame[0].pixelSpacing.column;
-    this._sliceThickness = this.frame[0].sliceThickness;
+    this._rows = this._frame[0]._rows;
+    this._columns = this._frame[0]._columns;
+    this._pixelSpacing.row = this._frame[0]._pixelSpacing.row;
+    this._pixelSpacing.column = this._frame[0]._pixelSpacing.column;
+    this._sliceThickness = this._frame[0]._sliceThickness;
 
-    for (var i = 0; i < this.frame.length; i++) {
+    for (var i = 0; i < this._frame.length; i++) {
 
         // check rows consistency
-        if (this._rows !== this.frame[i]._rows) {
+        if (this._rows !== this._frame[i]._rows) {
             // send an error message...
             window.console.log('Numbers of rows in stack\'s frames is not consistent.');
             window.console.log(this);
             window.console.log('First frame had: ', this._rows, ' rows');
-            window.console.log('Frame index: ', i, ' has: ', this.frame[i]._rows, ' rows.');
+            window.console.log('Frame index: ', i, ' has: ', this._frame[i]._rows, ' rows.');
         }
 
         // check columns consitency
-        if (this._columns !== this.frame[i]._columns) {
+        if (this._columns !== this._frame[i]._columns) {
             // send an error message...
             window.console.log('Numbers of columns in stack\'s frames is not consistent.');
             window.console.log(this);
@@ -81,20 +76,20 @@ VJS.stack.model.prototype.prepare = function() {
         }
 
         // check for spacing consistency
-        if (this._pixelSpacing.row !== this.frame[i].pixelSpacing.row || this._pixelSpacing.column !== this.frame[i].pixelSpacing.column) {
+        if (this._pixelSpacing.row !== this._frame[i]._pixelSpacing.row || this._pixelSpacing.column !== this._frame[i]._pixelSpacing.column) {
             // send an error message...
             window.console.log('Spacing in stack\'s frames is not consistent.');
             window.console.log(this);
             window.console.log('First frame had : ', this._pixelSpacing.row, ' x ', this._pixelSpacing.column, ' spacing.');
-            window.console.log('Frame index : ', i, ' has: ', this.frame[i].pixelSpacing.row, ' x ', this.frame[i].pixelSpacing.column, ' spacing.');
+            window.console.log('Frame index : ', i, ' has: ', this._frame[i]._pixelSpacing.row, ' x ', this._frame[i]._pixelSpacing.column, ' spacing.');
         }
 
         // check for slice thickness consistency
-        if (this._sliceThickness !== this.frame[i].sliceThickness) {
+        if (this._sliceThickness !== this._frame[i]._sliceThickness) {
             window.console.log('Slice thickness in stack\'s frames is not consistent.');
             window.console.log(this);
             window.console.log('First frame had: ', this._sliceThickness, ' sliceThickness.');
-            window.console.log('Frame index: ', i, ' has: ', this.frame[i].sliceThickness, ' sliceThickness.');
+            window.console.log('Frame index: ', i, ' has: ', this._frame[i]._sliceThickness, ' sliceThickness.');
         }
     }
 
@@ -109,17 +104,17 @@ VJS.stack.model.prototype.prepare = function() {
 
     // IJK to LPS transform.
     // and inverse.
-    this._origin = this.frame[0].imagePositionPatient;
+    this._origin = this._frame[0]._imagePositionPatient;
 
     var xCosine = new THREE.Vector3(
-        this.frame[0].imageOrientationPatient.row.x,
-        this.frame[0].imageOrientationPatient.row.y,
-        this.frame[0].imageOrientationPatient.row.z
+        this._frame[0]._imageOrientationPatient.row.x,
+        this._frame[0]._imageOrientationPatient.row.y,
+        this._frame[0]._imageOrientationPatient.row.z
     );
     var yCosine = new THREE.Vector3(
-        this.frame[0].imageOrientationPatient.column.x,
-        this.frame[0].imageOrientationPatient.column.y,
-        this.frame[0].imageOrientationPatient.column.z
+        this._frame[0]._imageOrientationPatient.column.x,
+        this._frame[0]._imageOrientationPatient.column.y,
+        this._frame[0]._imageOrientationPatient.column.z
     );
     var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
 
@@ -158,7 +153,7 @@ VJS.stack.model.prototype.prepare = function() {
         // NORMAALIZE IN THE SHADERS!
         // could track min/max here...?
 
-        this._rawData[textureIndex][inTextureIndex] = this.frame[frameIndex].pixelData[inFrameIndex]; //Math.floor( Math.random() * 255 );
+        this._rawData[textureIndex][inTextureIndex] = this._frame[frameIndex]._pixelData[inFrameIndex]; //Math.floor( Math.random() * 255 );
 
         // // normalize value
         // var normalizedValue = 255 * ((this._data[j] - this._min) / (this._max - this._min));
@@ -194,14 +189,14 @@ VJS.stack.model.prototype.prepare = function() {
 
 VJS.stack.model.prototype.orderFrameOnDimensionIndices = function(a, b) {
 
-    if ('dimensionIndexValues' in a && Object.prototype.toString.call(a.dimensionIndexValues) === '[object Array]' && 'dimensionIndexValues' in b && Object.prototype.toString.call(b.dimensionIndexValues) === '[object Array]') {
-        for (var i = 0; i < a.dimensionIndexValues.length; i++) {
-            if (a.dimensionIndexValues[i] > b.dimensionIndexValues[i]) {
+    if ('_dimensionIndexValues' in a && Object.prototype.toString.call(a._dimensionIndexValues) === '[object Array]' && '_dimensionIndexValues' in b && Object.prototype.toString.call(b._dimensionIndexValues) === '[object Array]') {
+        for (var i = 0; i < a._dimensionIndexValues.length; i++) {
+            if (a._dimensionIndexValues[i] > b._dimensionIndexValues[i]) {
                 return false;
             }
         }
     } else {
-        window.console.log('One of the frames doesn\'t have a dimensionIndexValues array.');
+        window.console.log('One of the frames doesn\'t have a _dimensionIndexValues array.');
         window.console.log(a);
         window.console.log(b);
 

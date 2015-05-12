@@ -4,7 +4,7 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera;
+var controls, renderer, stats, scene, camera, dat;
 
 // FUNCTIONS
 function init() {
@@ -80,14 +80,137 @@ window.onload = function() {
             // view the stack (N slices to start...)
             window.console.log('all parsed');
 
-            var stack = message[0].stack[0];
+            // those operations could be async too!
+
+            // make a box!
+            var geometry = new THREE.BoxGeometry(896, 896, 60);
+            geometry.applyMatrix(new THREE.Matrix4().makeTranslation(448, 448, 30));
+            var material = new THREE.MeshBasicMaterial({
+                wireframe: true,
+                color: 0x61F2F3
+            });
+            var cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+
+            var stack = message[0]._stack[0];
             stack.prepare();
             var stackView = new VJS.stack.view(stack);
-            // normal coordinates in which space?
-            var normal = new THREE.Vector3(1, 1, 0.5);
-            var origin = new THREE.Vector3(20, 20, 30);
-            stackView.threejsslice(origin, normal);
+            // direction coordinates in which space?
+            var direction = new THREE.Vector3(0, 0, 1);
+            stackView.directionI = direction.x;
+            stackView.directionJ = direction.y;
+            stackView.directionK = direction.z;
+
+            var origin = new THREE.Vector3(448, 448, 32);
+            stackView.originI = origin.x;
+            stackView.originJ = origin.y;
+            stackView.originK = origin.z;
+            stackView.threejsslice(origin, direction);
             scene.add(stackView);
+
+            // make the direction!!
+            var length = 80;
+            var hex = 0xff5722;
+
+            var arrowHelper = new THREE.ArrowHelper(direction, origin, length, hex);
+            scene.add(arrowHelper);
+
+            var gui = new dat.GUI({
+                autoPlace: false
+            });
+
+            var customContainer = document.getElementById('my-gui-container');
+            customContainer.appendChild(gui.domElement);
+
+            var frameIndexControllerDirectionI = gui.add(stackView, 'directionI', -1, 1);
+            var frameIndexControllerDirectionJ = gui.add(stackView, 'directionJ', -1, 1);
+            var frameIndexControllerDirectionK = gui.add(stackView, 'directionK', -1, 1);
+            var frameIndexControllerOriginI = gui.add(stackView, 'originI', 0, 896).step(1);
+            var frameIndexControllerOriginJ = gui.add(stackView, 'originJ', 0, 896).step(1);
+            var frameIndexControllerOriginK = gui.add(stackView, 'originK', 0, 60).step(1);
+
+            frameIndexControllerDirectionI.onChange(function(value) {
+                var direction = new THREE.Vector3(value, stackView.directionJ, stackView.directionK);
+                direction.normalize();
+                var origin = new THREE.Vector3(stackView.originI, stackView.originJ, stackView.originK);
+
+                stackView.directionI = value;
+
+                stackView.threejssliceUpdate(origin, direction);
+
+                arrowHelper.setDirection(direction);
+            });
+
+            frameIndexControllerDirectionJ.onChange(function(value) {
+                var direction = new THREE.Vector3(stackView.directionI, value, stackView.directionK);
+                direction.normalize();
+                var origin = new THREE.Vector3(stackView.originI, stackView.originJ, stackView.originK);
+
+                stackView.directionJ = value;
+
+                stackView.threejssliceUpdate(origin, direction);
+
+                arrowHelper.setDirection(direction);
+            });
+
+            frameIndexControllerDirectionK.onChange(function(value) {
+                var direction = new THREE.Vector3(stackView.directionI, stackView.directionJ, value);
+                direction.normalize();
+                var origin = new THREE.Vector3(stackView.originI, stackView.originJ, stackView.originK);
+
+                stackView.directionK = value;
+
+                stackView.threejssliceUpdate(origin, direction);
+
+                arrowHelper.setDirection(direction);
+            });
+
+            frameIndexControllerOriginI.onChange(function(value) {
+                var direction = new THREE.Vector3(stackView.directionI, stackView.directionJ, stackView.directionK);
+                direction.normalize();
+                var origin = new THREE.Vector3(value, stackView.originJ, stackView.originK);
+
+                stackView.originI = value;
+
+                stackView.threejssliceUpdate(origin, direction);
+
+                scene.remove(arrowHelper);
+                arrowHelper = new THREE.ArrowHelper(direction, origin, length, hex);
+                scene.add(arrowHelper);
+            });
+
+            frameIndexControllerOriginJ.onChange(function(value) {
+                var direction = new THREE.Vector3(stackView.directionI, stackView.directionJ, stackView.directionK);
+                direction.normalize();
+                var origin = new THREE.Vector3(stackView.originI, value, stackView.originK);
+
+                stackView.originJ = value;
+
+                stackView.threejssliceUpdate(origin, direction);
+
+                scene.remove(arrowHelper);
+                arrowHelper = new THREE.ArrowHelper(direction, origin, length, hex);
+                scene.add(arrowHelper);
+            });
+
+            frameIndexControllerOriginK.onChange(function(value) {
+                var direction = new THREE.Vector3(stackView.directionI, stackView.directionJ, stackView.directionK);
+                direction.normalize();
+                var origin = new THREE.Vector3(stackView.originI, stackView.originJ, value);
+
+                stackView.originK = value;
+
+                stackView.threejssliceUpdate(origin, direction);
+
+                scene.remove(arrowHelper);
+                arrowHelper = new THREE.ArrowHelper(direction, origin, length, hex);
+                scene.add(arrowHelper);
+            });
+
+            // IJK TO LPS SWITCH
+
+
 
             // var gui = new dat.GUI({
             //     autoPlace: false

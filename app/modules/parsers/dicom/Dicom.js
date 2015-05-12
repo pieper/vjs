@@ -9,6 +9,50 @@ VJS.Parsers.Dicom = function(files) {
     this.files = files;
 };
 
+/**
+ files is an array of URLs
+*/
+VJS.Parsers.Dicom.loadAndParse = function(files) {
+
+    //var files = ['/data/dcm/fruit', '/data/dcm/US-RGB-8-esopecho'];
+    //var names = ['fruit', 'US-RGB-8-esopecho', 'WRIX'];
+
+    return files.map(function(url, i) {
+        // fetch data
+        return fetch(url)
+            // get blob from URL
+            .then(function(response) {
+                return response.blob();
+            })
+            // blob to array buffer
+            .then(function(blob) {
+                return VJS.Parsers.Dicom.blobToArrayBuffer(blob);
+            })
+            // save on virutal FS
+            .then(function(arrayBuffer) {
+                return VJS.Parsers.Dicom.writeToFS(url, arrayBuffer, {
+                    encoding: 'binary'
+                });
+            })
+            // dump to XML
+            .then(function() {
+                return VJS.Parsers.Dicom.dumpToXML(url);
+            })
+            // XML to DOM (jQuery friendly)
+            .then(function(xml) {
+                // make a DOM to query and a DOM to update
+                var $dicomDom = $.parseXML(xml);
+                return $dicomDom;
+            })
+            .then(function(dom) {
+                window.console.log(files[i], ' loaded and parsed!');
+                // create viewer friendly object
+                return VJS.Parsers.Dicom.domToImage(dom, url);
+            });
+    });
+
+};
+
 VJS.Parsers.Dicom.dumpToXML = function(url) {
     return new Promise(function(resolve) {
         // dcmudmp
@@ -57,128 +101,81 @@ VJS.Parsers.Dicom.blobToArrayBuffer = function(blob) {
     });
 };
 
-function filterByID(obj) {
-    /*jshint validthis:true*/
-    if ('uid' in obj && typeof(obj.uid) === 'number' && !isNaN(obj.uid) && obj.uid === this) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function positionAndTime(obj) {
-    /*jshint validthis:true*/
-    if ('temporalPositionIndex' in obj && 'inStackPositionNumber' in obj && obj.temporalPositionIndex === this.temporalPositionIndex && obj.inStackPositionNumber === this.inStackPositionNumber) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-VJS.Parsers.Dicom.fillDimensionIndexSequence = function(data) {
-    return function() {
-        data.push({
-            'dimensionDescriptionLabel': $(this).find('[tag="00209421"] Value').text()
-        });
-    };
-};
-
-VJS.Parsers.Dicom.fillDimensionIndexValues = function(frameModel) {
-    return function() {
-        frameModel.dimensionIndexValues.push($(this).text());
-    };
-};
-
 VJS.Parsers.Dicom.domToImage = function(dom, url) {
 
+    // First we generate all frames
     var filename = VJS.Parsers.Dicom.urlToFilename(url);
+    var imageFilePath = filename + '-raw.8b';
+    // no... save all frame only 1 time..!
+    dcmjs.utils.execute('dcm2pnm', ['--verbose', '--all-frames', '--write-raw-pnm', filename, imageFilePath]);
 
     var $dom = $(dom);
 
     // Create an image
     var imageModel = new VJS.image.model();
 
-    imageModel.concatenationUID = VJS.Parsers.Dicom.getImageConcatenationUID($dom);
-    imageModel.seriesUID = VJS.Parsers.Dicom.getImageSeriesUID($dom);
-    imageModel.seriesNumber = VJS.Parsers.Dicom.getImageSeriesNumber($dom);
+    imageModel._concatenationUID = VJS.Parsers.Dicom.getImageConcatenationUID($dom);
+    imageModel._seriesUID = VJS.Parsers.Dicom.getImageSeriesUID($dom);
+    imageModel._seriesNumber = VJS.Parsers.Dicom.getImageSeriesNumber($dom);
 
     // all dim uids in this SOP
     //var dimensionOrganizationSequence = $dom.find('[tag="00209221"]').text();
 
     // list of dims with more info...
-    imageModel.dimensionIndexSequence = VJS.Parsers.Dicom.getImageDimensionIndexSequence($dom);
+    imageModel._dimensionIndexSequence = VJS.Parsers.Dicom.getImageDimensionIndexSequence($dom);
 
-    var rows = parseInt($dom.find('[tag="00280010"]').text(), 10);
-    imageModel._rows = rows;
-
-    var columns = parseInt($dom.find('[tag="00280011"]').text(), 10);
-    imageModel.columns = columns;
-
-    var photometricInterpretation = $dom.find('[tag="00280004"] Value').text();
-    imageModel.photometricInterpretation = photometricInterpretation;
-
-    // generate the frames!
-
-    // get the pixel data for this frame!
-    var imageFilePath = filename + '-raw.8b';
-    // no... save all frame only 1 time..!
-    dcmjs.utils.execute('dcm2pnm', ['--verbose', '--all-frames', '--write-raw-pnm', filename, imageFilePath]);
+    imageModel._rows = VJS.Parsers.Dicom.getImageRows($dom);
+    imageModel._columns = VJS.Parsers.Dicom.getImageColumns($dom);
+    imageModel._photometricInterpretation = VJS.Parsers.Dicom.getImagePhotometricInterpretation($dom);
 
     //var $sharedFunctionalGroupsSequence = $dom.find('[tag="52009229"]');
-    var numberOfFrames = VJS.Parsers.Dicom.getImageNumberOfFrames($dom);
+    imageModel._numberOfFrames = VJS.Parsers.Dicom.getImageNumberOfFrames($dom);
 
-    for (var i = 0; i < numberOfFrames; i++) {
+    for (var i = 0; i < imageModel._numberOfFrames; i++) {
         // run in //
 
         // get frame specific information
         var frameIndex = i + 1;
-        var $perFrameFunctionalGroupsSequence = $dom.find('[tag="52009230"] > [number="' + frameIndex + '"]');
+        var $perFrameFunctionalGroupsSequence = VJS.Parsers.Dicom.getImagePerFrameFunctionalGroupSequence(frameIndex, $dom);
 
-        var stackID = parseInt($perFrameFunctionalGroupsSequence.find('[tag="00209111"] [tag="00209056"] Value').text(), 10);
-        var inStackPositionNumber = parseInt($perFrameFunctionalGroupsSequence.find('[tag="00209111"] [tag="00209057"] Value').text(), 10);
-        var temporalPositionIndex = parseInt($perFrameFunctionalGroupsSequence.find('[tag="00209111"] [tag="00209128"] Value').text(), 10);
-
-        window.console.log('stackID', stackID);
-        if (stackID === 'NaN') {
-            stackID = 1;
-            inStackPositionNumber = 1;
-            temporalPositionIndex = 1;
-        }
+        var stackID = VJS.Parsers.Dicom.getFrameStackID($perFrameFunctionalGroupsSequence, $dom);
+        var inStackPositionNumber = VJS.Parsers.Dicom.getFrameInStackPositionNumber($perFrameFunctionalGroupsSequence, $dom);
+        var temporalPositionIndex = VJS.Parsers.Dicom.getFrameTemporalPostionIndex($perFrameFunctionalGroupsSequence, $dom);
 
         var currentStack = null;
-        var stackByID = imageModel.stack.filter(filterByID, stackID);
+        var stackByID = imageModel._stack.filter(VJS.Parsers.Dicom.filterByStackID, stackID);
 
         // Create stack object and add it to image if necessary
         if (stackByID.length === 0) {
             //window.console.log('+++ stack');
             var stackModel = new VJS.stack.model();
-            stackModel.uid = stackID;
-            imageModel.stack.push(stackModel);
+            stackModel._stackID = stackID;
+            imageModel._stack.push(stackModel);
             currentStack = stackModel;
         } else {
             //window.console.log('= stack');
             currentStack = stackByID[0];
         }
 
-        currentStack._rows = rows;
-        currentStack._columns = columns;
+        currentStack._rows = imageModel._rows;
+        currentStack._columns = imageModel._columns;
 
         // Add frame to Stack
         var currentFrame = null;
 
         // use dimension instead to know if already there!
-        var frameByPositionAndTime = currentStack.frame.filter(positionAndTime, {
-            'inStackPositionNumber': inStackPositionNumber,
-            'temporalPositionIndex': temporalPositionIndex
+        var frameByPositionAndTime = currentStack._frame.filter(VJS.Parsers.Dicom.positionAndTime, {
+            '_inStackPositionNumber': inStackPositionNumber,
+            '_temporalPositionIndex': temporalPositionIndex
         });
 
         // Create frame object and add it to image if necessary
         if (frameByPositionAndTime.length === 0) {
             //window.console.log('+++ frame');
             var frameModel = new VJS.frame.model();
-            frameModel.inStackPositionNumber = inStackPositionNumber;
-            frameModel.temporalPositionIndex = temporalPositionIndex;
-            currentStack.frame.push(frameModel);
+            frameModel._inStackPositionNumber = inStackPositionNumber;
+            frameModel._temporalPositionIndex = temporalPositionIndex;
+            currentStack._frame.push(frameModel);
             currentFrame = frameModel;
         } else {
             //window.console.log('= frame');
@@ -190,44 +187,24 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
         //
         // General Information
         //
-        currentFrame._rows = rows;
-        currentFrame._columns = columns;
+        currentFrame._rows = currentStack._rows;
+        currentFrame._columns = currentStack._columns;
 
         //
         // Frame Content Sequence
         //
-        currentFrame.stackID = stackID;
-        currentFrame.inStackPositionNumber = inStackPositionNumber;
-        currentFrame.temporalPositionIndex = temporalPositionIndex;
-        // get values from dimension! = Onject vale / label
-        var $perFrameDimension = $perFrameFunctionalGroupsSequence.find('[tag="00209111"] [tag="00209157"]');
-        currentFrame.dimensionIndexValues = [];
-        $perFrameDimension.children().each(VJS.Parsers.Dicom.fillDimensionIndexValues(currentFrame));
-
-        //
-        // Plane Position Sequence
-        //
-        currentFrame.imagePositionPatient.x = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209113"] [tag="00200032"] Value[number="1"]').text(), 10);
-        currentFrame.imagePositionPatient.y = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209113"] [tag="00200032"] Value[number="2"]').text(), 10);
-        currentFrame.imagePositionPatient.z = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209113"] [tag="00200032"] Value[number="3"]').text(), 10);
-
-        //
-        // Plane Orientation Sequence
-        //
-        currentFrame.imageOrientationPatient.row.x = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209116"] [tag="00200037"] Value[number="1"]').text(), 10);
-        currentFrame.imageOrientationPatient.row.y = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209116"] [tag="00200037"] Value[number="2"]').text(), 10);
-        currentFrame.imageOrientationPatient.row.z = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209116"] [tag="00200037"] Value[number="3"]').text(), 10);
-        currentFrame.imageOrientationPatient.column.x = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209116"] [tag="00200037"] Value[number="4"]').text(), 10);
-        currentFrame.imageOrientationPatient.column.y = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209116"] [tag="00200037"] Value[number="5"]').text(), 10);
-        currentFrame.imageOrientationPatient.column.z = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00209116"] [tag="00200037"] Value[number="6"]').text(), 10);
+        currentFrame._stackID = stackID;
+        currentFrame._inStackPositionNumber = inStackPositionNumber;
+        currentFrame._temporalPositionIndex = temporalPositionIndex;
+        currentFrame._dimensionIndexValues = VJS.Parsers.Dicom.getFrameDimensionIndexValues($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._imagePositionPatient = VJS.Parsers.Dicom.getFrameImagePositionPatient($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._imageOrientationPatient = VJS.Parsers.Dicom.getFrameImageOrientationPatient($perFrameFunctionalGroupsSequence, $dom);
 
         //
         // Pixel Measure Sequence
         //
-        currentFrame.sliceThickness = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00289110"] [tag="00180050"] Value').text(), 10);
-
-        currentFrame.pixelSpacing.row = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00289110"] [tag="00280030"] Value[number="1"]').text(), 10);
-        currentFrame.pixelSpacing.column = parseFloat($perFrameFunctionalGroupsSequence.find('[tag="00289110"] [tag="00280030"] Value[number="2"]').text(), 10);
+        currentFrame._sliceThickness = VJS.Parsers.Dicom.getFrameSliceThickness($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._pixelSpacing = VJS.Parsers.Dicom.getFramePixelSpacing($perFrameFunctionalGroupsSequence, $dom);
 
         // use dimension!!
 
@@ -235,15 +212,15 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
         // pixel type? (to guess file extension)
         var ppmExtension = 'pgm';
         currentFrame.nbChannels = 1;
-        if (imageModel.photometricInterpretation === 'RGB' ||
-            imageModel.photometricInterpretation === 'PALETTE COLOR' ||
-            imageModel.photometricInterpretation === 'YBR_FULL' ||
-            imageModel.photometricInterpretation === 'YBR_FULL_422' ||
-            imageModel.photometricInterpretation === 'YBR_PARTIAL_422' ||
-            imageModel.photometricInterpretation === 'YBR_PARTIAL_420' ||
-            imageModel.photometricInterpretation === 'YBR_RCT') {
+        if (imageModel._photometricInterpretation === 'RGB' ||
+            imageModel._photometricInterpretation === 'PALETTE COLOR' ||
+            imageModel._photometricInterpretation === 'YBR_FULL' ||
+            imageModel._photometricInterpretation === 'YBR_FULL_422' ||
+            imageModel._photometricInterpretation === 'YBR_PARTIAL_422' ||
+            imageModel._photometricInterpretation === 'YBR_PARTIAL_420' ||
+            imageModel._photometricInterpretation === 'YBR_RCT') {
             ppmExtension = 'ppm';
-            currentFrame.nbChannels = 3;
+            currentFrame._nbChannels = 3;
         }
         var stat = FS.stat(imageFilePath + '.' + i + '.' + ppmExtension);
         var stream = FS.open(imageFilePath + '.' + i + '.' + ppmExtension);
@@ -253,9 +230,9 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
 
         // // // https://www.branah.com/ascii-converter
         // // // dec to ascii
-        // use rows*cols
+        // always 15 bits header?
         var pixelData = pnmBuffer.subarray(15);
-        currentFrame.pixelData = pixelData;
+        currentFrame._pixelData = pixelData;
 
         // mailing list for DICOM?
     }
@@ -270,51 +247,6 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
     // how do we get pixel data from there...?
     // where does time fit?
     return imageModel;
-};
-
-
-/**
- files is an array of URLs
-*/
-VJS.Parsers.Dicom.loadAndParse = function(files) {
-
-    //var files = ['/data/dcm/fruit', '/data/dcm/US-RGB-8-esopecho'];
-    //var names = ['fruit', 'US-RGB-8-esopecho', 'WRIX'];
-
-    return files.map(function(url, i) {
-        // fetch data
-        return fetch(url)
-            // get blob from URL
-            .then(function(response) {
-                return response.blob();
-            })
-            // blob to array buffer
-            .then(function(blob) {
-                return VJS.Parsers.Dicom.blobToArrayBuffer(blob);
-            })
-            // save on virutal FS
-            .then(function(arrayBuffer) {
-                return VJS.Parsers.Dicom.writeToFS(url, arrayBuffer, {
-                    encoding: 'binary'
-                });
-            })
-            // dump to XML
-            .then(function() {
-                return VJS.Parsers.Dicom.dumpToXML(url);
-            })
-            // XML to DOM (jQuery friendly)
-            .then(function(xml) {
-                // make a DOM to query and a DOM to update
-                var $dicomDom = $.parseXML(xml);
-                return $dicomDom;
-            })
-            .then(function(dom) {
-                window.console.log(files[i], ' loaded and parsed!');
-                // create viewer friendly object
-                return VJS.Parsers.Dicom.domToImage(dom, url);
-            });
-    });
-
 };
 
 // 
@@ -372,12 +304,227 @@ VJS.Parsers.Dicom.getImageDimensionIndexSequence = function(imageJqueryDom) {
     return data;
 };
 
+VJS.Parsers.Dicom.fillDimensionIndexSequence = function(data) {
+    return function() {
+        data.push({
+            'dimensionDescriptionLabel': $(this).find('[tag="00209421"] Value').text()
+        });
+    };
+};
+
+VJS.Parsers.Dicom.getImageRows = function(imageJqueryDom) {
+    var rows = parseInt(imageJqueryDom.find('[tag="00280010"]').text(), 10);
+    return rows;
+};
+
+VJS.Parsers.Dicom.getImageColumns = function(imageJqueryDom) {
+    var columns = parseInt(imageJqueryDom.find('[tag="00280011"]').text(), 10);
+    return columns;
+};
+
+VJS.Parsers.Dicom.getImagePhotometricInterpretation = function(imageJqueryDom) {
+    var photometricInterpretation = imageJqueryDom.find('[tag="00280004"] Value').text();
+    return photometricInterpretation;
+};
+
+VJS.Parsers.Dicom.getImagePerFrameFunctionalGroupSequence = function(frameIndex, imageJqueryDom) {
+    var $perFrameFunctionalGroupSequence = imageJqueryDom.find('[tag="52009230"] > [number="' + frameIndex + '"]');
+    return $perFrameFunctionalGroupSequence;
+};
+
+VJS.Parsers.Dicom.filterByStackID = function(obj) {
+    /*jshint validthis:true*/
+    if ('_stackID' in obj && typeof(obj._stackID) === 'number' && !isNaN(obj._stackID) && obj._stackID === this) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
 //
 //STACK RELATED CONVENIENCE METHODS
 //
-
+// SHOULD WE PASS FRAME INDEX + IMAGE DOM INSTEAD OF FRAME DOM?
 //
 //FRAME RELATED CONVENIENCE METHODS
+//
+VJS.Parsers.Dicom.getFrameStackID = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var stackID = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209056"] Value').text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (stackID === 'NaN') {
+        window.console.log('stackID', stackID);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+        stackID = 1;
+    }
+
+    return stackID;
+};
+
+VJS.Parsers.Dicom.getFrameInStackPositionNumber = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var inStackPositionNumber = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209057"] Value').text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (inStackPositionNumber === 'NaN') {
+        window.console.log('inStackPositionNumber', inStackPositionNumber);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+        inStackPositionNumber = 1;
+    }
+
+    return inStackPositionNumber;
+};
+
+VJS.Parsers.Dicom.getFrameTemporalPostionIndex = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var temporalPositionIndex = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209128"] Value').text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (temporalPositionIndex === 'NaN') {
+        window.console.log('temporalPositionIndex', temporalPositionIndex);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+        temporalPositionIndex = 1;
+    }
+
+    return temporalPositionIndex;
+};
+
+
+VJS.Parsers.Dicom.getFrameDimensionIndexValues = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var $perFrameDimension = frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209157"]');
+    var dimensionIndexValues = [];
+    $perFrameDimension.children().each(VJS.Parsers.Dicom.fillDimensionIndexValues(dimensionIndexValues));
+
+    // or look for it in the imageJqueryDom?
+    if (!$perFrameDimension) {
+        window.console.log('$perFrameDimension', $perFrameDimension);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+    }
+
+    return dimensionIndexValues;
+};
+
+VJS.Parsers.Dicom.fillDimensionIndexValues = function(container) {
+    return function() {
+        container.push($(this).text());
+    };
+};
+
+
+VJS.Parsers.Dicom.positionAndTime = function(obj) {
+    /*jshint validthis:true*/
+    if ('_temporalPositionIndex' in obj && '_inStackPositionNumber' in obj && obj._temporalPositionIndex === this._temporalPositionIndex && obj._inStackPositionNumber === this._inStackPositionNumber) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+VJS.Parsers.Dicom.getFrameImagePositionPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var imagePositionPatient = {
+        'x': 0,
+        'y': 0,
+        'z': 0
+    };
+    imagePositionPatient.x = parseFloat(frameJqueryPreFrameDom.find('[tag="00209113"] [tag="00200032"] Value[number="1"]').text(), 10);
+    imagePositionPatient.y = parseFloat(frameJqueryPreFrameDom.find('[tag="00209113"] [tag="00200032"] Value[number="2"]').text(), 10);
+    imagePositionPatient.z = parseFloat(frameJqueryPreFrameDom.find('[tag="00209113"] [tag="00200032"] Value[number="3"]').text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (imagePositionPatient.x === 'NaN' || imagePositionPatient.y === 'NaN' || imagePositionPatient.z === 'NaN') {
+        window.console.log('imagePositionPatient', imagePositionPatient);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+        imagePositionPatient = {
+            'x': 0,
+            'y': 0,
+            'z': 0
+        };
+    }
+
+    return imagePositionPatient;
+};
+
+VJS.Parsers.Dicom.getFrameImageOrientationPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var imageOrientationPatient = {
+        'row': {
+            'x': 0,
+            'y': 0,
+            'z': 0
+        },
+        'column': {
+            'x': 0,
+            'y': 0,
+            'z': 0
+        }
+    };
+    imageOrientationPatient.row.x = parseFloat(frameJqueryPreFrameDom.find('[tag="00209116"] [tag="00200037"] Value[number="1"]').text(), 10);
+    imageOrientationPatient.row.y = parseFloat(frameJqueryPreFrameDom.find('[tag="00209116"] [tag="00200037"] Value[number="2"]').text(), 10);
+    imageOrientationPatient.row.z = parseFloat(frameJqueryPreFrameDom.find('[tag="00209116"] [tag="00200037"] Value[number="3"]').text(), 10);
+    imageOrientationPatient.column.x = parseFloat(frameJqueryPreFrameDom.find('[tag="00209116"] [tag="00200037"] Value[number="4"]').text(), 10);
+    imageOrientationPatient.column.y = parseFloat(frameJqueryPreFrameDom.find('[tag="00209116"] [tag="00200037"] Value[number="5"]').text(), 10);
+    imageOrientationPatient.column.z = parseFloat(frameJqueryPreFrameDom.find('[tag="00209116"] [tag="00200037"] Value[number="6"]').text(), 10);
+
+
+    // or look for it in the imageJqueryDom?
+    if (imageOrientationPatient.row.x === 'NaN' || imageOrientationPatient.row.y === 'NaN' || imageOrientationPatient.row.z === 'NaN' || imageOrientationPatient.column.x === 'NaN' || imageOrientationPatient.column.y === 'NaN' || imageOrientationPatient.column.z === 'NaN') {
+        window.console.log('imageOrientationPatient', imageOrientationPatient);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+        imageOrientationPatient = {
+            'row': {
+                'x': 0,
+                'y': 0,
+                'z': 0
+            },
+            'column': {
+                'x': 0,
+                'y': 0,
+                'z': 0
+            }
+        };
+    }
+
+    return imageOrientationPatient;
+};
+
+VJS.Parsers.Dicom.getFrameSliceThickness = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var sliceThickness = parseFloat(frameJqueryPreFrameDom.find('[tag="00289110"] [tag="00180050"] Value').text(), 10);
+    // or look for it in the imageJqueryDom?
+    if (sliceThickness === 'NaN') {
+        window.console.log('sliceThickness', sliceThickness);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+        sliceThickness = 1;
+    }
+
+    return sliceThickness;
+};
+
+VJS.Parsers.Dicom.getFramePixelSpacing = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var pixelSpacing = {
+        'row': 1,
+        'column': 1
+    };
+
+    pixelSpacing.row = parseFloat(frameJqueryPreFrameDom.find('[tag="00289110"] [tag="00280030"] Value[number="1"]').text(), 10);
+    pixelSpacing.column = parseFloat(frameJqueryPreFrameDom.find('[tag="00289110"] [tag="00280030"] Value[number="2"]').text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (pixelSpacing.row === 'NaN' || pixelSpacing.column === 'NaN') {
+        window.console.log('pixelSpacing', pixelSpacing);
+        window.console.log('imageJqueryDom', imageJqueryDom);
+        pixelSpacing = {
+            'row': 1,
+            'column': 1
+        };
+    }
+
+    return pixelSpacing;
+};
+
+
+
+
+//
+// Plane Orientation Sequence
+//
+
 //
 // getFrame
 // getFrameSpacing

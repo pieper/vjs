@@ -26,10 +26,13 @@ VJS.frame.view.prototype.threejsframe = function() {
     var geometry = new THREE.PlaneGeometry(width, height);
 
     var textureFormat = THREE.LuminanceFormat;
-    if (this.vjsModel.nbChannels === 3) {
+    if (this.vjsModel._nbChannels === 3) {
         textureFormat = THREE.RGBFormat;
     }
-    var rampTex = new THREE.DataTexture(this.vjsModel.pixelData, width, height, textureFormat);
+
+    window.console.log(textureFormat);
+
+    var rampTex = new THREE.DataTexture(this.vjsModel._pixelData, width, height, textureFormat);
     rampTex.needsUpdate = true;
     rampTex.magFilter = THREE.NearestFilter;
     rampTex.minFilter = THREE.LinearMipMapLinearFilter;

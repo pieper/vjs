@@ -1,13 +1,13 @@
 'use strict';
 
 var VJS = VJS || {};
-VJS.Intersections = VJS.Intersections || {};
+VJS.intersections = VJS.intersections || {};
 
-VJS.Intersections.obbPlane = function(obb, plane) {
+VJS.intersections.obbPlane = function(obb, plane) {
 
     //
     // obb = { halfDimensions, orientation, center, toOBBSpace }
-    // plane = { origin, normal }
+    // plane = { origin, direction }
     //
     //
     // LOGIC:
@@ -38,20 +38,18 @@ VJS.Intersections.obbPlane = function(obb, plane) {
     // 1- Move Plane origin and orientation in IJK space
     // 2- Test Edges/ IJK Plane intersections
     // 3- Return intersection Edge/ IJK Plane if it touches the Oriented BBox
-    // NOTE: Return intersection in Normal's space (toOBBSpaceInvert applied...)
+    // NOTE: Return intersection in direction's space (toOBBSpaceInvert applied...)
 
 
     var intersections = [];
 
-    var t1 = plane.normal.clone().applyMatrix4(obb.toOBBSpace);
+    var t1 = plane.direction.clone().applyMatrix4(obb.toOBBSpace);
     var t0 = new THREE.Vector3(0, 0, 0).applyMatrix4(obb.toOBBSpace);
 
     var planeOBB = {
         origin: plane.origin.clone().applyMatrix4(obb.toOBBSpace),
-        normal: new THREE.Vector3(t1.x - t0.x, t1.y - t0.y, t1.z - t0.z).normalize()
+        direction: new THREE.Vector3(t1.x - t0.x, t1.y - t0.y, t1.z - t0.z).normalize()
     };
-
-    window.console.log(planeOBB);
 
     // 12 edges (i.e. ray)/plane intersection tests
 
@@ -67,7 +65,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
 
     var ray = {
         'origin': new THREE.Vector3(obb.center.x - obb.halfDimensions.x, obb.center.y - obb.halfDimensions.y, obb.center.z - obb.halfDimensions.z),
-        'normal': obb.orientation.x
+        'direction': obb.orientation.x
     };
 
     var intersection = this.rayPlane(ray, planeOBB);
@@ -78,7 +76,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
     }
 
-    ray.normal = obb.orientation.y;
+    ray.direction = obb.orientation.y;
     intersection = this.rayPlane(ray, planeOBB);
     if (intersection && intersection.x >= 0 && intersection.y >= 0 && intersection.z >= 0 &&
         intersection.x <= 2 * obb.halfDimensions.x &&
@@ -87,7 +85,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
     }
 
-    ray.normal = obb.orientation.z;
+    ray.direction = obb.orientation.z;
     intersection = this.rayPlane(ray, planeOBB);
     if (intersection && intersection.x >= 0 && intersection.y >= 0 && intersection.z >= 0 &&
         intersection.x <= 2 * obb.halfDimensions.x &&
@@ -109,7 +107,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
 
     ray = {
         'origin': new THREE.Vector3(obb.center.x + obb.halfDimensions.x, obb.center.y + obb.halfDimensions.y, obb.center.z + obb.halfDimensions.z),
-        'normal': obb.orientation.x
+        'direction': obb.orientation.x
     };
 
     intersection = this.rayPlane(ray, planeOBB);
@@ -120,7 +118,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
     }
 
-    ray.normal = obb.orientation.y;
+    ray.direction = obb.orientation.y;
     intersection = this.rayPlane(ray, planeOBB);
     if (intersection && intersection.x >= 0 && intersection.y >= 0 && intersection.z >= 0 &&
         intersection.x <= 2 * obb.halfDimensions.x &&
@@ -129,7 +127,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
     }
 
-    ray.normal = obb.orientation.z;
+    ray.direction = obb.orientation.z;
     intersection = this.rayPlane(ray, planeOBB);
     if (intersection && intersection.x >= 0 && intersection.y >= 0 && intersection.z >= 0 &&
         intersection.x <= 2 * obb.halfDimensions.x &&
@@ -150,7 +148,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
 
     ray = {
         'origin': new THREE.Vector3(obb.center.x + obb.halfDimensions.x, obb.center.y - obb.halfDimensions.y, obb.center.z - obb.halfDimensions.z),
-        'normal': obb.orientation.y
+        'direction': obb.orientation.y
     };
 
     intersection = this.rayPlane(ray, planeOBB);
@@ -161,7 +159,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
     }
 
-    ray.normal = obb.orientation.z;
+    ray.direction = obb.orientation.z;
     intersection = this.rayPlane(ray, planeOBB);
     if (intersection && intersection.x >= 0 && intersection.y >= 0 && intersection.z >= 0 &&
         intersection.x <= 2 * obb.halfDimensions.x &&
@@ -182,7 +180,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
 
     ray = {
         'origin': new THREE.Vector3(obb.center.x - obb.halfDimensions.x, obb.center.y + obb.halfDimensions.y, obb.center.z - obb.halfDimensions.z),
-        'normal': obb.orientation.x
+        'direction': obb.orientation.x
     };
 
     intersection = this.rayPlane(ray, planeOBB);
@@ -193,7 +191,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
     }
 
-    ray.normal = obb.orientation.z;
+    ray.direction = obb.orientation.z;
     intersection = this.rayPlane(ray, planeOBB);
     if (intersection && intersection.x >= 0 && intersection.y >= 0 && intersection.z >= 0 &&
         intersection.x <= 2 * obb.halfDimensions.x &&
@@ -214,7 +212,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
 
     ray = {
         'origin': new THREE.Vector3(obb.center.x - obb.halfDimensions.x, obb.center.y - obb.halfDimensions.y, obb.center.z + obb.halfDimensions.z),
-        'normal': obb.orientation.x
+        'direction': obb.orientation.x
     };
 
     intersection = this.rayPlane(ray, planeOBB);
@@ -225,7 +223,7 @@ VJS.Intersections.obbPlane = function(obb, plane) {
         intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
     }
 
-    ray.normal = obb.orientation.y;
+    ray.direction = obb.orientation.y;
     intersection = this.rayPlane(ray, planeOBB);
     if (intersection && intersection.x >= 0 && intersection.y >= 0 && intersection.z >= 0 &&
         intersection.x <= 2 * obb.halfDimensions.x &&
@@ -237,11 +235,11 @@ VJS.Intersections.obbPlane = function(obb, plane) {
     return intersections;
 };
 
-VJS.Intersections.rayPlane = function(ray, plane) {
-    // ray: {origin, normal}
-    // plane: {origin, normal}
+VJS.intersections.rayPlane = function(ray, plane) {
+    // ray: {origin, direction}
+    // plane: {origin, direction}
 
-    if (ray.normal.dot(plane.normal) !== 0) {
+    if (ray.direction.dot(plane.direction) !== 0) {
         //
         // not parallel, move forward
         //
@@ -250,35 +248,35 @@ VJS.Intersections.rayPlane = function(ray, plane) {
         // Ray equation: P = P0 + tV
         // P = <Px, Py, Pz>
         // P0 = <ray.origin.x, ray.origin.y, ray.origin.z>
-        // V = <ray.normal.x, ray.normal.y, ray.normal.z>
+        // V = <ray.direction.x, ray.direction.y, ray.direction.z>
         //
         // Therefore:
-        // Px = ray.origin.x + t*ray.normal.x
-        // Py = ray.origin.y + t*ray.normal.y
-        // Pz = ray.origin.z + t*ray.normal.z
+        // Px = ray.origin.x + t*ray.direction.x
+        // Py = ray.origin.y + t*ray.direction.y
+        // Pz = ray.origin.z + t*ray.direction.z
         //
         //
         //
         // Plane equation: ax + by + cz + d = 0
-        // a = plane.normal.x
-        // b = plane.normal.y
-        // c = plane.normal.z
-        // d = -( plane.normal.x*plane.origin.x +
-        //        plane.normal.y*plane.origin.y +
-        //        plane.normal.z*plane.origin.z )
+        // a = plane.direction.x
+        // b = plane.direction.y
+        // c = plane.direction.z
+        // d = -( plane.direction.x*plane.origin.x +
+        //        plane.direction.y*plane.origin.y +
+        //        plane.direction.z*plane.origin.z )
         //
         //
         // 1- in the plane equation, we replace x, y and z by Px, Py and Pz
         // 2- find t
         // 3- replace t in Px, Py and Pz to get the coordinate of the intersection
         //
-        var t = (plane.normal.x * (plane.origin.x - ray.origin.x) + plane.normal.y * (plane.origin.y - ray.origin.y) + plane.normal.z * (plane.origin.z - ray.origin.z)) /
-            (plane.normal.x * ray.normal.x + plane.normal.y * ray.normal.y + plane.normal.z * ray.normal.z);
+        var t = (plane.direction.x * (plane.origin.x - ray.origin.x) + plane.direction.y * (plane.origin.y - ray.origin.y) + plane.direction.z * (plane.origin.z - ray.origin.z)) /
+            (plane.direction.x * ray.direction.x + plane.direction.y * ray.direction.y + plane.direction.z * ray.direction.z);
 
         var intersection = new THREE.Vector3(
-            ray.origin.x + t * ray.normal.x,
-            ray.origin.y + t * ray.normal.y,
-            ray.origin.z + t * ray.normal.z);
+            ray.origin.x + t * ray.direction.x,
+            ray.origin.y + t * ray.direction.y,
+            ray.origin.z + t * ray.direction.z);
 
         return intersection;
 

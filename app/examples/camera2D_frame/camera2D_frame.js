@@ -78,7 +78,7 @@ window.onload = function() {
             //
             // create threeJS friendly frame
             //
-            var frame = message[0].stack[0].frame[0];
+            var frame = message[0]._stack[0]._frame[0];
             var frameView = new VJS.frame.view(frame);
             // maybe this one should be in the constructor and we should have a new parameter which specifies the type of view...
             frameView.threejsframe();

@@ -90,7 +90,7 @@ window.onload = function() {
             // view the stack (N slices to start...)
             window.console.log('all parsed');
 
-            var stack = message[0].stack[0];
+            var stack = message[0]._stack[0];
             var stackView = new VJS.stack.view(stack);
             stackView.threejsframe(30);
             scene.add(stackView);
@@ -101,10 +101,10 @@ window.onload = function() {
             var customContainer = document.getElementById('my-gui-container');
             customContainer.appendChild(gui.domElement);
 
-            var frameIndexController = gui.add(stackView, 'frameIndex', 0, stack.frame.length - 1).step(1);
+            var frameIndexController = gui.add(stackView, 'frameIndex', 0, stack._frame.length - 1).step(1);
 
             frameIndexController.onChange(function(value) {
-                stackView.frame(value);
+                stackView.threejsframeUpdate(value);
             });
 
         })
