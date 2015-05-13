@@ -1,10 +1,18 @@
 'use strict';
 
 var VJS = VJS || {};
+
 VJS.stack = VJS.stack || {};
 
 /**
- * Viewer of stack module.
+ * Viewer of stack module
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.stack
+ * @public
+ *
+ * @param {VJS.stack.model} stackModel - A valid stack model.
  */
 VJS.stack.view = function(stackModel) {
     this.vjsModel = stackModel;
@@ -19,6 +27,23 @@ VJS.stack.view = function(stackModel) {
 VJS.stack.view.prototype = Object.create(THREE.Mesh.prototype);
 VJS.stack.view.prototype.constructor = VJS.stack.view;
 
+/**
+ * Create a frame from stack provided to constructor.
+ * Clean cut on exact frame index.
+ *
+ * Makes current view threeJS friendly.
+ *
+ * @public
+ * @param {number} frameindex - Frame index to be displayed.
+ *
+ * @example
+ * var frameView = new VJS.stack.view(stackModel);
+ * frameView.threejsframe(6);
+ *
+ * scene.add(frameView); // add view to THREEJS scene!
+ *
+ *
+ */
 VJS.stack.view.prototype.threejsframe = function(frameindex) {
 
     // should probably leverage frame view :)
@@ -60,6 +85,19 @@ VJS.stack.view.prototype.threejsframe = function(frameindex) {
     window.console.log(this);
 };
 
+/**
+ * Update a frame view
+ * @public
+ * @param {number} frameindex - Frame index to be displayed.
+ *
+ * @example
+ * var frameView = new VJS.stack.view(stackModel);
+ * frameView.threejsframe(6);
+ *
+ * scene.add(frameView); // add view to THREEJS scene!
+ *
+ * frameView.threejsframeUpdate(9); // update the frame to be displayed
+ */
 VJS.stack.view.prototype.threejsframeUpdate = function(frameindex) {
 
     // update the current frame

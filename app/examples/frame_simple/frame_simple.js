@@ -62,13 +62,13 @@ window.onload = function() {
     var files = ['/data/dcm/fruit'];
 
     // build loading + parsing sequence
-    var loadAndParse = VJS.Parsers.Dicom.loadAndParse(files);
+    var dcmParser = new VJS.parsers.dicom(files);
 
     // all set....
     // GO!
     Promise
     // all data downloaded and parsed
-        .all(loadAndParse)
+        .all(dcmParser.loadAndParse())
         // then...
         .then(function(message) {
             // merge images if needed!

@@ -1,27 +1,74 @@
 'use strict';
 
 var VJS = VJS || {};
+
 /**
- * @namespace
+ * stack namespace
+ * @namespace stack
+ * @memberOf VJS
  */
 VJS.stack = VJS.stack || {};
 
 /**
  * Define the model of a stack here
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.stack
  */
 VJS.stack.model = function() {
-    this.uid = null; // first stack ID -> (0020, 9056)
+    /**
+     * @member
+     * @type {string}
+     */
+    this._id = '-1';
+    /**
+     * @member
+     * @type {string}
+     */
+    this._uid = null; // first stack ID -> (0020, 9056)
+    /**
+     * @member
+     * @type {number}
+     */
     this._stackID = -1;
+    /**
+     * @member
+     * @type {Array.<VJS.frame.model>}
+     */
     this._frame = [];
-
+    /**
+     * @member
+     * @type {number}
+     */
     this._rows = 0;
+    /**
+     * @member
+     * @type {number}
+     */
     this._columns = 0;
+    /**
+     * @member
+     * @type {number}
+     */
     this._nbFrames = 0;
+    /**
+     * @member
+     * @type {Object}
+     * @property {number} row
+     * @property {number} column
+     */
     this._pixelSpacing = {
         'row': 0,
         'column': 0
     };
+    /**
+     * @member
+     * @type {number}
+     */
     this._sliceThickness = 0;
+
+
     // origin of the first slice of the stack!
     this._origin = null;
     this._halfDimensions = null;
@@ -35,8 +82,12 @@ VJS.stack.model = function() {
     this._lps2IJK = null;
 };
 
-// here me make sure eveything is ready for visualization.
-// might also have a switch to say what we can view and what we can not view with current stack
+/**
+ * here me make sure eveything is ready for visualization.
+ * might also have a switch to say what we can view and what we can not view with current stack
+ *
+ * @public
+ */
 VJS.stack.model.prototype.prepare = function() {
     // order the frames based on theirs dimension indices
     // first index is the most important.
@@ -187,6 +238,9 @@ VJS.stack.model.prototype.prepare = function() {
     // SWITCH TO DECIDE WHAT WE CAN VIEW OR NOT FROM HERE!
 };
 
+/**
+ * Order frames based on theirs dimensionIndexValues
+ */
 VJS.stack.model.prototype.orderFrameOnDimensionIndices = function(a, b) {
 
     if ('_dimensionIndexValues' in a && Object.prototype.toString.call(a._dimensionIndexValues) === '[object Array]' && '_dimensionIndexValues' in b && Object.prototype.toString.call(b._dimensionIndexValues) === '[object Array]') {

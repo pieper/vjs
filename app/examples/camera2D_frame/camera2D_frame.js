@@ -60,15 +60,13 @@ window.onload = function() {
 
     //var files = ['https://googledrive.com/host/0B8u7h0aKnydhfmluNDZHeHhYLVdudEpCcG5JTnI5ZzRYNUJOQnY0LWszWDJVdk1fdXl5MzQ/US-RGB-8-esopecho', 'https://googledrive.com/host/0B8u7h0aKnydhfmluNDZHeHhYLVdudEpCcG5JTnI5ZzRYNUJOQnY0LWszWDJVdk1fdXl5MzQ/US-RGB-8-esopecho'];
     var files = ['/data/dcm/US-RGB-8-esopecho'];
-
-    // build loading + parsing sequence
-    var loadAndParse = VJS.Parsers.Dicom.loadAndParse(files);
+    var dcmParser = new VJS.parsers.dicom(files);
 
     // all set....
     // GO!
     Promise
     // all data downloaded and parsed
-        .all(loadAndParse)
+        .all(dcmParser.loadAndParse())
         // then...
         .then(function(message) {
             //

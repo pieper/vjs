@@ -7,6 +7,15 @@ VJS.frame = VJS.frame || {};
  * Viewer of frame module.
  * It should be a group instead of a mesh!
  * So we can control border, frame, and whatever would be needed
+ * @todo test!!
+ * @example
+ * var x = foo("test"); //it will show "test" message
+ *
+ * Base frame viewer.
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.frame
  */
 VJS.frame.view = function(frameModel) {
     this.vjsModel = frameModel;

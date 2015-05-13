@@ -1,10 +1,43 @@
 'use strict';
 
 var VJS = VJS || {};
+
+/**
+ * intersections namespace
+ * @namespace intersections
+ * @memberOf VJS
+ */
 VJS.intersections = VJS.intersections || {};
+
+
+/**
+ * Compute intersection between oriented bounding box and a plane.
+ * Returns intersection in plane's space (toOBBSpaceInvert applied).
+ * Should return at least 3 intersections. If not, the plane and the box do not
+ * intersect.
+ *
+ * @memberOf VJS.intersections
+ * @public
+ *
+ * @param {Object} obb - Oriented Bounding Box representation.
+ * @param {THREE.Vector3} obb.halfDimensions - Half dimensions of the box.
+ * @param {THREE.Vector3<THREE.Vector3>} obb.orientation - Orientation of the edges of the box.
+ * @param {THREE.Vector3} obb.center - Center of the box.
+ * @param {THREE.Matrix4} obb.toOBBSpace - Transform to go from plane space to box space.
+ * @param {THREE.Matrix4} obb.toOBBSpaceInvert - Transform to go from box space to plane space.
+ * @param {Object} plane - Plane representation
+ * @param {THREE.Vector3} plane.origin - Origin of normal which describes the plane.
+ * @param {THREE.Vector3} plane.direction - Direction of normal which describes the plane.
+ *
+ * @return {Array<THREE.Vector3>} List of all intersections, in plane's space.
+ *
+ * @todo toOBBSpace and toOBBSpaceInvert might be redundent.
+ * @todo find best way to deal with different spaces.
+ */
 
 VJS.intersections.obbPlane = function(obb, plane) {
 
+    window.console.log('obbPlane', this);
     //
     // obb = { halfDimensions, orientation, center, toOBBSpace }
     // plane = { origin, direction }
@@ -38,8 +71,6 @@ VJS.intersections.obbPlane = function(obb, plane) {
     // 1- Move Plane origin and orientation in IJK space
     // 2- Test Edges/ IJK Plane intersections
     // 3- Return intersection Edge/ IJK Plane if it touches the Oriented BBox
-    // NOTE: Return intersection in direction's space (toOBBSpaceInvert applied...)
-
 
     var intersections = [];
 
@@ -235,6 +266,21 @@ VJS.intersections.obbPlane = function(obb, plane) {
     return intersections;
 };
 
+/**
+ * Compute intersection between a ray and a plane.
+ *
+ * @memberOf VJS.intersections
+ * @public
+ *
+ * @param {Object} ray - Ray representation.
+ * @param {THREE.Vector3} ray.origin - Origin of normal which describes the ray.
+ * @param {THREE.Vector3} ray.direction - Direction of normal which describes the ray.
+ * @param {Object} plane - Plane representation
+ * @param {THREE.Vector3} plane.origin - Origin of normal which describes the plane.
+ * @param {THREE.Vector3} plane.direction - Direction of normal which describes the plane.
+ *
+ * @return {THREE.Vector3|null} Intersection between ray and plane or null.
+ */
 VJS.intersections.rayPlane = function(ray, plane) {
     // ray: {origin, direction}
     // plane: {origin, direction}
@@ -282,6 +328,6 @@ VJS.intersections.rayPlane = function(ray, plane) {
 
     }
 
-    return;
+    return null;
 
 };

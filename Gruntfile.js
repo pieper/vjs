@@ -45,7 +45,7 @@ module.exports = function (grunt) {
       },
       js: {
         files: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/lib/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js'],
-        tasks: ['jshint', 'jsbeautifier'] //'jsdoc'
+        tasks: ['jshint', 'jsbeautifier', 'jsdoc']
       },
       styles: {
         files: ['<%= vjs.app %>/**/*.css'],
@@ -122,10 +122,10 @@ module.exports = function (grunt) {
         jshintrc: '.jshintrc',
         reporter: require('jshint-stylish')
       },
-      all: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js']
+      all: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js', '!<%= vjs.app %>/modules/deprecated/**/*']
     },
     jsbeautifier : {
-      files: ["<%= vjs.app %>/**/*.js", '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js'],
+      files: ["<%= vjs.app %>/**/*.js", '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js', '!<%= vjs.app %>/modules/deprecated/**/*'],
       options: {
           config: ".jshintrc"
       }
@@ -199,10 +199,10 @@ module.exports = function (grunt) {
     },
     jsdoc : {
       dist : {
-        src: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/lib/**/*.js'],
+        src: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js', '!<%= vjs.app %>/modules/deprecated/**/*'],
         options: {
           destination: '<%= vjs.app %>/doc',
-          template: 'node_modules/jaguarjs-jsdoc',
+          template: 'node_modules/jsdoc-baseline',
           configure: 'jsdoc.conf.json'
         }
       }

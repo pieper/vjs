@@ -3,21 +3,69 @@
 'use strict';
 
 var VJS = VJS || {};
-VJS.Parsers = VJS.Parsers || {};
 
-VJS.Parsers.Dicom = function(files) {
+/**
+ * parsers namespace
+ * @namespace parsers
+ * @memberOf VJS
+ */
+VJS.parsers = VJS.parsers || {};
+
+/**
+ * Dicom parser is a combination of utilities to get a VJS image from dicom files.
+ *
+ * Relies on dcmjs, jquery, HTML5 fetch API, HTML5 promise API.
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.parsers
+ * @public
+ *
+ * @param files {Array<string>} - List of files to be parsed. It is urls from which
+ * VJS.parsers.dicom can pull the data from.
+ */
+VJS.parsers.dicom = function(files) {
+    /**
+     * @member
+     * @type {Array<string>}
+     */
     this.files = files;
 };
 
 /**
- files is an array of URLs
-*/
-VJS.Parsers.Dicom.loadAndParse = function(files) {
+ * Promise convenience that will fetch and parse the data.
+ * Use it for generic (but not cusotmizable) usage.
+ *
+ * @todo handle directory structure properly
+ * @todo Last 4 calls should not be promises
+ *
+ *
+ * @memberOf VJS.parsers
+ * @public
+ *
+ * @param files {Array<string>} - List of files to be parsed. It is urls where
+ * VJS.parsers.dicom can pull the data from.
+ *
+ * @return Array<VJS.image> An VJS image for each dicom file.
+ *
+ * @example
+ * var files = ['/data/dcm/opecho-001.dcm', '/data/dcm/opecho-002.dcm', '/data/dcm/opecho-003.dcm'];
+ * var dicomParser = VJS.parsers.dicom.(files);
+ * Promise
+        .all(dicomParser.loadAndParse())
+        .then(function(images) {
+            // all the data was successfully loaded and parsed!
+            window.console.log(images);
+            // now we could "merge" images, display it, etc.
+        })
+        .catch(function(error) {
+            window.console.log(error);
+        });
+ */
+VJS.parsers.dicom.prototype.loadAndParse = function() {
+    var self = this;
 
-    //var files = ['/data/dcm/fruit', '/data/dcm/US-RGB-8-esopecho'];
-    //var names = ['fruit', 'US-RGB-8-esopecho', 'WRIX'];
-
-    return files.map(function(url, i) {
+    return self.files.map(function(url, i) {
         // fetch data
         return fetch(url)
             // get blob from URL
@@ -26,17 +74,17 @@ VJS.Parsers.Dicom.loadAndParse = function(files) {
             })
             // blob to array buffer
             .then(function(blob) {
-                return VJS.Parsers.Dicom.blobToArrayBuffer(blob);
+                return self.blobToArrayBuffer(blob);
             })
             // save on virutal FS
             .then(function(arrayBuffer) {
-                return VJS.Parsers.Dicom.writeToFS(url, arrayBuffer, {
+                return self.writeToFS(url, arrayBuffer, {
                     encoding: 'binary'
                 });
             })
             // dump to XML
             .then(function() {
-                return VJS.Parsers.Dicom.dumpToXML(url);
+                return self.dumpToXML(url);
             })
             // XML to DOM (jQuery friendly)
             .then(function(xml) {
@@ -45,15 +93,30 @@ VJS.Parsers.Dicom.loadAndParse = function(files) {
                 return $dicomDom;
             })
             .then(function(dom) {
-                window.console.log(files[i], ' loaded and parsed!');
+                window.console.log(self.files[i], ' loaded and parsed!');
                 // create viewer friendly object
-                return VJS.Parsers.Dicom.domToImage(dom, url);
+                return self.domToImage(dom, url);
             });
     });
 
 };
 
-VJS.Parsers.Dicom.dumpToXML = function(url) {
+/**
+ * Promise dump dicom file to xml.
+ * Call dcm2xml over a file previously savedd on the virtual FS.
+ * {@link http://support.dcmtk.org/docs-snapshot/dcm2xml.html}
+ *
+ * @todo Doesn't have to be a promise...
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param url {string} - Name of the file to be dumped.
+ *
+ * @return string Xml dump from dicom file.
+ */
+VJS.parsers.dicom.prototype.dumpToXML = function(url) {
+    var self = this;
+
     return new Promise(function(resolve) {
         // dcmudmp
         var dumpLines = [];
@@ -61,13 +124,13 @@ VJS.Parsers.Dicom.dumpToXML = function(url) {
             dumpLines.push(s);
         };
 
-        // http://support.dcmtk.org/docs-snapshot/dcm2xml.html
-        var filename = VJS.Parsers.Dicom.urlToFilename(url);
+
+        var filename = self.urlToFilename(url);
         var returnCode = dcmjs.utils.execute('dcm2xml', ['--native-format', filename]);
         Module.print = print;
         window.console.log(returnCode);
 
-        //var xml = VJS.Parsers.Dicom.printToXML(dumpLines);
+        //var xml = VJS.parsers.dicom.printToXML(dumpLines);
         var xml = dumpLines.join('\n');
         // also escape invalid characters!!!!!
 
@@ -75,23 +138,56 @@ VJS.Parsers.Dicom.dumpToXML = function(url) {
     });
 };
 
-VJS.Parsers.Dicom.urlToFilename = function(url) {
+/**
+ * Helper to extract filename from url.
+ *
+ * @param url {string} - Url to be processed.
+ *
+ * @return string Filename.
+ */
+VJS.parsers.dicom.prototype.urlToFilename = function(url) {
     // not optimized at all
     var filename = url.substring(url.lastIndexOf('/') + 1);
     return filename;
 };
 
-VJS.Parsers.Dicom.writeToFS = function(url, arraybuffer, options) {
+/**
+ * Promise dump dicom file to xml.
+ * Call dcm2xml over a file previously savedd on the virtual FS.
+ * {@link http://support.dcmtk.org/docs-snapshot/dcm2xml.html}
+ *
+ * @todo Doesn't have to be a promise...
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param url {string} - Name of the file to be dumped.
+ * @param url {ArrayBuffer} - Array Buffer.
+ * @param url {string} - Name of the file to be dumped.
+ *
+ * @return string Xml dump from dicom file.
+ */
+VJS.parsers.dicom.prototype.writeToFS = function(url, arraybuffer, options) {
+    var self = this;
     return new Promise(function(resolve) {
         var uploadedObject = new Int8Array(arraybuffer);
         // should create the FS tree maybe rather than just using filename...
-        var filename = VJS.Parsers.Dicom.urlToFilename(url);
+        var filename = self.urlToFilename(url);
         var output = FS.writeFile(filename, uploadedObject, options);
         resolve(output);
     });
 };
 
-VJS.Parsers.Dicom.blobToArrayBuffer = function(blob) {
+/**
+ * Convert blob to array buffer. Needed because fetch doesn't return array
+ * buffer properly yet. (May 2015)
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param blob {Blob} - Blob to be converted.
+ *
+ * @return ArrayBuffer Blob converted to Array Buffer.
+ */
+VJS.parsers.dicom.prototype.blobToArrayBuffer = function(blob) {
     return new Promise(function(resolve) {
         var myReader = new FileReader();
         myReader.addEventListener('loadend', function(e) {
@@ -101,49 +197,67 @@ VJS.Parsers.Dicom.blobToArrayBuffer = function(blob) {
     });
 };
 
-VJS.Parsers.Dicom.domToImage = function(dom, url) {
+
+/**
+ * Convert jQuery representation of XML dump to VJS image.
+ * It creates VJS.image, VJS.stack and VJS.frame as needed and fills it.
+ *
+ * Also extracts the frame with robust (but slow) dcm2pnm.
+ * {@link http://support.dcmtk.org/docs/dcm2pnm.html}
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param dom {jQueryObj} - $.parseXML(xml) output.
+ * @param url {string} - Target file url.
+ *
+ * @return VJS.Image VJS Image of target dicom.
+ */
+VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
+
+    window.console.log('domToImage', this);
+    window.console.log(this);
 
     // First we generate all frames
-    var filename = VJS.Parsers.Dicom.urlToFilename(url);
+    var filename = this.urlToFilename(url);
     var imageFilePath = filename + '-raw.8b';
     // no... save all frame only 1 time..!
     dcmjs.utils.execute('dcm2pnm', ['--verbose', '--all-frames', '--write-raw-pnm', filename, imageFilePath]);
 
     var $dom = $(dom);
 
-    // Create an image
+    // Create the image
     var imageModel = new VJS.image.model();
 
-    imageModel._concatenationUID = VJS.Parsers.Dicom.getImageConcatenationUID($dom);
-    imageModel._seriesUID = VJS.Parsers.Dicom.getImageSeriesUID($dom);
-    imageModel._seriesNumber = VJS.Parsers.Dicom.getImageSeriesNumber($dom);
+    imageModel._concatenationUID = this.imageConcatenationUID($dom);
+    imageModel._seriesUID = this.imageSeriesUID($dom);
+    imageModel._seriesNumber = this.imageSeriesNumber($dom);
 
     // all dim uids in this SOP
     //var dimensionOrganizationSequence = $dom.find('[tag="00209221"]').text();
 
     // list of dims with more info...
-    imageModel._dimensionIndexSequence = VJS.Parsers.Dicom.getImageDimensionIndexSequence($dom);
+    imageModel._dimensionIndexSequence = this.imageDimensionIndexSequence($dom);
 
-    imageModel._rows = VJS.Parsers.Dicom.getImageRows($dom);
-    imageModel._columns = VJS.Parsers.Dicom.getImageColumns($dom);
-    imageModel._photometricInterpretation = VJS.Parsers.Dicom.getImagePhotometricInterpretation($dom);
+    imageModel._rows = this.imageRows($dom);
+    imageModel._columns = this.imageColumns($dom);
+    imageModel._photometricInterpretation = this.imagePhotometricInterpretation($dom);
 
     //var $sharedFunctionalGroupsSequence = $dom.find('[tag="52009229"]');
-    imageModel._numberOfFrames = VJS.Parsers.Dicom.getImageNumberOfFrames($dom);
+    imageModel._numberOfFrames = this.imageNumberOfFrames($dom);
 
     for (var i = 0; i < imageModel._numberOfFrames; i++) {
         // run in //
 
         // get frame specific information
         var frameIndex = i + 1;
-        var $perFrameFunctionalGroupsSequence = VJS.Parsers.Dicom.getImagePerFrameFunctionalGroupSequence(frameIndex, $dom);
+        var $perFrameFunctionalGroupsSequence = this.imagePerFrameFunctionalGroupSequence(frameIndex, $dom);
 
-        var stackID = VJS.Parsers.Dicom.getFrameStackID($perFrameFunctionalGroupsSequence, $dom);
-        var inStackPositionNumber = VJS.Parsers.Dicom.getFrameInStackPositionNumber($perFrameFunctionalGroupsSequence, $dom);
-        var temporalPositionIndex = VJS.Parsers.Dicom.getFrameTemporalPostionIndex($perFrameFunctionalGroupsSequence, $dom);
+        var stackID = this.getFrameStackID($perFrameFunctionalGroupsSequence, $dom);
+        var inStackPositionNumber = this.getFrameInStackPositionNumber($perFrameFunctionalGroupsSequence, $dom);
+        var temporalPositionIndex = this.getFrameTemporalPostionIndex($perFrameFunctionalGroupsSequence, $dom);
 
         var currentStack = null;
-        var stackByID = imageModel._stack.filter(VJS.Parsers.Dicom.filterByStackID, stackID);
+        var stackByID = imageModel._stack.filter(this.filterByStackID, stackID);
 
         // Create stack object and add it to image if necessary
         if (stackByID.length === 0) {
@@ -164,7 +278,7 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
         var currentFrame = null;
 
         // use dimension instead to know if already there!
-        var frameByPositionAndTime = currentStack._frame.filter(VJS.Parsers.Dicom.positionAndTime, {
+        var frameByPositionAndTime = currentStack._frame.filter(this.positionAndTime, {
             '_inStackPositionNumber': inStackPositionNumber,
             '_temporalPositionIndex': temporalPositionIndex
         });
@@ -196,15 +310,15 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
         currentFrame._stackID = stackID;
         currentFrame._inStackPositionNumber = inStackPositionNumber;
         currentFrame._temporalPositionIndex = temporalPositionIndex;
-        currentFrame._dimensionIndexValues = VJS.Parsers.Dicom.getFrameDimensionIndexValues($perFrameFunctionalGroupsSequence, $dom);
-        currentFrame._imagePositionPatient = VJS.Parsers.Dicom.getFrameImagePositionPatient($perFrameFunctionalGroupsSequence, $dom);
-        currentFrame._imageOrientationPatient = VJS.Parsers.Dicom.getFrameImageOrientationPatient($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._dimensionIndexValues = this.getFrameDimensionIndexValues($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._imagePositionPatient = this.getFrameImagePositionPatient($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._imageOrientationPatient = this.getFrameImageOrientationPatient($perFrameFunctionalGroupsSequence, $dom);
 
         //
         // Pixel Measure Sequence
         //
-        currentFrame._sliceThickness = VJS.Parsers.Dicom.getFrameSliceThickness($perFrameFunctionalGroupsSequence, $dom);
-        currentFrame._pixelSpacing = VJS.Parsers.Dicom.getFramePixelSpacing($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._sliceThickness = this.getFrameSliceThickness($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._pixelSpacing = this.getFramePixelSpacing($perFrameFunctionalGroupsSequence, $dom);
 
         // use dimension!!
 
@@ -249,10 +363,16 @@ VJS.Parsers.Dicom.domToImage = function(dom, url) {
     return imageModel;
 };
 
-// 
-//IMAGE RELATED CONVENIENCE METHODS
-//
-VJS.Parsers.Dicom.getImageNumberOfFrames = function(imageJqueryDom) {
+/**
+ * Get number of frames in the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return number Number of frames in the target image.
+ */
+VJS.parsers.dicom.prototype.imageNumberOfFrames = function(imageJqueryDom) {
     // try to access number of frames through its DICOM tag
     var numberOfFrames = imageJqueryDom.find('[tag="00280008"]').text();
 
@@ -263,7 +383,16 @@ VJS.Parsers.Dicom.getImageNumberOfFrames = function(imageJqueryDom) {
     return numberOfFrames;
 };
 
-VJS.Parsers.Dicom.getImageConcatenationUID = function(imageJqueryDom) {
+/**
+ * Get concatenationID in the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return number Concatenation ID of the target image.
+ */
+VJS.parsers.dicom.prototype.imageConcatenationUID = function(imageJqueryDom) {
     // try to access concatenationUID through its DICOM tag
     var concatenationUID = imageJqueryDom.find('[tag="00209161"]').text();
 
@@ -274,7 +403,16 @@ VJS.Parsers.Dicom.getImageConcatenationUID = function(imageJqueryDom) {
     return concatenationUID;
 };
 
-VJS.Parsers.Dicom.getImageSeriesUID = function(imageJqueryDom) {
+/**
+ * Get SeriesUID of the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return number Series UID of the target image.
+ */
+VJS.parsers.dicom.prototype.imageSeriesUID = function(imageJqueryDom) {
     // try to access seriesUID through its DICOM tag
     var seriesUID = imageJqueryDom.find('[tag="0020000E"]').text();
 
@@ -285,7 +423,16 @@ VJS.Parsers.Dicom.getImageSeriesUID = function(imageJqueryDom) {
     return seriesUID;
 };
 
-VJS.Parsers.Dicom.getImageSeriesNumber = function(imageJqueryDom) {
+/**
+ * Get Series Number of the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return number Series Number of the target image.
+ */
+VJS.parsers.dicom.prototype.imageSeriesNumber = function(imageJqueryDom) {
     // try to access seriesNumber through its DICOM tag
     var seriesNumber = imageJqueryDom.find('[tag="00200011"]').text();
 
@@ -296,15 +443,31 @@ VJS.Parsers.Dicom.getImageSeriesNumber = function(imageJqueryDom) {
     return seriesNumber;
 };
 
-VJS.Parsers.Dicom.getImageDimensionIndexSequence = function(imageJqueryDom) {
+/**
+ * Get Dimension Index Sequence of the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return Array<Object> List dimensions in the Image.
+ */
+VJS.parsers.dicom.prototype.imageDimensionIndexSequence = function(imageJqueryDom) {
     var dimensionIndexSequence = imageJqueryDom.find('[tag="00209222"]');
     var data = [];
     // pass it an array!
-    dimensionIndexSequence.children().each(VJS.Parsers.Dicom.fillDimensionIndexSequence(data));
+    dimensionIndexSequence.children().each(this.fillDimensionIndexSequence(data));
     return data;
 };
 
-VJS.Parsers.Dicom.fillDimensionIndexSequence = function(data) {
+/**
+ * Convenience function to get dimension index sequence from jQuery each callback.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param data {Array} - Array to be filled.
+ */
+VJS.parsers.dicom.prototype.fillDimensionIndexSequence = function(data) {
     return function() {
         data.push({
             'dimensionDescriptionLabel': $(this).find('[tag="00209421"] Value').text()
@@ -312,27 +475,55 @@ VJS.Parsers.Dicom.fillDimensionIndexSequence = function(data) {
     };
 };
 
-VJS.Parsers.Dicom.getImageRows = function(imageJqueryDom) {
+/**
+ * Get Rows of the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return number Rows in the image.
+ */
+VJS.parsers.dicom.prototype.imageRows = function(imageJqueryDom) {
     var rows = parseInt(imageJqueryDom.find('[tag="00280010"]').text(), 10);
     return rows;
 };
 
-VJS.Parsers.Dicom.getImageColumns = function(imageJqueryDom) {
+/**
+ * Get Columns of the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return number Columns in the image.
+ */
+VJS.parsers.dicom.prototype.imageColumns = function(imageJqueryDom) {
     var columns = parseInt(imageJqueryDom.find('[tag="00280011"]').text(), 10);
     return columns;
 };
 
-VJS.Parsers.Dicom.getImagePhotometricInterpretation = function(imageJqueryDom) {
+
+/**
+ * Get Photometric Interpretation of the image.
+ *
+ * @memberOf VJS.parsers
+ *
+ * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ *
+ * @return string Photometric interpretation of the image.
+ */
+VJS.parsers.dicom.prototype.imagePhotometricInterpretation = function(imageJqueryDom) {
     var photometricInterpretation = imageJqueryDom.find('[tag="00280004"] Value').text();
     return photometricInterpretation;
 };
 
-VJS.Parsers.Dicom.getImagePerFrameFunctionalGroupSequence = function(frameIndex, imageJqueryDom) {
+VJS.parsers.dicom.prototype.imagePerFrameFunctionalGroupSequence = function(frameIndex, imageJqueryDom) {
     var $perFrameFunctionalGroupSequence = imageJqueryDom.find('[tag="52009230"] > [number="' + frameIndex + '"]');
     return $perFrameFunctionalGroupSequence;
 };
 
-VJS.Parsers.Dicom.filterByStackID = function(obj) {
+VJS.parsers.dicom.prototype.filterByStackID = function(obj) {
     /*jshint validthis:true*/
     if ('_stackID' in obj && typeof(obj._stackID) === 'number' && !isNaN(obj._stackID) && obj._stackID === this) {
         return true;
@@ -348,7 +539,7 @@ VJS.Parsers.Dicom.filterByStackID = function(obj) {
 //
 //FRAME RELATED CONVENIENCE METHODS
 //
-VJS.Parsers.Dicom.getFrameStackID = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFrameStackID = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var stackID = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209056"] Value').text(), 10);
 
     // or look for it in the imageJqueryDom?
@@ -361,7 +552,7 @@ VJS.Parsers.Dicom.getFrameStackID = function(frameJqueryPreFrameDom, imageJquery
     return stackID;
 };
 
-VJS.Parsers.Dicom.getFrameInStackPositionNumber = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFrameInStackPositionNumber = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var inStackPositionNumber = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209057"] Value').text(), 10);
 
     // or look for it in the imageJqueryDom?
@@ -374,7 +565,7 @@ VJS.Parsers.Dicom.getFrameInStackPositionNumber = function(frameJqueryPreFrameDo
     return inStackPositionNumber;
 };
 
-VJS.Parsers.Dicom.getFrameTemporalPostionIndex = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFrameTemporalPostionIndex = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var temporalPositionIndex = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209128"] Value').text(), 10);
 
     // or look for it in the imageJqueryDom?
@@ -388,10 +579,10 @@ VJS.Parsers.Dicom.getFrameTemporalPostionIndex = function(frameJqueryPreFrameDom
 };
 
 
-VJS.Parsers.Dicom.getFrameDimensionIndexValues = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFrameDimensionIndexValues = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var $perFrameDimension = frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209157"]');
     var dimensionIndexValues = [];
-    $perFrameDimension.children().each(VJS.Parsers.Dicom.fillDimensionIndexValues(dimensionIndexValues));
+    $perFrameDimension.children().each(this.fillDimensionIndexValues(dimensionIndexValues));
 
     // or look for it in the imageJqueryDom?
     if (!$perFrameDimension) {
@@ -402,14 +593,14 @@ VJS.Parsers.Dicom.getFrameDimensionIndexValues = function(frameJqueryPreFrameDom
     return dimensionIndexValues;
 };
 
-VJS.Parsers.Dicom.fillDimensionIndexValues = function(container) {
+VJS.parsers.dicom.prototype.fillDimensionIndexValues = function(container) {
     return function() {
         container.push($(this).text());
     };
 };
 
 
-VJS.Parsers.Dicom.positionAndTime = function(obj) {
+VJS.parsers.dicom.prototype.positionAndTime = function(obj) {
     /*jshint validthis:true*/
     if ('_temporalPositionIndex' in obj && '_inStackPositionNumber' in obj && obj._temporalPositionIndex === this._temporalPositionIndex && obj._inStackPositionNumber === this._inStackPositionNumber) {
         return true;
@@ -418,7 +609,7 @@ VJS.Parsers.Dicom.positionAndTime = function(obj) {
     }
 };
 
-VJS.Parsers.Dicom.getFrameImagePositionPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFrameImagePositionPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var imagePositionPatient = {
         'x': 0,
         'y': 0,
@@ -442,7 +633,7 @@ VJS.Parsers.Dicom.getFrameImagePositionPatient = function(frameJqueryPreFrameDom
     return imagePositionPatient;
 };
 
-VJS.Parsers.Dicom.getFrameImageOrientationPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFrameImageOrientationPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var imageOrientationPatient = {
         'row': {
             'x': 0,
@@ -484,7 +675,7 @@ VJS.Parsers.Dicom.getFrameImageOrientationPatient = function(frameJqueryPreFrame
     return imageOrientationPatient;
 };
 
-VJS.Parsers.Dicom.getFrameSliceThickness = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFrameSliceThickness = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var sliceThickness = parseFloat(frameJqueryPreFrameDom.find('[tag="00289110"] [tag="00180050"] Value').text(), 10);
     // or look for it in the imageJqueryDom?
     if (sliceThickness === 'NaN') {
@@ -496,7 +687,7 @@ VJS.Parsers.Dicom.getFrameSliceThickness = function(frameJqueryPreFrameDom, imag
     return sliceThickness;
 };
 
-VJS.Parsers.Dicom.getFramePixelSpacing = function(frameJqueryPreFrameDom, imageJqueryDom) {
+VJS.parsers.dicom.prototype.getFramePixelSpacing = function(frameJqueryPreFrameDom, imageJqueryDom) {
     var pixelSpacing = {
         'row': 1,
         'column': 1
@@ -531,6 +722,6 @@ VJS.Parsers.Dicom.getFramePixelSpacing = function(frameJqueryPreFrameDom, imageJ
 // getFrame...
 // getStach
 // getStack...
-// getImage ...
+// image ...
 
 // merge!
