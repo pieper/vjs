@@ -1,0 +1,782 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0">
+  <meta charset="utf-8">
+  <title>Source: modules/parsers/dicom/Dicom.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: modules/parsers/dicom/Dicom.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>/*global Module, dcmjs, FS, $, fetch*/
+
+&#x27;use strict&#x27;;
+
+var VJS = VJS || {};
+
+/**
+ * parsers namespace
+ * @namespace parsers
+ * @memberOf VJS
+ */
+VJS.parsers = VJS.parsers || {};
+
+/**
+ * Dicom parser is a combination of utilities to get a VJS image from dicom files.
+ *
+ * Relies on dcmjs, jquery, HTML5 fetch API, HTML5 promise API.
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.parsers
+ * @public
+ *
+ * @param files {Array&amp;lt;string&gt;} - List of files to be parsed. It is urls from which
+ * VJS.parsers.dicom can pull the data from.
+ */
+VJS.parsers.dicom = function(files) {
+    /**
+     * @member
+     * @type {Array&amp;lt;string&gt;}
+     */
+    this.files = files;
+};
+
+/**
+ * Promise convenience that will fetch and parse the data.
+ * Use it for generic (but not cusotmizable) usage.
+ *
+ * @todo handle directory structure properly
+ * @todo Last 4 calls should not be promises
+ *
+ *
+ * @public
+ *
+ * @param files {Array&amp;lt;string&gt;} - List of files to be parsed. It is urls where
+ * VJS.parsers.dicom can pull the data from.
+ *
+ * @returns {Array&amp;lt;VJS.image&gt;} An VJS image for each dicom file.
+ *
+ * @example
+ * var files = [&#x27;/data/dcm/opecho-001.dcm&#x27;, &#x27;/data/dcm/opecho-002.dcm&#x27;, &#x27;/data/dcm/opecho-003.dcm&#x27;];
+ * var dicomParser = VJS.parsers.dicom.(files);
+ * Promise
+        .all(dicomParser.loadAndParse())
+        .then(function(images) {
+            // all the data was successfully loaded and parsed!
+            window.console.log(images);
+            // now we could &quot;merge&quot; images, display it, etc.
+        })
+        .catch(function(error) {
+            window.console.log(error);
+        });
+ */
+VJS.parsers.dicom.prototype.loadAndParse = function() {
+    var self = this;
+
+    return self.files.map(function(url, i) {
+        // fetch data
+        return fetch(url)
+            // get blob from URL
+            .then(function(response) {
+                return response.blob();
+            })
+            // blob to array buffer
+            .then(function(blob) {
+                return self.blobToArrayBuffer(blob);
+            })
+            // save on virutal FS
+            .then(function(arrayBuffer) {
+                return self.writeToFS(url, arrayBuffer, {
+                    encoding: &#x27;binary&#x27;
+                });
+            })
+            // dump to XML
+            .then(function() {
+                return self.dumpToXML(url);
+            })
+            // XML to DOM (jQuery friendly)
+            .then(function(xml) {
+                // make a DOM to query and a DOM to update
+                var $dicomDom = $.parseXML(xml);
+                return $dicomDom;
+            })
+            .then(function(dom) {
+                window.console.log(self.files[i], &#x27; loaded and parsed!&#x27;);
+                // create viewer friendly object
+                return self.domToImage(dom, url);
+            });
+    });
+
+};
+
+/**
+ * Promise dump dicom file to xml.
+ * Call dcm2xml over a file previously savedd on the virtual FS.
+ * {@link http://support.dcmtk.org/docs-snapshot/dcm2xml.html}
+ *
+ * @todo Doesn&#x27;t have to be a promise...
+ *
+ *
+ * @param url {string} - Name of the file to be dumped.
+ *
+ * @returns {string} Xml dump from dicom file.
+ */
+VJS.parsers.dicom.prototype.dumpToXML = function(url) {
+    var self = this;
+
+    return new Promise(function(resolve) {
+        // dcmudmp
+        var dumpLines = [];
+        Module.print = function(s) {
+            dumpLines.push(s);
+        };
+
+
+        var filename = self.urlToFilename(url);
+        var returnCode = dcmjs.utils.execute(&#x27;dcm2xml&#x27;, [&#x27;--native-format&#x27;, filename]);
+        Module.print = print;
+        window.console.log(returnCode);
+
+        //var xml = VJS.parsers.dicom.printToXML(dumpLines);
+        var xml = dumpLines.join(&#x27;\n&#x27;);
+        // also escape invalid characters!!!!!
+
+        resolve(xml);
+    });
+};
+
+/**
+ * Helper to extract filename from url.
+ *
+ * @param url {string} - Url to be processed.
+ *
+ * @returns {string} Filename.
+ */
+VJS.parsers.dicom.prototype.urlToFilename = function(url) {
+    // not optimized at all
+    var filename = url.substring(url.lastIndexOf(&#x27;/&#x27;) + 1);
+    return filename;
+};
+
+/**
+ * Promise dump dicom file to xml.
+ * Call dcm2xml over a file previously savedd on the virtual FS.
+ * {@link http://support.dcmtk.org/docs-snapshot/dcm2xml.html}
+ *
+ * @todo Doesn&#x27;t have to be a promise...
+ *
+ *
+ * @param url {string} - Name of the file to be dumped.
+ * @param arraybuffer {ArrayBuffer} - Array Buffer.
+ * @param options {string} - Name of the file to be dumped.
+ *
+ * @returns {string} Xml dump from dicom file.
+ */
+VJS.parsers.dicom.prototype.writeToFS = function(url, arraybuffer, options) {
+    var self = this;
+    return new Promise(function(resolve) {
+        var uploadedObject = new Int8Array(arraybuffer);
+        // should create the FS tree maybe rather than just using filename...
+        var filename = self.urlToFilename(url);
+        var output = FS.writeFile(filename, uploadedObject, options);
+        resolve(output);
+    });
+};
+
+/**
+ * Convert blob to array buffer. Needed because fetch doesn&#x27;t return array
+ * buffer properly yet. (May 2015)
+ *
+ *
+ * @param blob {Blob} - Blob to be converted.
+ *
+ * @returns {ArrayBuffer} Blob converted to Array Buffer.
+ */
+VJS.parsers.dicom.prototype.blobToArrayBuffer = function(blob) {
+    return new Promise(function(resolve) {
+        var myReader = new FileReader();
+        myReader.addEventListener(&#x27;loadend&#x27;, function(e) {
+            resolve(e.srcElement.result);
+        });
+        myReader.readAsArrayBuffer(blob);
+    });
+};
+
+
+/**
+ * Convert jQuery representation of XML dump to VJS image.
+ * It creates VJS.image, VJS.stack and VJS.frame as needed and fills it.
+ *
+ * Also extracts the frame with robust (but slow) dcm2pnm.
+ * {@link http://support.dcmtk.org/docs/dcm2pnm.html}
+ *
+ *
+ * @param dom {jQueryObj} - $.parseXML(xml) output.
+ * @param url {string} - Target file url.
+ *
+ * @returns {VJS.Image} VJS Image of target dicom.
+ */
+VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
+
+    window.console.log(&#x27;domToImage&#x27;, this);
+    window.console.log(this);
+
+    // First we generate all frames
+    var filename = this.urlToFilename(url);
+    var imageFilePath = filename + &#x27;-raw.8b&#x27;;
+    // no... save all frame only 1 time..!
+    dcmjs.utils.execute(&#x27;dcm2pnm&#x27;, [&#x27;--verbose&#x27;, &#x27;--all-frames&#x27;, &#x27;--write-raw-pnm&#x27;, filename, imageFilePath]);
+
+    var $dom = $(dom);
+
+    // Create the image
+    var imageModel = new VJS.image.model();
+
+    imageModel._concatenationUID = this.imageConcatenationUID($dom);
+    imageModel._seriesUID = this.imageSeriesUID($dom);
+    imageModel._seriesNumber = this.imageSeriesNumber($dom);
+
+    // all dim uids in this SOP
+    //var dimensionOrganizationSequence = $dom.find(&#x27;[tag=&quot;00209221&quot;]&#x27;).text();
+
+    // list of dims with more info...
+    imageModel._dimensionIndexSequence = this.imageDimensionIndexSequence($dom);
+
+    imageModel._rows = this.imageRows($dom);
+    imageModel._columns = this.imageColumns($dom);
+    imageModel._photometricInterpretation = this.imagePhotometricInterpretation($dom);
+
+    //var $sharedFunctionalGroupsSequence = $dom.find(&#x27;[tag=&quot;52009229&quot;]&#x27;);
+    imageModel._numberOfFrames = this.imageNumberOfFrames($dom);
+
+    for (var i = 0; i &amp;lt; imageModel._numberOfFrames; i++) {
+        // run in //
+
+        // get frame specific information
+        var frameIndex = i + 1;
+        var $perFrameFunctionalGroupsSequence = this.imagePerFrameFunctionalGroupSequence(frameIndex, $dom);
+
+        var stackID = this.getFrameStackID($perFrameFunctionalGroupsSequence, $dom);
+        var inStackPositionNumber = this.getFrameInStackPositionNumber($perFrameFunctionalGroupsSequence, $dom);
+        var temporalPositionIndex = this.getFrameTemporalPostionIndex($perFrameFunctionalGroupsSequence, $dom);
+
+        var currentStack = null;
+        var stackByID = imageModel._stack.filter(this.filterByStackID, stackID);
+
+        // Create stack object and add it to image if necessary
+        if (stackByID.length === 0) {
+            //window.console.log(&#x27;+++ stack&#x27;);
+            var stackModel = new VJS.stack.model();
+            stackModel._stackID = stackID;
+            imageModel._stack.push(stackModel);
+            currentStack = stackModel;
+        } else {
+            //window.console.log(&#x27;= stack&#x27;);
+            currentStack = stackByID[0];
+        }
+
+        currentStack._rows = imageModel._rows;
+        currentStack._columns = imageModel._columns;
+
+        // Add frame to Stack
+        var currentFrame = null;
+
+        // use dimension instead to know if already there!
+        var frameByPositionAndTime = currentStack._frame.filter(this.positionAndTime, {
+            &#x27;_inStackPositionNumber&#x27;: inStackPositionNumber,
+            &#x27;_temporalPositionIndex&#x27;: temporalPositionIndex
+        });
+
+        // Create frame object and add it to image if necessary
+        if (frameByPositionAndTime.length === 0) {
+            //window.console.log(&#x27;+++ frame&#x27;);
+            var frameModel = new VJS.frame.model();
+            frameModel._inStackPositionNumber = inStackPositionNumber;
+            frameModel._temporalPositionIndex = temporalPositionIndex;
+            currentStack._frame.push(frameModel);
+            currentFrame = frameModel;
+        } else {
+            //window.console.log(&#x27;= frame&#x27;);
+            currentFrame = frameByPositionAndTime[0];
+        }
+
+        // Fill content of a frame
+
+        //
+        // General Information
+        //
+        currentFrame._rows = currentStack._rows;
+        currentFrame._columns = currentStack._columns;
+
+        //
+        // Frame Content Sequence
+        //
+        currentFrame._stackID = stackID;
+        currentFrame._inStackPositionNumber = inStackPositionNumber;
+        currentFrame._temporalPositionIndex = temporalPositionIndex;
+        currentFrame._dimensionIndexValues = this.getFrameDimensionIndexValues($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._imagePositionPatient = this.getFrameImagePositionPatient($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._imageOrientationPatient = this.getFrameImageOrientationPatient($perFrameFunctionalGroupsSequence, $dom);
+
+        //
+        // Pixel Measure Sequence
+        //
+        currentFrame._sliceThickness = this.getFrameSliceThickness($perFrameFunctionalGroupsSequence, $dom);
+        currentFrame._pixelSpacing = this.getFramePixelSpacing($perFrameFunctionalGroupsSequence, $dom);
+
+        // use dimension!!
+
+        // currentFrame.pixelData = pnmBuffer;
+        // pixel type? (to guess file extension)
+        var ppmExtension = &#x27;pgm&#x27;;
+        currentFrame.nbChannels = 1;
+        if (imageModel._photometricInterpretation === &#x27;RGB&#x27; ||
+            imageModel._photometricInterpretation === &#x27;PALETTE COLOR&#x27; ||
+            imageModel._photometricInterpretation === &#x27;YBR_FULL&#x27; ||
+            imageModel._photometricInterpretation === &#x27;YBR_FULL_422&#x27; ||
+            imageModel._photometricInterpretation === &#x27;YBR_PARTIAL_422&#x27; ||
+            imageModel._photometricInterpretation === &#x27;YBR_PARTIAL_420&#x27; ||
+            imageModel._photometricInterpretation === &#x27;YBR_RCT&#x27;) {
+            ppmExtension = &#x27;ppm&#x27;;
+            currentFrame._nbChannels = 3;
+        }
+        var stat = FS.stat(imageFilePath + &#x27;.&#x27; + i + &#x27;.&#x27; + ppmExtension);
+        var stream = FS.open(imageFilePath + &#x27;.&#x27; + i + &#x27;.&#x27; + ppmExtension);
+        var pnmBuffer = new Uint8Array(stat.size);
+        FS.read(stream, pnmBuffer, 0, stat.size);
+        FS.close(stream);
+
+        // // // https://www.branah.com/ascii-converter
+        // // // dec to ascii
+        // always 15 bits header?
+        var pixelData = pnmBuffer.subarray(15);
+        currentFrame._pixelData = pixelData;
+
+        // mailing list for DICOM?
+    }
+
+    // for each frame, get info of interest
+    //var perFrame = $dom.find(&#x27;[tag=&quot;52009230&quot;] [tag=&quot;00289110&quot;] [tag=&quot;00180050&quot;]&#x27;);
+    //window.console.log(perFrame);
+
+    // starts at 1
+    //var $frame1 = $dom.find(&#x27;[tag=&quot;52009230&quot;] &gt; [number=&quot;1&quot;]&#x27;);
+    //window.console.log($frame1);
+    // how do we get pixel data from there...?
+    // where does time fit?
+    return imageModel;
+};
+
+/**
+ * Get number of frames in the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {number} Number of frames in the target image.
+ */
+VJS.parsers.dicom.prototype.imageNumberOfFrames = function(imageJqueryDom) {
+    // try to access number of frames through its DICOM tag
+    var numberOfFrames = imageJqueryDom.find(&#x27;[tag=&quot;00280008&quot;]&#x27;).text();
+
+    // if not available, assume we only have 1 frame
+    if (numberOfFrames === &#x27;&#x27;) {
+        numberOfFrames = 1;
+    }
+    return numberOfFrames;
+};
+
+/**
+ * Get concatenationID in the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {number} Concatenation ID of the target image.
+ */
+VJS.parsers.dicom.prototype.imageConcatenationUID = function(imageJqueryDom) {
+    // try to access concatenationUID through its DICOM tag
+    var concatenationUID = imageJqueryDom.find(&#x27;[tag=&quot;00209161&quot;]&#x27;).text();
+
+    // if not available, assume we only have 1 frame
+    if (concatenationUID === &#x27;&#x27;) {
+        concatenationUID = 1;
+    }
+    return concatenationUID;
+};
+
+/**
+ * Get SeriesUID of the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {number} Series UID of the target image.
+ */
+VJS.parsers.dicom.prototype.imageSeriesUID = function(imageJqueryDom) {
+    // try to access seriesUID through its DICOM tag
+    var seriesUID = imageJqueryDom.find(&#x27;[tag=&quot;0020000E&quot;]&#x27;).text();
+
+    // if not available, assume we only have 1 frame
+    if (seriesUID === &#x27;&#x27;) {
+        seriesUID = 1;
+    }
+    return seriesUID;
+};
+
+/**
+ * Get Series Number of the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {number} Series Number of the target image.
+ */
+VJS.parsers.dicom.prototype.imageSeriesNumber = function(imageJqueryDom) {
+    // try to access seriesNumber through its DICOM tag
+    var seriesNumber = imageJqueryDom.find(&#x27;[tag=&quot;00200011&quot;]&#x27;).text();
+
+    // if not available, assume we only have 1 frame
+    if (seriesNumber === &#x27;&#x27;) {
+        seriesNumber = 1;
+    }
+    return seriesNumber;
+};
+
+/**
+ * Get Dimension Index Sequence of the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {Array&amp;lt;Object&gt;} List dimensions in the Image.
+ */
+VJS.parsers.dicom.prototype.imageDimensionIndexSequence = function(imageJqueryDom) {
+    var dimensionIndexSequence = imageJqueryDom.find(&#x27;[tag=&quot;00209222&quot;]&#x27;);
+    var data = [];
+    // pass it an array!
+    dimensionIndexSequence.children().each(this.fillDimensionIndexSequence(data));
+    return data;
+};
+
+/**
+ * Convenience function to get dimension index sequence from jQuery each callback.
+ *
+ *
+ * @param data {Array} Array to be filled.
+ */
+VJS.parsers.dicom.prototype.fillDimensionIndexSequence = function(data) {
+    return function() {
+        data.push({
+            &#x27;dimensionDescriptionLabel&#x27;: $(this).find(&#x27;[tag=&quot;00209421&quot;] Value&#x27;).text()
+        });
+    };
+};
+
+/**
+ * Get Rows of the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {number} Rows in the image.
+ */
+VJS.parsers.dicom.prototype.imageRows = function(imageJqueryDom) {
+    var rows = parseInt(imageJqueryDom.find(&#x27;[tag=&quot;00280010&quot;]&#x27;).text(), 10);
+    return rows;
+};
+
+/**
+ * Get Columns of the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {number} Columns in the image.
+ */
+VJS.parsers.dicom.prototype.imageColumns = function(imageJqueryDom) {
+    var columns = parseInt(imageJqueryDom.find(&#x27;[tag=&quot;00280011&quot;]&#x27;).text(), 10);
+    return columns;
+};
+
+/**
+ * Get Photometric Interpretation of the image.
+ *
+ *
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {string} Photometric interpretation of the image.
+ */
+VJS.parsers.dicom.prototype.imagePhotometricInterpretation = function(imageJqueryDom) {
+    var photometricInterpretation = imageJqueryDom.find(&#x27;[tag=&quot;00280004&quot;] Value&#x27;).text();
+    return photometricInterpretation;
+};
+
+/**
+ * Get jQuery representation of frame per-frame functionnal group sequence.
+ *
+ *
+ * @param frameIndex {number} - Frame index of interest.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {jQueryObj} jQuery representation of frame per-frame functionnal group sequence.
+ */
+VJS.parsers.dicom.prototype.imagePerFrameFunctionalGroupSequence = function(frameIndex, imageJqueryDom) {
+    var $perFrameFunctionalGroupSequence = imageJqueryDom.find(&#x27;[tag=&quot;52009230&quot;] &gt; [number=&quot;&#x27; + frameIndex + &#x27;&quot;]&#x27;);
+    return $perFrameFunctionalGroupSequence;
+};
+
+/**
+ * Convenience function to filter array on inner&#x27;s object _stackID.
+ *
+ *
+ * @param obj {VJS.Stack.model} - Stack Model.
+ */
+VJS.parsers.dicom.prototype.filterByStackID = function(obj) {
+    /*jshint validthis:true*/
+    if (&#x27;_stackID&#x27; in obj &amp;amp;&amp;amp; typeof(obj._stackID) === &#x27;number&#x27; &amp;amp;&amp;amp; !isNaN(obj._stackID) &amp;amp;&amp;amp; obj._stackID === this) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+//
+//STACK RELATED CONVENIENCE METHODS
+//
+// SHOULD WE PASS FRAME INDEX + IMAGE DOM INSTEAD OF FRAME DOM?
+//
+//FRAME RELATED CONVENIENCE METHODS
+//
+VJS.parsers.dicom.prototype.getFrameStackID = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var stackID = parseInt(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209111&quot;] [tag=&quot;00209056&quot;] Value&#x27;).text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (stackID === &#x27;NaN&#x27;) {
+        window.console.log(&#x27;stackID&#x27;, stackID);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+        stackID = 1;
+    }
+
+    return stackID;
+};
+
+VJS.parsers.dicom.prototype.getFrameInStackPositionNumber = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var inStackPositionNumber = parseInt(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209111&quot;] [tag=&quot;00209057&quot;] Value&#x27;).text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (inStackPositionNumber === &#x27;NaN&#x27;) {
+        window.console.log(&#x27;inStackPositionNumber&#x27;, inStackPositionNumber);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+        inStackPositionNumber = 1;
+    }
+
+    return inStackPositionNumber;
+};
+
+VJS.parsers.dicom.prototype.getFrameTemporalPostionIndex = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var temporalPositionIndex = parseInt(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209111&quot;] [tag=&quot;00209128&quot;] Value&#x27;).text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (temporalPositionIndex === &#x27;NaN&#x27;) {
+        window.console.log(&#x27;temporalPositionIndex&#x27;, temporalPositionIndex);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+        temporalPositionIndex = 1;
+    }
+
+    return temporalPositionIndex;
+};
+
+
+VJS.parsers.dicom.prototype.getFrameDimensionIndexValues = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var $perFrameDimension = frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209111&quot;] [tag=&quot;00209157&quot;]&#x27;);
+    var dimensionIndexValues = [];
+    $perFrameDimension.children().each(this.fillDimensionIndexValues(dimensionIndexValues));
+
+    // or look for it in the imageJqueryDom?
+    if (!$perFrameDimension) {
+        window.console.log(&#x27;$perFrameDimension&#x27;, $perFrameDimension);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+    }
+
+    return dimensionIndexValues;
+};
+
+VJS.parsers.dicom.prototype.fillDimensionIndexValues = function(container) {
+    return function() {
+        container.push($(this).text());
+    };
+};
+
+
+VJS.parsers.dicom.prototype.positionAndTime = function(obj) {
+    /*jshint validthis:true*/
+    if (&#x27;_temporalPositionIndex&#x27; in obj &amp;amp;&amp;amp; &#x27;_inStackPositionNumber&#x27; in obj &amp;amp;&amp;amp; obj._temporalPositionIndex === this._temporalPositionIndex &amp;amp;&amp;amp; obj._inStackPositionNumber === this._inStackPositionNumber) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+VJS.parsers.dicom.prototype.getFrameImagePositionPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var imagePositionPatient = {
+        &#x27;x&#x27;: 0,
+        &#x27;y&#x27;: 0,
+        &#x27;z&#x27;: 0
+    };
+    imagePositionPatient.x = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209113&quot;] [tag=&quot;00200032&quot;] Value[number=&quot;1&quot;]&#x27;).text(), 10);
+    imagePositionPatient.y = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209113&quot;] [tag=&quot;00200032&quot;] Value[number=&quot;2&quot;]&#x27;).text(), 10);
+    imagePositionPatient.z = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209113&quot;] [tag=&quot;00200032&quot;] Value[number=&quot;3&quot;]&#x27;).text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (imagePositionPatient.x === &#x27;NaN&#x27; || imagePositionPatient.y === &#x27;NaN&#x27; || imagePositionPatient.z === &#x27;NaN&#x27;) {
+        window.console.log(&#x27;imagePositionPatient&#x27;, imagePositionPatient);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+        imagePositionPatient = {
+            &#x27;x&#x27;: 0,
+            &#x27;y&#x27;: 0,
+            &#x27;z&#x27;: 0
+        };
+    }
+
+    return imagePositionPatient;
+};
+
+VJS.parsers.dicom.prototype.getFrameImageOrientationPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var imageOrientationPatient = {
+        &#x27;row&#x27;: {
+            &#x27;x&#x27;: 0,
+            &#x27;y&#x27;: 0,
+            &#x27;z&#x27;: 0
+        },
+        &#x27;column&#x27;: {
+            &#x27;x&#x27;: 0,
+            &#x27;y&#x27;: 0,
+            &#x27;z&#x27;: 0
+        }
+    };
+    imageOrientationPatient.row.x = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209116&quot;] [tag=&quot;00200037&quot;] Value[number=&quot;1&quot;]&#x27;).text(), 10);
+    imageOrientationPatient.row.y = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209116&quot;] [tag=&quot;00200037&quot;] Value[number=&quot;2&quot;]&#x27;).text(), 10);
+    imageOrientationPatient.row.z = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209116&quot;] [tag=&quot;00200037&quot;] Value[number=&quot;3&quot;]&#x27;).text(), 10);
+    imageOrientationPatient.column.x = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209116&quot;] [tag=&quot;00200037&quot;] Value[number=&quot;4&quot;]&#x27;).text(), 10);
+    imageOrientationPatient.column.y = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209116&quot;] [tag=&quot;00200037&quot;] Value[number=&quot;5&quot;]&#x27;).text(), 10);
+    imageOrientationPatient.column.z = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00209116&quot;] [tag=&quot;00200037&quot;] Value[number=&quot;6&quot;]&#x27;).text(), 10);
+
+
+    // or look for it in the imageJqueryDom?
+    if (imageOrientationPatient.row.x === &#x27;NaN&#x27; || imageOrientationPatient.row.y === &#x27;NaN&#x27; || imageOrientationPatient.row.z === &#x27;NaN&#x27; || imageOrientationPatient.column.x === &#x27;NaN&#x27; || imageOrientationPatient.column.y === &#x27;NaN&#x27; || imageOrientationPatient.column.z === &#x27;NaN&#x27;) {
+        window.console.log(&#x27;imageOrientationPatient&#x27;, imageOrientationPatient);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+        imageOrientationPatient = {
+            &#x27;row&#x27;: {
+                &#x27;x&#x27;: 0,
+                &#x27;y&#x27;: 0,
+                &#x27;z&#x27;: 0
+            },
+            &#x27;column&#x27;: {
+                &#x27;x&#x27;: 0,
+                &#x27;y&#x27;: 0,
+                &#x27;z&#x27;: 0
+            }
+        };
+    }
+
+    return imageOrientationPatient;
+};
+
+VJS.parsers.dicom.prototype.getFrameSliceThickness = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var sliceThickness = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00289110&quot;] [tag=&quot;00180050&quot;] Value&#x27;).text(), 10);
+    // or look for it in the imageJqueryDom?
+    if (sliceThickness === &#x27;NaN&#x27;) {
+        window.console.log(&#x27;sliceThickness&#x27;, sliceThickness);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+        sliceThickness = 1;
+    }
+
+    return sliceThickness;
+};
+
+VJS.parsers.dicom.prototype.getFramePixelSpacing = function(frameJqueryPreFrameDom, imageJqueryDom) {
+    var pixelSpacing = {
+        &#x27;row&#x27;: 1,
+        &#x27;column&#x27;: 1
+    };
+
+    pixelSpacing.row = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00289110&quot;] [tag=&quot;00280030&quot;] Value[number=&quot;1&quot;]&#x27;).text(), 10);
+    pixelSpacing.column = parseFloat(frameJqueryPreFrameDom.find(&#x27;[tag=&quot;00289110&quot;] [tag=&quot;00280030&quot;] Value[number=&quot;2&quot;]&#x27;).text(), 10);
+
+    // or look for it in the imageJqueryDom?
+    if (pixelSpacing.row === &#x27;NaN&#x27; || pixelSpacing.column === &#x27;NaN&#x27;) {
+        window.console.log(&#x27;pixelSpacing&#x27;, pixelSpacing);
+        window.console.log(&#x27;imageJqueryDom&#x27;, imageJqueryDom);
+        pixelSpacing = {
+            &#x27;row&#x27;: 1,
+            &#x27;column&#x27;: 1
+        };
+    }
+
+    return pixelSpacing;
+};
+
+
+
+
+//
+// Plane Orientation Sequence
+//
+
+//
+// getFrame
+// getFrameSpacing
+// getFrame...
+// getStach
+// getStack...
+// image ...
+
+// merge!
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0 on May 14, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

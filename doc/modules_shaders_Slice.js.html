@@ -1,0 +1,245 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0">
+  <meta charset="utf-8">
+  <title>Source: modules/shaders/Slice.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: modules/shaders/Slice.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+
+var VJS = VJS || {};
+VJS.shaders = VJS.shaders || {};
+
+/**
+ *
+ * Custom shader for the slice object. Should be a shader directory. We can add this shader to any object...
+ * @member
+ *
+ */
+
+VJS.shaders.slice = {
+
+    /* -------------------------------------------------------------------------
+    //  Slice shader
+    // features:
+    //
+     ------------------------------------------------------------------------- */
+
+    &#x27;parameters&#x27;: {
+
+        uniforms: {
+            // texture specific
+            &#x27;uTextureSize&#x27;: {
+                type: &#x27;f&#x27;,
+                value: 0.0
+            },
+            &#x27;uTextureFrames&#x27;: {
+                type: &#x27;tv&#x27;,
+                value: null
+            },
+            // image specific
+            &#x27;uIJKDims&#x27;: {
+                type: &#x27;v3&#x27;,
+                value: new THREE.Vector3()
+            },
+            &#x27;uLPSToIJK&#x27;: {
+                type: &#x27;m4&#x27;,
+                value: new THREE.Matrix4()
+            }
+        },
+
+        fragmentShader: [
+            //
+            // Get pixel color given IJK coordinate and texture
+            //
+            &#x27;vec4 getIJKValue(sampler2D textureFrames[16], &#x27;,
+            &#x27;vec3 ijkCoordinates, &#x27;,
+            &#x27;vec3 ijkDimensions, &#x27;,
+            &#x27;float uTextureSize) {&#x27;,
+            // IJK coord to texture
+            &#x27;highp float index = ijkCoordinates[0] + ijkCoordinates[1]*ijkDimensions[0] + ijkCoordinates[2]*ijkDimensions[0]*ijkDimensions[1];&#x27;,
+
+            // map index to right sampler2D slice
+            &#x27;highp float sliceIndex = floor(index / (uTextureSize*uTextureSize));&#x27;,
+            &#x27;highp float inTextureIndex = mod(index, uTextureSize*uTextureSize);&#x27;,
+
+            // get row in the texture
+            &#x27;highp float rowIndex = floor(inTextureIndex/uTextureSize);&#x27;,
+            &#x27;highp float colIndex = mod(inTextureIndex, uTextureSize);&#x27;,
+
+            // map to uv
+            &#x27;vec2 sliceSize = vec2(1.0 / uTextureSize, 1.0 / uTextureSize);&#x27;,
+            &#x27;highp float u = colIndex*sliceSize.x + sliceSize.x/2.;&#x27;,
+            &#x27;highp float v = 1.0 - (rowIndex*sliceSize.y + sliceSize.y/2.);&#x27;,
+
+            &#x27;highp vec2 uv = vec2(u,v);&#x27;,
+            &#x27;vec4 ijkValue = vec4(0, 0, 0, 0);&#x27;,
+            &#x27;if(sliceIndex == float(0)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[0], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(1)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[1], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(2)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[2], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(3)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[3], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(4)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[4], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(5)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[5], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(6)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[6], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(7)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[7], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(8)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[8], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(9)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[9], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(10)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[10], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(11)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[11], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(12)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[12], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(13)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[13], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(14)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[14], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(sliceIndex == float(15)){&#x27;,
+            &#x27;ijkValue = texture2D(textureFrames[15], uv);&#x27;,
+            &#x27;}&#x27;,
+
+            &#x27;return ijkValue;&#x27;,
+            &#x27;}&#x27;,
+
+
+            &#x27;precision highp float;&#x27;,
+            &#x27;precision highp sampler2D;&#x27;,
+
+            &#x27;uniform float uTextureSize;&#x27;,
+            &#x27;uniform sampler2D uTextureFrames[16];&#x27;,
+
+            &#x27;uniform vec3 uIJKDims;&#x27;,
+            &#x27;uniform mat4 uLPSToIJK;&#x27;,
+
+
+            &#x27;varying vec4 vPos;&#x27;,
+
+            &#x27;void main(void) {&#x27;,
+
+            // get IJK coordinates of current element
+            &#x27;vec4 ijkPos = uLPSToIJK * vPos;&#x27;,
+            // shader rounding trick
+            &#x27;ijkPos += .5;&#x27;,
+
+            //convert IJK coordinates to texture coordinates
+            // &#x27;if(int(floor(ijkPos[0])) &gt;= 0&#x27;,
+            // &#x27;&amp;amp;&amp;amp; int(floor(ijkPos[1])) &gt;= 0&#x27;,
+            // &#x27;&amp;amp;&amp;amp; int(floor(ijkPos[2])) &gt;= 0&#x27;,
+            // &#x27;&amp;amp;&amp;amp; int(floor(ijkPos[0])) &amp;lt; int(uIJKDims[0])&#x27;,
+            // &#x27;&amp;amp;&amp;amp; int(floor(ijkPos[1])) &amp;lt; int(uIJKDims[1])&#x27;,
+            // &#x27;&amp;amp;&amp;amp; int(floor(ijkPos[2])) &amp;lt; int(uIJKDims[2])&#x27;,
+            // &#x27;){&#x27;,
+
+            // show whole texture in the back...
+            &#x27;vec3 color = vec3(0, 0, 0);&#x27;,
+            // try to map IJK to value...
+            &#x27;vec3 ijkCoordinates = vec3(floor(ijkPos[0]), floor(ijkPos[1]), floor(ijkPos[2]));&#x27;,
+            &#x27;vec4 ijkValue = getIJKValue(&#x27;,
+            //&#x27;t00, t01, t02, t03, t04, t05, t06, t07, t08, t09, t10, t11, t12, t13, t14, t15,&#x27;,
+            &#x27;uTextureFrames, ijkCoordinates, uIJKDims, uTextureSize);&#x27;,
+            &#x27;color.rgb = ijkValue.rgb;&#x27;,
+            //&#x27;gl_FragColor = vec4(ijkPos[0]/float(uIJKDims[0]), ijkPos[1]/float(uIJKDims[1]), ijkPos[2]/float(uIJKDims[2]), 1.0);&#x27;,
+            &#x27;gl_FragColor = vec4(color, 1.0);&#x27;,
+            // &#x27;}&#x27;,
+            // &#x27;else{&#x27;,
+            // //&#x27;discard;&#x27;,
+            // &#x27;gl_FragColor = vec4(.47, .564, .611, 1.0);&#x27;,
+            // &#x27;}&#x27;,
+
+            &#x27;}&#x27;
+
+        ].join(&#x27;\n&#x27;),
+
+        vertexShader: [
+
+            &#x27;varying vec4 vPos;&#x27;,
+
+            //
+            // main
+            //
+            &#x27;void main() {&#x27;,
+
+            &#x27;vPos = modelMatrix * vec4(position, 1.0 );&#x27;,
+
+            &#x27;gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );&#x27;,
+
+            &#x27;}&#x27;
+
+        ].join(&#x27;\n&#x27;)
+
+    }
+
+};
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0 on May 14, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

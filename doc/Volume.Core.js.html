@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Source: modules/deprecated/volume/Volume.Core.js</title>
+    
+    
+    
+    
+    
+    <meta property="og:title" content=""/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:image" content=""/>
+    
+    <meta property="og:url" content=""/>
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <script src="scripts/jquery.min.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/jaguar.css">
+    
+    
+    <script>
+    var config = {"monospaceLinks":true,"cleverLinks":true,"default":{"outputSourceFiles":true},"applicationName":"VJS","disqus":"","googleAnalytics":"","openGraph":{"title":"","type":"website","image":"","site_name":"","url":""},"meta":{"title":"","description":"","keyword":""},"linenums":false};
+    </script>
+    
+
+    
+</head>
+<body>
+<div id="wrap" class="clearfix">
+    
+<div class="navigation">
+    <h3 class="applicationName"><a href="index.html">VJS</a></h3>
+
+    <div class="search">
+        <input id="search" type="text" class="form-control input-sm" placeholder="Search Documentations">
+    </div>
+    <ul class="list">
+    
+        <li class="item" data-name="VJS">
+            <span class="title">
+                <a href="VJS.html">VJS</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.frame">
+            <span class="title">
+                <a href="VJS.frame.html">VJS.frame</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.image">
+            <span class="title">
+                <a href="VJS.image.html">VJS.image</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li data-name="VJS.image.model"><a href="VJS.image.html#model">model</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.slice">
+            <span class="title">
+                <a href="VJS.slice.html">VJS.slice</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            <span class="subtitle">Members</span>
+            
+                <li data-name="VJS.slice.shader"><a href="VJS.slice.html#shader">shader</a></li>
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.stack">
+            <span class="title">
+                <a href="VJS.stack.html">VJS.stack</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li data-name="VJS.stack.model"><a href="VJS.stack.html#model">model</a></li>
+            
+                <li data-name="VJS.stack.view"><a href="VJS.stack.html#view">view</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.volume">
+            <span class="title">
+                <a href="VJS.volume.html">VJS.volume</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.frame.model">
+            <span class="title">
+                <a href="VJS.frame.model.html">VJS.frame.model</a>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.frame.view">
+            <span class="title">
+                <a href="VJS.frame.view.html">VJS.frame.view</a>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.slice.core">
+            <span class="title">
+                <a href="VJS.slice.core.html">VJS.slice.core</a>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li data-name="VJS.slice.core#slice"><a href="VJS.slice.core.html#slice">slice</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.slice.view">
+            <span class="title">
+                <a href="VJS.slice.view.html">VJS.slice.view</a>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li data-name="VJS.slice.view#RASSlice"><a href="VJS.slice.view.html#RASSlice">RASSlice</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.volume.core">
+            <span class="title">
+                <a href="VJS.volume.core.html">VJS.volume.core</a>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li data-name="VJS.volume.core#computeConvenienceVars"><a href="VJS.volume.core.html#computeConvenienceVars">computeConvenienceVars</a></li>
+            
+                <li data-name="VJS.volume.core#createTexture"><a href="VJS.volume.core.html#createTexture">createTexture</a></li>
+            
+                <li data-name="VJS.volume.core#getValue"><a href="VJS.volume.core.html#getValue">getValue</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="VJS.volume.view">
+            <span class="title">
+                <a href="VJS.volume.view.html">VJS.volume.view</a>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+    </ul>
+</div>
+    <div class="main">
+        <h1 class="page-title" data-filename="Volume.Core.js.html">Source: modules/deprecated/volume/Volume.Core.js</h1>
+        
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source "><code>'use strict';
+
+var VJS = VJS || {};
+VJS.volume = VJS.volume || {};
+
+/**
+ * Core of volume module. Holds all information related to the volume.
+ * Provides core volume-related functionnalities.
+ * Doesn't deal with the visualization of the volume.
+ *
+ * @constructor
+ * @class
+ *
+ * @param {Array} data - Raw data that represents the volume
+ * @param {Number} max - Maximum intensity in the volume. Used for data
+ *     normalization. (should probably by rgb array...)
+ * @param {Number} min - Minimum intensity in the volume. Used for data
+ *     normalization. (should probably by rgb array...)
+ * @param {Object} transforms - All volume related transforms, such as ijk to ras.
+ * @param {Object} ijk - All ijk related information, such as dimensions, origin, etc.
+ * @param {Object} ras - All ras related information, such as dimensions, origin, etc.
+ * @param {Number} nbTexture - Number of textures to be generated from the raw data.
+ * @param {Number} maxTextureSize - Size of each texture to be generated from the raw data.
+ */
+VJS.volume.core = function(data, max, min, transforms, ijk, ras, nbTexture, maxTextureSize, rawobject) {
+
+    // header and rawdata = 1 object
+    this.format(rawobject);
+
+    // general information
+    this._data = data;
+    this._textures = null;
+    this._max = max;
+    this._min = min;
+    this._transforms = transforms;
+    this._ijk = ijk;
+    this._ras = ras;
+    this._orientation = null;
+    this._halfDimensions = null;
+
+    // http://dicomiseasy.blogspot.com.es/2012/08/chapter-12-pixel-data.html
+    // SamplesPerPixel
+    // PhotometricInterpretation
+    // PlanarConfiguration
+    // NumberOfFrames
+
+    // how do we go from IJK TO RAS easily?
+
+    // RGBA
+    this._nbChannels = 4;
+
+    // Number or textures for this volume
+    this._textureNb = nbTexture;
+    this._textureSize = maxTextureSize;
+
+    this.computeConvenienceVars();
+
+
+
+};
+
+VJS.volume.core.prototype.format = function(rawobject) {
+    // which file type?
+    // format it accordingly....
+    var type = 'nii';
+    window.console.log(type);
+
+    // get min and max values from raw data....
+    window.console.log(rawobject);
+    var minMax = this.arrayMinMax(new Uint8Array(rawobject.data.image[0]));
+    window.console.log(minMax);
+};
+
+VJS.volume.core.prototype.arrayMinMax = function(data) {
+    var _min = Infinity;
+    var _max = -Infinity;
+
+    // buffer the length
+    var _datasize = data.length;
+
+    var i = 0;
+    for (i = 0; i &lt; _datasize; i++) {
+
+        if (!isNaN(data[i])) {
+
+            var _value = data[i];
+            _min = Math.min(_min, _value);
+            _max = Math.max(_max, _value);
+
+        }
+
+    }
+
+    return [_min, _max];
+};
+
+/**
+ * Convenience method to generate extra information about the volume.
+ *
+ * @private
+ */
+VJS.volume.core.prototype.computeConvenienceVars = function() {
+    this._halfDimensions = new THREE.Vector3(
+        this._ijk.dimensions.x / 2, this._ijk.dimensions.y / 2, this._ijk.dimensions.z / 2);
+
+    var baseX = new THREE.Vector3(1, 0, 0);
+    var baseY = new THREE.Vector3(0, 1, 0);
+    var baseZ = new THREE.Vector3(0, 0, 1);
+    this._orientation = new THREE.Vector3(baseX, baseY, baseZ);
+};
+
+/**
+ * Generate textures from the raw data. Number of textures and size of each
+ * texture depends on what was provided to the contructor.
+ *
+ * @private
+ */
+VJS.volume.core.prototype.createTexture = function() {
+    //
+    // 1) check if we have enough room in textures!!
+    // 
+    var requiredPixels = this._ijk.dimensions.x * this._ijk.dimensions.y * this._ijk.dimensions.z * this._nbChannels;
+    if (requiredPixels > this._textureSize * this._textureSize * this._nbChannels * this._textureNb) {
+        window.console.log('== WARNING ==');
+        window.console.log('Too many pixels to fit in shader, go for canvas 2D...');
+    }
+
+    // parse _data
+    var rawData = [];
+    for (var i = 0; i &lt; this._textureNb; i++) {
+        rawData.push(new Uint8Array(this._textureSize * this._textureSize * this._nbChannels));
+    }
+
+    // Can not just use subarray because we have to normalize the values (Uint* 0&lt;x&lt;255)
+    for (var j = 0; j &lt; this._textureSize * this._textureSize * this._textureNb; j++) {
+
+        var textureIndex = Math.floor(j / (this._textureSize * this._textureSize));
+        var inTextureIndex = j % (this._textureSize * this._textureSize);
+
+        // normalize value
+        var normalizedValue = 255 * ((this._data[j] - this._min) / (this._max - this._min));
+
+        // RGB
+        rawData[textureIndex][4 * inTextureIndex] = normalizedValue;
+        rawData[textureIndex][4 * inTextureIndex + 1] = normalizedValue;
+        rawData[textureIndex][4 * inTextureIndex + 2] = normalizedValue;
+        // ALPHA
+        rawData[textureIndex][4 * inTextureIndex + 3] = 255;
+
+        if (inTextureIndex >= requiredPixels) {
+            break;
+        }
+    }
+
+    // create threeJS textures
+    this._textures = [];
+    for (var k = 0; k &lt; this._textureNb; k++) {
+        var tex = new THREE.DataTexture(rawData[k], this._textureSize, this._textureSize, THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        tex.needsUpdate = true;
+        this._textures.push(tex);
+    }
+};
+
+/**
+ * Return value of voxel.
+ * Should return RBG array probably...
+ *
+ * @public
+ *
+ * @param {Number} i - I index of the voxel (i.e. in plane Column index).
+ * @param {Number} j - J index of the voxel (i.e. in plane Row index).
+ * @param {Number} k - K index of the voxel (i.e. Slice index).
+ * @param {Number} t - T index of the voxel (i.e. Time index).
+ * @param {Boolean} normalized - If true, the returned value is normalized
+ *     between 0-255.
+ *
+ * @returns {Number}
+ */
+VJS.volume.core.prototype.getValue = function(i, j, k, t, normalized) {
+    var value = this._data[i + this._ijk.dimensions.x * j + this._ijk.dimensions.x * this._ijk.dimensions.y * k + this._ijk.dimensions.x * this._ijk.dimensions.y * this._ijk.dimensions.z * t];
+    if (normalized) {
+        return 255 * ((value - this._min) / (this._max - this._min));
+    } else {
+        return value;
+    }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+
+
+        
+
+        <footer>
+            Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a> on Wed May 13 2015 09:02:24 GMT+0200 (CEST)
+        </footer>
+    </div>
+</div>
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+<script src="scripts/main.js"></script>
+</body>
+</html>
