@@ -59,7 +59,7 @@ window.onload = function() {
     init();
 
     //var files = ['https://googledrive.com/host/0B8u7h0aKnydhfmluNDZHeHhYLVdudEpCcG5JTnI5ZzRYNUJOQnY0LWszWDJVdk1fdXl5MzQ/US-RGB-8-esopecho', 'https://googledrive.com/host/0B8u7h0aKnydhfmluNDZHeHhYLVdudEpCcG5JTnI5ZzRYNUJOQnY0LWszWDJVdk1fdXl5MzQ/US-RGB-8-esopecho'];
-    var files = ['/data/dcm/fruit'];
+    var files = ['../../data/dcm/fruit'];
 
     // build loading + parsing sequence
     var dcmParser = new VJS.parsers.dicom(files);
