@@ -40,13 +40,12 @@ VJS.parsers.dicom = function(files) {
  * @todo Last 4 calls should not be promises
  *
  *
- * @memberOf VJS.parsers
  * @public
  *
  * @param files {Array<string>} - List of files to be parsed. It is urls where
  * VJS.parsers.dicom can pull the data from.
  *
- * @return Array<VJS.image> An VJS image for each dicom file.
+ * @returns {Array<VJS.image>} An VJS image for each dicom file.
  *
  * @example
  * var files = ['/data/dcm/opecho-001.dcm', '/data/dcm/opecho-002.dcm', '/data/dcm/opecho-003.dcm'];
@@ -108,11 +107,10 @@ VJS.parsers.dicom.prototype.loadAndParse = function() {
  *
  * @todo Doesn't have to be a promise...
  *
- * @memberOf VJS.parsers
  *
  * @param url {string} - Name of the file to be dumped.
  *
- * @return string Xml dump from dicom file.
+ * @returns {string} Xml dump from dicom file.
  */
 VJS.parsers.dicom.prototype.dumpToXML = function(url) {
     var self = this;
@@ -143,7 +141,7 @@ VJS.parsers.dicom.prototype.dumpToXML = function(url) {
  *
  * @param url {string} - Url to be processed.
  *
- * @return string Filename.
+ * @returns {string} Filename.
  */
 VJS.parsers.dicom.prototype.urlToFilename = function(url) {
     // not optimized at all
@@ -158,13 +156,12 @@ VJS.parsers.dicom.prototype.urlToFilename = function(url) {
  *
  * @todo Doesn't have to be a promise...
  *
- * @memberOf VJS.parsers
  *
  * @param url {string} - Name of the file to be dumped.
- * @param url {ArrayBuffer} - Array Buffer.
- * @param url {string} - Name of the file to be dumped.
+ * @param arraybuffer {ArrayBuffer} - Array Buffer.
+ * @param options {string} - Name of the file to be dumped.
  *
- * @return string Xml dump from dicom file.
+ * @returns {string} Xml dump from dicom file.
  */
 VJS.parsers.dicom.prototype.writeToFS = function(url, arraybuffer, options) {
     var self = this;
@@ -181,11 +178,10 @@ VJS.parsers.dicom.prototype.writeToFS = function(url, arraybuffer, options) {
  * Convert blob to array buffer. Needed because fetch doesn't return array
  * buffer properly yet. (May 2015)
  *
- * @memberOf VJS.parsers
  *
  * @param blob {Blob} - Blob to be converted.
  *
- * @return ArrayBuffer Blob converted to Array Buffer.
+ * @returns {ArrayBuffer} Blob converted to Array Buffer.
  */
 VJS.parsers.dicom.prototype.blobToArrayBuffer = function(blob) {
     return new Promise(function(resolve) {
@@ -205,12 +201,11 @@ VJS.parsers.dicom.prototype.blobToArrayBuffer = function(blob) {
  * Also extracts the frame with robust (but slow) dcm2pnm.
  * {@link http://support.dcmtk.org/docs/dcm2pnm.html}
  *
- * @memberOf VJS.parsers
  *
  * @param dom {jQueryObj} - $.parseXML(xml) output.
  * @param url {string} - Target file url.
  *
- * @return VJS.Image VJS Image of target dicom.
+ * @returns {VJS.Image} VJS Image of target dicom.
  */
 VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
 
@@ -366,11 +361,10 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
 /**
  * Get number of frames in the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return number Number of frames in the target image.
+ * @returns {number} Number of frames in the target image.
  */
 VJS.parsers.dicom.prototype.imageNumberOfFrames = function(imageJqueryDom) {
     // try to access number of frames through its DICOM tag
@@ -386,11 +380,10 @@ VJS.parsers.dicom.prototype.imageNumberOfFrames = function(imageJqueryDom) {
 /**
  * Get concatenationID in the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return number Concatenation ID of the target image.
+ * @returns {number} Concatenation ID of the target image.
  */
 VJS.parsers.dicom.prototype.imageConcatenationUID = function(imageJqueryDom) {
     // try to access concatenationUID through its DICOM tag
@@ -406,11 +399,10 @@ VJS.parsers.dicom.prototype.imageConcatenationUID = function(imageJqueryDom) {
 /**
  * Get SeriesUID of the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return number Series UID of the target image.
+ * @returns {number} Series UID of the target image.
  */
 VJS.parsers.dicom.prototype.imageSeriesUID = function(imageJqueryDom) {
     // try to access seriesUID through its DICOM tag
@@ -426,11 +418,10 @@ VJS.parsers.dicom.prototype.imageSeriesUID = function(imageJqueryDom) {
 /**
  * Get Series Number of the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return number Series Number of the target image.
+ * @returns {number} Series Number of the target image.
  */
 VJS.parsers.dicom.prototype.imageSeriesNumber = function(imageJqueryDom) {
     // try to access seriesNumber through its DICOM tag
@@ -446,11 +437,10 @@ VJS.parsers.dicom.prototype.imageSeriesNumber = function(imageJqueryDom) {
 /**
  * Get Dimension Index Sequence of the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return Array<Object> List dimensions in the Image.
+ * @returns {Array<Object>} List dimensions in the Image.
  */
 VJS.parsers.dicom.prototype.imageDimensionIndexSequence = function(imageJqueryDom) {
     var dimensionIndexSequence = imageJqueryDom.find('[tag="00209222"]');
@@ -463,9 +453,8 @@ VJS.parsers.dicom.prototype.imageDimensionIndexSequence = function(imageJqueryDo
 /**
  * Convenience function to get dimension index sequence from jQuery each callback.
  *
- * @memberOf VJS.parsers
  *
- * @param data {Array} - Array to be filled.
+ * @param data {Array} Array to be filled.
  */
 VJS.parsers.dicom.prototype.fillDimensionIndexSequence = function(data) {
     return function() {
@@ -478,11 +467,10 @@ VJS.parsers.dicom.prototype.fillDimensionIndexSequence = function(data) {
 /**
  * Get Rows of the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return number Rows in the image.
+ * @returns {number} Rows in the image.
  */
 VJS.parsers.dicom.prototype.imageRows = function(imageJqueryDom) {
     var rows = parseInt(imageJqueryDom.find('[tag="00280010"]').text(), 10);
@@ -492,37 +480,49 @@ VJS.parsers.dicom.prototype.imageRows = function(imageJqueryDom) {
 /**
  * Get Columns of the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return number Columns in the image.
+ * @returns {number} Columns in the image.
  */
 VJS.parsers.dicom.prototype.imageColumns = function(imageJqueryDom) {
     var columns = parseInt(imageJqueryDom.find('[tag="00280011"]').text(), 10);
     return columns;
 };
 
-
 /**
  * Get Photometric Interpretation of the image.
  *
- * @memberOf VJS.parsers
  *
- * @param imageJqueryDom {jQueryObj} - jQueryRepresentation of the whole image.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
  *
- * @return string Photometric interpretation of the image.
+ * @returns {string} Photometric interpretation of the image.
  */
 VJS.parsers.dicom.prototype.imagePhotometricInterpretation = function(imageJqueryDom) {
     var photometricInterpretation = imageJqueryDom.find('[tag="00280004"] Value').text();
     return photometricInterpretation;
 };
 
+/**
+ * Get jQuery representation of frame per-frame functionnal group sequence.
+ *
+ *
+ * @param frameIndex {number} - Frame index of interest.
+ * @param imageJqueryDom {jQueryObj} - jQuery representation of the whole image.
+ *
+ * @returns {jQueryObj} jQuery representation of frame per-frame functionnal group sequence.
+ */
 VJS.parsers.dicom.prototype.imagePerFrameFunctionalGroupSequence = function(frameIndex, imageJqueryDom) {
     var $perFrameFunctionalGroupSequence = imageJqueryDom.find('[tag="52009230"] > [number="' + frameIndex + '"]');
     return $perFrameFunctionalGroupSequence;
 };
 
+/**
+ * Convenience function to filter array on inner's object _stackID.
+ *
+ *
+ * @param obj {VJS.Stack.model} - Stack Model.
+ */
 VJS.parsers.dicom.prototype.filterByStackID = function(obj) {
     /*jshint validthis:true*/
     if ('_stackID' in obj && typeof(obj._stackID) === 'number' && !isNaN(obj._stackID) && obj._stackID === this) {

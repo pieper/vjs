@@ -37,6 +37,8 @@ VJS.stack.view.prototype.constructor = VJS.stack.view;
  * @param {number} frameindex - Frame index to be displayed.
  *
  * @example
+ * var stackModel = ...;
+ *
  * var frameView = new VJS.stack.view(stackModel);
  * frameView.threejsframe(6);
  *
@@ -118,6 +120,27 @@ VJS.stack.view.prototype.threejsframeUpdate = function(frameindex) {
 };
 
 
+/**
+ * Create a slice from stack provided to constructor.
+ * Call stackModel.prepare() before to make sure the model is ready to be viewed.
+ * Makes current view threeJS friendly.
+ *
+ * @public
+ * @param {THREE.Vector3} origin - Origin of the normal that defines the plane.
+ * @param {THREE.Vector3} direction - Direction of the normal that defines the plane.
+ *
+ * @example
+ * var stackModel = ...;
+ * stackModel.prepare();
+ *
+ * var stackView = new VJS.stack.view(stackModel);
+ *
+ * var direction = new THREE.Vector3(0, 0, 1);
+ * var origin = new THREE.Vector3(448, 448, 32);
+ * stackView.threejsslice(origin, direction);
+ *
+ * scene.add(stackView);
+ */
 VJS.stack.view.prototype.threejsslice = function(origin, direction) {
     // direction and origins in which space?
     // Need IJK to LPS transform...?
@@ -333,6 +356,29 @@ VJS.stack.view.prototype.threejsslice = function(origin, direction) {
 
 };
 
+/**
+ * Update a slice view.
+ *
+ * @public
+ * @param {THREE.Vector3} origin - Origin of the normal that defines the plane.
+ * @param {THREE.Vector3} direction - Direction of the normal that defines the plane.
+ *
+ * @example
+ * var stackModel = ...;
+ * stackModel.prepare();
+ *
+ * var stackView = new VJS.stack.view(stackModel);
+ *
+ * var direction = new THREE.Vector3(0, 0, 1);
+ * var origin = new THREE.Vector3(448, 448, 32);
+ * stackView.threejsslice(origin, direction);
+ *
+ * scene.add(stackView);
+ *
+ * var direction2 = new THREE.Vector3(0, 1, 1);
+ * var origin2 = new THREE.Vector3(142, 23, 43);
+ * stackView.threejssliceUpdate(origin2, direction2);
+ */
 VJS.stack.view.prototype.threejssliceUpdate = function(origin, direction) {
     // direction and origins in which space?
     // Need IJK to LPS transform...?

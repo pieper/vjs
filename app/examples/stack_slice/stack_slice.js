@@ -42,7 +42,7 @@ function init() {
     // scene
     scene = new THREE.Scene();
     // camera
-    var camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+    camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
     camera.position.x = 400;
     camera.position.y = 400;
     camera.position.z = 400;

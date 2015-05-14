@@ -2,12 +2,19 @@
 
 var VJS = VJS || {};
 /**
- * @namespace
+ * image namespace
+ * @namespace image
+ * @memberOf VJS
  */
 VJS.image = VJS.image || {};
 
 /**
- * Define the structure of an image here
+ * Define the model of a image here
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.image
+ * @public
  */
 VJS.image.model = function() {
     this._id = -1; // Always good to have an ID

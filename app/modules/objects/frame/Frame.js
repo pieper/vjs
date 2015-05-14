@@ -6,6 +6,7 @@ var VJS = VJS || {};
  * frame namespace
  * @namespace frame
  * @memberOf VJS
+ * @public
  */
 VJS.frame = VJS.frame || {};
 

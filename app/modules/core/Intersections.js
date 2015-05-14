@@ -29,7 +29,7 @@ VJS.intersections = VJS.intersections || {};
  * @param {THREE.Vector3} plane.origin - Origin of normal which describes the plane.
  * @param {THREE.Vector3} plane.direction - Direction of normal which describes the plane.
  *
- * @return {Array<THREE.Vector3>} List of all intersections, in plane's space.
+ * @returns {Array<THREE.Vector3>} List of all intersections, in plane's space.
  *
  * @todo toOBBSpace and toOBBSpaceInvert might be redundent.
  * @todo find best way to deal with different spaces.
@@ -279,7 +279,7 @@ VJS.intersections.obbPlane = function(obb, plane) {
  * @param {THREE.Vector3} plane.origin - Origin of normal which describes the plane.
  * @param {THREE.Vector3} plane.direction - Direction of normal which describes the plane.
  *
- * @return {THREE.Vector3|null} Intersection between ray and plane or null.
+ * @returns {THREE.Vector3|null} Intersection between ray and plane or null.
  */
 VJS.intersections.rayPlane = function(ray, plane) {
     // ray: {origin, direction}

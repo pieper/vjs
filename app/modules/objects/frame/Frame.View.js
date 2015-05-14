@@ -16,6 +16,7 @@ VJS.frame = VJS.frame || {};
  * @constructor
  * @class
  * @memberOf VJS.frame
+ * @public
  */
 VJS.frame.view = function(frameModel) {
     this.vjsModel = frameModel;

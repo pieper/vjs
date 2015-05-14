@@ -15,6 +15,7 @@ VJS.stack = VJS.stack || {};
  * @constructor
  * @class
  * @memberOf VJS.stack
+ * @public
  */
 VJS.stack.model = function() {
     /**
