@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0">
   <meta charset="utf-8">
-  <title>Namespace: image</title>
+  <title>Class: geometry</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,37 +24,50 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="VJS.html">VJS</a>.<wbr></small><span class="symbol-name">image</span></h1>
-            <p class="source-link">Source: <a href="modules_objects_image_Image.js.html#source-line-4">modules/<wbr>objects/<wbr>image/<wbr>Image.<wbr>js:4</a></p>
-            <div class="symbol-description">
-              <p>image namespace</p>
-            </div>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-public">public</span>&nbsp;<span class="label label-static">static</span></div><small><a href="VJS.html">VJS</a>.<wbr>slice.<wbr></small><span class="symbol-name">geometry</span></h1>
+            <p class="source-link">Source: <a href="modules_geometries_geometry.slice.js.html#source-line-47">modules/<wbr>geometries/<wbr>geometry.<wbr>slice.<wbr>js:47</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
-            <div class="summary-callout">
-              <h2 class="summary-callout-heading">Child class</h2>
-              <div class="summary-content">
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="VJS.image.model.html">model()</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                </div>
-                <div class="summary-column">
-                </div>
-              </div>
-            </div>
           </section>
           <section>
-            <h2>Class</h2>
-            <section id='members-links'>
-              <h3><a href="VJS.image.model.html">model</a></h3>
+            <h2 id="geometry">new&nbsp;<span class="symbol-name">geometry</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <p>Create a slice geometry given a box and the cut-plane</p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// Define box to be sliced
+var halfDimensions = new THREE.Vector(123, 45, 67);
+var center = new THREE.Vector3(0, 0, 0);
+var orientation = new THREE.Vector3(
+  new THREE.Vector3(1, 0, 0),
+  new THREE.Vector3(0, 1, 0),
+  new THREE.Vector3(0, 0, 1)
+);
+
+// Define slice plane
+var position = center.clone();
+var direction = new THREE.Vector3(-0.2, 0.5, 0.3);
+
+// Create the slice geometry &amp; materials
+var sliceGeometry = new VJS.slice.geometry(halfDimensions, center, orientation, position, direction);
+var sliceMaterial = new THREE.MeshBasicMaterial({
+  &#x27;side&#x27;: THREE.DoubleSide,
+  &#x27;color&#x27;: 0xFF5722
+});
+
+ // Create mesh and add it to the scene
+ var slice = new THREE.Mesh(sliceGeometry, sliceMaterial);
+ scene.add(slice);</code></pre>
+              </div>
             </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
           </section>
         </div>
       </div>
