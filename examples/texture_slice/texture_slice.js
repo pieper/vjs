@@ -75,7 +75,7 @@ window.onload = function() {
     // init threeJS...
     init();
 
-    var files = ['/data/dcm/fruit'];
+    var files = ['../../data/dcm/fruit'];
 
     // build loading + parsing sequence
     var dcmParser = new VJS.parsers.dicom(files);
