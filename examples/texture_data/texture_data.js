@@ -4,20 +4,22 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera, bbox, bboxMin, bboxMax, nbSpheres, spheres, directions, steps;
+var controls, renderer, stats, scene, camera, dat, bbox, bboxMin, bboxMax, spheres, directions, steps, testSpheres;
 
 // FUNCTIONS
 function init() {
 
-    nbSpheres = 13;
+    testSpheres = {
+        'nbSpheres': 20
+    };
 
     // this function is executed on each animation frame
     function animate() {
         // update spheres positions
-        if (spheres && spheres.length === nbSpheres) {
+        if (spheres && spheres.length === testSpheres.nbSpheres) {
 
 
-            for (var i = 0; i < nbSpheres; i++) {
+            for (var i = 0; i < testSpheres.nbSpheres; i++) {
 
                 if (spheres[i].position.x >= bbox[1].x) {
                     directions[i].x = -1;
@@ -76,14 +78,31 @@ function init() {
     scene = new THREE.Scene();
     // camera
     camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
-    camera.position.x = 400;
-    camera.position.y = 400;
-    camera.position.z = 400;
+    camera.position.x = 150;
+    camera.position.y = 150;
+    camera.position.z = 100;
     camera.lookAt(scene.position);
     // controls
     controls = new THREE.OrbitControls2D(camera, renderer.domElement);
 
     animate();
+}
+
+function createSphere(position, material) {
+    var direction = new THREE.Vector3(Math.random() < 0.5 ? -1 : 1, Math.random() < 0.5 ? -1 : 1, Math.random() < 0.5 ? -1 : 1);
+    var step = new THREE.Vector3(Math.random(), Math.random(), Math.random());
+    var radius = Math.floor((Math.random() * 30) + 1);
+    var sphereGeometry = new THREE.SphereGeometry(radius, 32, 32);
+    var sphere = new THREE.Mesh(sphereGeometry, material);
+    sphere.position.x = bbox[0].x + (bbox[1].x - bbox[0].x) / 2;
+    sphere.position.y = bbox[0].y + (bbox[1].y - bbox[0].y) / 2;
+    sphere.position.z = bbox[0].z + (bbox[1].z - bbox[0].z) / 2;
+
+    spheres.push(sphere);
+    directions.push(direction);
+    steps.push(step);
+
+    scene.add(sphere);
 }
 
 window.onload = function() {
@@ -163,27 +182,48 @@ window.onload = function() {
                 new THREE.Vector3(Math.min(bboxMin.x, bboxMax.x), Math.min(bboxMin.y, bboxMax.y), Math.min(bboxMin.z, bboxMax.z)),
                 new THREE.Vector3(Math.max(bboxMin.x, bboxMax.x), Math.max(bboxMin.y, bboxMax.y), Math.max(bboxMin.z, bboxMax.z))
             ];
+            var bboxCenter = new THREE.Vector3(
+                bbox[0].x + (bbox[1].x - bbox[0].x) / 2,
+                bbox[0].y + (bbox[1].y - bbox[0].y) / 2,
+                bbox[0].z + (bbox[1].z - bbox[0].z) / 2);
 
             spheres = [];
             directions = [];
             steps = [];
-            for (var i = 0; i < nbSpheres; i++) {
-                // make some spheres!
-                var direction = new THREE.Vector3(Math.random() < 0.5 ? -1 : 1, Math.random() < 0.5 ? -1 : 1, Math.random() < 0.5 ? -1 : 1);
-                var step = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-                var radius = Math.floor((Math.random() * 30) + 1);
-                var sphereGeometry = new THREE.SphereGeometry(radius, 32, 32);
-                var sphere = new THREE.Mesh(sphereGeometry, sliceMaterial);
-                sphere.position.x = bbox[0].x + (bbox[1].x - bbox[0].x) / 2;
-                sphere.position.y = bbox[0].y + (bbox[1].y - bbox[0].y) / 2;
-                sphere.position.z = bbox[0].z + (bbox[1].z - bbox[0].z) / 2;
-
-                spheres.push(sphere);
-                directions.push(direction);
-                steps.push(step);
-
-                scene.add(sphere);
+            for (var i = 0; i < testSpheres.nbSpheres; i++) {
+                createSphere(bboxCenter, sliceMaterial);
             }
+
+            var gui = new dat.GUI({
+                autoPlace: false
+            });
+
+            var customContainer = document.getElementById('my-gui-container');
+            customContainer.appendChild(gui.domElement);
+
+            var ballsFolder = gui.addFolder('Spheres');
+            var numberOfSpheresUpdate = ballsFolder.add(testSpheres, 'nbSpheres', 1, 100).step(1);
+            ballsFolder.open();
+
+            numberOfSpheresUpdate.onChange(function(value) {
+                var diff = value - spheres.length;
+                if (diff > 0) {
+                    for (var j = 0; j < diff; j++) {
+                        createSphere(bboxCenter, sliceMaterial);
+                    }
+
+                } else if (diff < 0) {
+                    diff = Math.abs(diff);
+
+                    for (var k = 0; k < diff; k++) {
+                        scene.remove(spheres[0]);
+                        spheres.shift();
+                        directions.shift();
+                        steps.shift();
+                    }
+                }
+            });
+
 
         })
         .catch(function(error) {
