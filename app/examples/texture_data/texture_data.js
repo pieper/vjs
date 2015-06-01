@@ -135,6 +135,7 @@ window.onload = function() {
             // those operations could be async too!
             // prepare the texture!
             var stack = message[0]._stack[0];
+            window.console.log(stack);
             stack.prepare();
 
             // make a box!

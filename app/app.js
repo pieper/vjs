@@ -3,4 +3,5 @@
 /**
  * @namespace
  */
+
 var VJS = VJS || {};

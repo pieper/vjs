@@ -10,8 +10,8 @@ var VJS = VJS || {};
  * @memberOf VJS
  * @public
  */
-VJS.loader = VJS.loader || {};
 
+VJS.loader = VJS.loader || {};
 
 /**
  *
@@ -46,9 +46,10 @@ VJS.loader = VJS.loader || {};
  */
 VJS.loader.dicom = function(manager) {
 
-    this.manager = (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
-    this.crossOrigin = true;
-    this.responseType = 'arraybuffer';
+  this.manager =
+      (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
+  this.crossOrigin = true;
+  this.responseType = 'arraybuffer';
 
 };
 VJS.loader.dicom.prototype.constructor = VJS.loader.dicom;
@@ -68,16 +69,16 @@ VJS.loader.dicom.prototype.constructor = VJS.loader.dicom;
  */
 VJS.loader.dicom.prototype.load = function(url, onLoad, onProgress, onError) {
 
-    var scope = this;
+  var scope = this;
 
-    var loader = new THREE.XHRLoader(scope.manager);
-    loader.setCrossOrigin(this.crossOrigin);
-    loader.setResponseType(this.responseType);
-    loader.load(url, function(response) {
+  var loader = new THREE.XHRLoader(scope.manager);
+  loader.setCrossOrigin(this.crossOrigin);
+  loader.setResponseType(this.responseType);
+  loader.load(url, function(response) {
 
-        onLoad(scope.parse(response));
+    onLoad(scope.parse(response));
 
-    }, onProgress, onError);
+  }, onProgress, onError);
 
 };
 
@@ -94,89 +95,94 @@ VJS.loader.dicom.prototype.load = function(url, onLoad, onProgress, onError) {
  */
 VJS.loader.dicom.prototype.parse = function(response) {
 
-    var container = new THREE.Object3D();
+  var image = new VJS.helpers.imge();
 
-    console.time('LoaderDicom');
+  console.time('LoaderDicom');
 
-    window.console.log(response);
+  window.console.log(response);
 
-    var imageNameFS = 'image_' + container.id;
-    window.console.log(imageNameFS);
+  var imageNameFS = 'image_' + image.id;
+  window.console.log(imageNameFS);
 
-    //
-    // write to virtual FS
-    //
-    var uploadedObject = new Int8Array(response);
-    // should create the FS tree maybe rather than just using filename...
-    var options = {
-        encoding: 'binary'
-    };
+  //
+  // write to virtual FS
+  //
+  var uploadedObject = new Int8Array(response);
+  // should create the FS tree maybe rather than just using filename...
+  var options = {
+    encoding: 'binary'
+  };
 
-    var output = FS.writeFile(imageNameFS, uploadedObject, options);
-    window.console.log(output);
+  var output = FS.writeFile(imageNameFS, uploadedObject, options);
+  window.console.log(output);
 
-    //
-    // Save all frames on FS
-    //
-    var frameImageNameFS = imageNameFS + '-raw.8b';
-    dcmjs.utils.execute('dcm2pnm', ['--verbose', '--all-frames', '--write-raw-pnm', imageNameFS, frameImageNameFS]);
+  //
+  // Save all frames on FS
+  //
+  var frameNameFS = imageNameFS + '-raw.8b';
+  var dcm2pnmOptions =
+    ['--verbose', '--all-frames', '--write-raw-pnm', imageNameFS, frameNameFS];
+  dcmjs.utils.execute('dcm2pnm', dcm2pnmOptions);
 
-    //
-    // Dump to XML
-    //
-    var dumpLines = [];
-    Module.print = function(s) {
-        dumpLines.push(s);
-    };
+  //
+  // Dump to XML
+  //
+  var dumpLines = [];
+  Module.print = function(s) {
+    dumpLines.push(s);
+  };
 
-    var returnCode = dcmjs.utils.execute('dcm2xml', ['--native-format', imageNameFS]);
-    Module.print = print;
-    window.console.log(returnCode);
+  var returnCode = dcmjs.utils.execute(
+      'dcm2xml', ['--native-format', imageNameFS]);
+  Module.print = print;
+  window.console.log(returnCode);
 
-    //var xml = VJS.parsers.dicom.printToXML(dumpLines);
-    var xml = dumpLines.join('\n');
-    window.console.log(xml);
+  //var xml = VJS.parsers.dicom.printToXML(dumpLines);
+  var xml = dumpLines.join('\n');
+  window.console.log(xml);
 
-    //
-    // jQuery DOM
-    //
-    var $dicomDom = $.parseXML(xml);
-    window.console.log($dicomDom);
+  //
+  // jQuery DOM
+  //
+  var $dicomDom = $.parseXML(xml);
+  window.console.log($dicomDom);
 
-    // var object, objects = [];
-    // var geometry, material;
+  //
+  //  Create A dicom parser to help us fill the Image Helper!
+  //
 
+  // var object, objects = [];
+  // var geometry, material;
 
+  // for ( var i = 0, l = objects.length; i < l; i ++ ) {
 
-    // for ( var i = 0, l = objects.length; i < l; i ++ ) {
+  //   object = objects[ i ];
+  //   geometry = object.geometry;
 
-    //   object = objects[ i ];
-    //   geometry = object.geometry;
+  //   var buffergeometry = new THREE.BufferGeometry();
 
-    //   var buffergeometry = new THREE.BufferGeometry();
+  //   buffergeometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( geometry.vertices ), 3 ) );
 
-    //   buffergeometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( geometry.vertices ), 3 ) );
+  //   if ( geometry.normals.length > 0 ) {
+  //     buffergeometry.addAttribute( 'normal', new THREE.BufferAttribute( new Float32Array( geometry.normals ), 3 ) );
+  //   }
 
-    //   if ( geometry.normals.length > 0 ) {
-    //     buffergeometry.addAttribute( 'normal', new THREE.BufferAttribute( new Float32Array( geometry.normals ), 3 ) );
-    //   }
+  //   if ( geometry.uvs.length > 0 ) {
+  //     buffergeometry.addAttribute( 'uv', new THREE.BufferAttribute( new Float32Array( geometry.uvs ), 2 ) );
+  //   }
 
-    //   if ( geometry.uvs.length > 0 ) {
-    //     buffergeometry.addAttribute( 'uv', new THREE.BufferAttribute( new Float32Array( geometry.uvs ), 2 ) );
-    //   }
+  //   material = new THREE.MeshLambertMaterial();
+  //   material.name = object.material.name;
 
-    //   material = new THREE.MeshLambertMaterial();
-    //   material.name = object.material.name;
+  //   var mesh = new THREE.Mesh( buffergeometry, material );
+  //   mesh.name = object.name;
 
-    //   var mesh = new THREE.Mesh( buffergeometry, material );
-    //   mesh.name = object.name;
+  //   container.add( mesh );
 
-    //   container.add( mesh );
+  // }
 
-    // }
+  console.timeEnd('LoaderDicom');
 
-    console.timeEnd('LoaderDicom');
-
-    return container;
+  return image;
 
 };

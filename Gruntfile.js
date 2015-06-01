@@ -45,7 +45,7 @@ module.exports = function (grunt) {
       },
       js: {
         files: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/lib/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js'],
-        tasks: ['jshint', 'jsbeautifier', 'jsdoc']
+        tasks: ['jsdoc'] //'jshint', 'jsbeautifier', 
       },
       styles: {
         files: ['<%= vjs.app %>/**/*.css'],

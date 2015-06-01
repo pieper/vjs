@@ -7,6 +7,27 @@ var Stats = Stats || {};
 var controls, renderer, stats, scene, camera, dat;
 
 // FUNCTIONS
+function onProgressCallback(evt, filename) {
+    var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+
+    var fileContainer = document.getElementById(filename);
+    if (!fileContainer) {
+        var progressContainer = document.getElementById('my-progress-container');
+        var div = document.createElement('div');
+        div.setAttribute('id', filename);
+        div.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
+
+        progressContainer.appendChild(div);
+    } else {
+        fileContainer.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
+    }
+
+    // fileContainer
+
+
+    // window.console.log(percentComplete + '%');
+}
+
 function init() {
 
     // this function is executed on each animation frame
@@ -58,22 +79,48 @@ window.onload = function() {
     // init threeJS...
     init();
 
-    var files = ['/data/dcm/fruit'];
+    var files = ['/data/dcm/corn', '/data/dcm/tomato'];
 
     window.console.log(dat);
+
+    // create loader manager (to support multiple files)
+    var manager = new THREE.LoadingManager();
+    manager.onProgress = function(item, loaded, total) {
+        var fileContainer = document.getElementById(item);
+        fileContainer.innerHTML = ' ' + item + ' is ready! ' + '(' + loaded + '/' + total + ')';
+    };
 
     // let's load some dicoms!
     // instantiate a loader
     // todo: show progress somewhere!
-    var loader = new VJS.loader.dicom();
+    var loader = new VJS.loader.dicom(manager);
     // load a resource
     loader.load(
+        // resource URL
+        files[1],
+        // Function when resource is loaded
+        function(object) {
+            //scene.add( object );
+            window.console.log(object);
+        },
+        function() {
+            onProgressCallback(event, files[1]);
+        }
+
+    );
+
+    var loader2 = new VJS.loader.dicom(manager);
+    // load a resource
+    loader2.load(
         // resource URL
         files[0],
         // Function when resource is loaded
         function(object) {
             //scene.add( object );
             window.console.log(object);
+        },
+        function() {
+            onProgressCallback(event, files[0]);
         }
     );
 };

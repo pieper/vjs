@@ -206,26 +206,28 @@ www.threejs.org
 
     <script>
 
-    var files = {
-      "geometry": [
-        "geometry_slice"
-      ],
-      "texture": [
-        "texture_data"
-      ],
-      "loader": [
-        "loader_dicom"
-      ]
-    };
+'use strict';
 
-    var panel = document.getElementById( 'panel' );
-    var content = document.getElementById( 'content' );
-    var viewer = document.getElementById( 'viewer' );
+var files = {
+  'geometry': [
+    'geometry_slice'
+  ],
+  'texture': [
+    'texture_data'
+  ],
+  'loader': [
+    'loader_dicom'
+  ]
+};
 
-    var expandButton = document.getElementById( 'expandButton' );
-    expandButton.addEventListener( 'click', function ( event ) {
-      panel.classList.toggle( 'collapsed' );
-      event.preventDefault();
+var panel = document.getElementById( 'panel' );
+var content = document.getElementById( 'content' );
+var viewer = document.getElementById( 'viewer' );
+
+var expandButton = document.getElementById( 'expandButton' );
+expandButton.addEventListener( 'click', function ( event ) {
+  panel.classList.toggle( 'collapsed' );
+  event.preventDefault();
     } );
 
     // iOS8 workaround

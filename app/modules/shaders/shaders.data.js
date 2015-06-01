@@ -148,6 +148,7 @@ VJS.shaders.data = {
             'vec4 dataValue = getDataValue(dataCoordinate, uDataDimensions, uTextureSize, uTextureContainer);',
             'color.rgb = dataValue.rgb;',
             'gl_FragColor = vec4(color, 1.0);',
+            //'gl_FragColor = vec4(dataCoordinate[0]/704.0, dataCoordinate[1]/704.0, dataCoordinate[2]/57.0, 1.0);',
             '}',
             'else{',
             // should be able to choose what we want to do if not in range:

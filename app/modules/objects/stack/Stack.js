@@ -96,8 +96,9 @@ VJS.stack.model.prototype.prepare = function() {
     // 1,1,2,1 will be next
     // 1,1,2,3 will be next
     // 1,1,3,1 wil be next
-    window.console.log(this);
+    //window.console.log(this);
     this._frame.sort(VJS.stack.model.prototype.orderFrameOnDimensionIndices);
+    //window.console.log(this);
     // get height of the stack (i.e. number of frames)
     this._nbFrames = this._frame.length;
     // can we calculate that? might have to parse all frames to make sure it is consistent...
@@ -191,7 +192,17 @@ VJS.stack.model.prototype.prepare = function() {
         this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * nbChannels));
     }
 
+    // if required pixels > this._textureSize * this._textureSize * nbChannels ?
+    window.console.log(requiredPixels);
+     window.console.log(this._rows);
+     window.console.log(this._columns);
+      window.console.log(this._rows * this._columns);
+       window.console.log(this._textureSize);
+
     // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
+    //var prevFrame = -1;
+    //var prevTexture = -1;
+
     for (var jj = 0; jj < requiredPixels; jj++) {
 
         var frameIndex = Math.floor(jj / (this._rows * this._columns));
@@ -205,7 +216,21 @@ VJS.stack.model.prototype.prepare = function() {
         // NORMAALIZE IN THE SHADERS!
         // could track min/max here...?
 
+        //window.console.log(textureIndex,frameIndex);
+
+        // if(prevFrame !== frameIndex){
+        //   window.console.log('frameIndex', frameIndex);
+        //   prevFrame = frameIndex;
+        // }
+        // if(prevTexture !== textureIndex){
+        //   window.console.log('textureIndex', textureIndex);
+        //   prevTexture = textureIndex;
+        // }
+
+        // if(frameIndex < 100 && frameIndex > 58){
         this._rawData[textureIndex][inTextureIndex] = this._frame[frameIndex]._pixelData[inFrameIndex]; //Math.floor( Math.random() * 255 );
+
+        // }
 
         // // normalize value
         // var normalizedValue = 255 * ((this._data[j] - this._min) / (this._max - this._min));
@@ -246,16 +271,22 @@ VJS.stack.model.prototype.orderFrameOnDimensionIndices = function(a, b) {
 
     if ('_dimensionIndexValues' in a && Object.prototype.toString.call(a._dimensionIndexValues) === '[object Array]' && '_dimensionIndexValues' in b && Object.prototype.toString.call(b._dimensionIndexValues) === '[object Array]') {
         for (var i = 0; i < a._dimensionIndexValues.length; i++) {
-            if (a._dimensionIndexValues[i] > b._dimensionIndexValues[i]) {
-                return false;
+            if (parseInt(a._dimensionIndexValues[i]) > parseInt(b._dimensionIndexValues[i])) {
+                //window.console.log(a._dimensionIndexValues[i] + ' > ' + b._dimensionIndexValues[i]);
+                //window.console.log(typeof a._dimensionIndexValues[i] + ' > ' + typeof b._dimensionIndexValues[i]);
+                return 1;
+            }
+            if (parseInt(a._dimensionIndexValues[i]) < parseInt(b._dimensionIndexValues[i])) {
+                //window.console.log(a._dimensionIndexValues[i] + ' < ' + b._dimensionIndexValues[i]);
+                //window.console.log(typeof a._dimensionIndexValues[i] + ' < ' + typeof b._dimensionIndexValues[i]);
+                return -1;
             }
         }
     } else {
         window.console.log('One of the frames doesn\'t have a _dimensionIndexValues array.');
         window.console.log(a);
         window.console.log(b);
-
-        // return what?
-        return true;
     }
+
+    return 0;
 };
