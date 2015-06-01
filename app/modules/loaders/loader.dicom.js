@@ -95,61 +95,21 @@ VJS.loader.dicom.prototype.load = function(url, onLoad, onProgress, onError) {
  */
 VJS.loader.dicom.prototype.parse = function(response) {
 
-  var image = new VJS.helpers.imge();
-
   console.time('LoaderDicom');
+  // use response as input to image helper.
+  // can provide an image or not...
+  var imageHelper = new VJS.helpers.image();
 
-  window.console.log(response);
+  var dicomParser = new VJS.parsers.dicom(response, imageHelper.id);
+  //var image = dicomParser.parse();
 
-  var imageNameFS = 'image_' + image.id;
-  window.console.log(imageNameFS);
-
-  //
-  // write to virtual FS
-  //
-  var uploadedObject = new Int8Array(response);
-  // should create the FS tree maybe rather than just using filename...
-  var options = {
-    encoding: 'binary'
-  };
-
-  var output = FS.writeFile(imageNameFS, uploadedObject, options);
-  window.console.log(output);
-
-  //
-  // Save all frames on FS
-  //
-  var frameNameFS = imageNameFS + '-raw.8b';
-  var dcm2pnmOptions =
-    ['--verbose', '--all-frames', '--write-raw-pnm', imageNameFS, frameNameFS];
-  dcmjs.utils.execute('dcm2pnm', dcm2pnmOptions);
-
-  //
-  // Dump to XML
-  //
-  var dumpLines = [];
-  Module.print = function(s) {
-    dumpLines.push(s);
-  };
-
-  var returnCode = dcmjs.utils.execute(
-      'dcm2xml', ['--native-format', imageNameFS]);
-  Module.print = print;
-  window.console.log(returnCode);
-
-  //var xml = VJS.parsers.dicom.printToXML(dumpLines);
-  var xml = dumpLines.join('\n');
-  window.console.log(xml);
-
-  //
-  // jQuery DOM
-  //
-  var $dicomDom = $.parseXML(xml);
-  window.console.log($dicomDom);
+  imageHelper.add(dicomParser.parse());
 
   //
   //  Create A dicom parser to help us fill the Image Helper!
   //
+
+  // var dicomParser = new VJS.parsers.dicom(name, jQueryDom);
 
   // var object, objects = [];
   // var geometry, material;
@@ -183,6 +143,6 @@ VJS.loader.dicom.prototype.parse = function(response) {
 
   console.timeEnd('LoaderDicom');
 
-  return image;
+  return imageHelper;
 
 };

@@ -88,6 +88,8 @@ window.onload = function() {
     manager.onProgress = function(item, loaded, total) {
         var fileContainer = document.getElementById(item);
         fileContainer.innerHTML = ' ' + item + ' is ready! ' + '(' + loaded + '/' + total + ')';
+        // merge images!
+        // add it to the scene!
     };
 
     // let's load some dicoms!
@@ -117,6 +119,8 @@ window.onload = function() {
         // Function when resource is loaded
         function(object) {
             //scene.add( object );
+            // should merge all images!
+
             window.console.log(object);
         },
         function() {
