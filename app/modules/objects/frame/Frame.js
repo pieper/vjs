@@ -104,6 +104,7 @@ VJS.frame.model = function() {
         'row': 1,
         'column': 1
     };
+    this._spacingBetweenSlices = 0;
     /**
      * @member
      * @type {Array}

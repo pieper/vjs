@@ -248,6 +248,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
     //
     currentFrame._sliceThickness = this.getFrameSliceThickness($perFrameFunctionalGroupsSequence, $dom);
     currentFrame._pixelSpacing = this.getFramePixelSpacing($perFrameFunctionalGroupsSequence, $dom);
+    currentFrame._spacingBetweenSlices = this.getSpacingBetweenSlices($perFrameFunctionalGroupsSequence, $dom);
 
     // use dimension!!
 
@@ -638,6 +639,19 @@ VJS.parsers.dicom.prototype.getFramePixelSpacing = function(frameJqueryPreFrameD
   }
 
   return pixelSpacing;
+};
+
+VJS.parsers.dicom.prototype.getSpacingBetweenSlices = function(frameJqueryPreFrameDom, imageJqueryDom) {
+  var spacingBetweenSlices = 0;
+
+  spacingBetweenSlices = parseFloat(frameJqueryPreFrameDom.find('[tag="00180088"] Value').text(), 10);
+
+  // or look for it in the imageJqueryDom?
+  if (spacingBetweenSlices === 'NaN') {
+    spacingBetweenSlices = 0.0;
+  }
+
+  return spacingBetweenSlices;
 };
 
 //

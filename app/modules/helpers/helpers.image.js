@@ -36,6 +36,7 @@ VJS.helpers.image.prototype.addImage = function(image) {
     // get first stack!
     var stack = this._image._stack[0];
     stack.prepare();
+    window.console.log(stack);
 
     // Convenience function
     var dimensions = new THREE.Vector3(stack._rows, stack._columns, stack._nbFrames);
@@ -45,7 +46,7 @@ VJS.helpers.image.prototype.addImage = function(image) {
     var geometry = new THREE.BoxGeometry(
       dimensions.x, dimensions.y, dimensions.z);
     geometry.applyMatrix(new THREE.Matrix4().makeTranslation(
-      halfDimensions.x, halfDimensions.y, halfDimensions.z));
+      halfDimensions.x - 0.5, halfDimensions.y - 0.5, halfDimensions.z - 0.5));
     geometry.applyMatrix(stack._ijk2LPS);
     var material = new THREE.MeshBasicMaterial({
       wireframe: true,
@@ -69,7 +70,7 @@ VJS.helpers.image.prototype.addImage = function(image) {
       halfDimensions, center, orientation,
       position, direction);
     sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
-      halfDimensions.x, halfDimensions.y, halfDimensions.z));
+      halfDimensions.x - 0.5, halfDimensions.y - 0.5, halfDimensions.z - 0.5));
     sliceGeometry.applyMatrix(stack._ijk2LPS);
 
     // Slice
