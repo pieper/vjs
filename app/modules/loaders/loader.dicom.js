@@ -1,5 +1,3 @@
-/*global Module, dcmjs, FS, $*/
-
 'use strict';
 
 var VJS = VJS || {};
@@ -50,6 +48,8 @@ VJS.loader.dicom = function(manager) {
       (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
   this.crossOrigin = true;
   this.responseType = 'arraybuffer';
+  this._imageHelper = null;
+  this._image = null;
 
 };
 VJS.loader.dicom.prototype.constructor = VJS.loader.dicom;
@@ -65,21 +65,61 @@ VJS.loader.dicom.prototype.constructor = VJS.loader.dicom;
  * @param {function} onLoad - On load callback, after response has been parsed by VJS.loader.dicom.parse.
  * @param {function} onProgress - On progress callback.
  * @param {function} onError - On error callback.
+ * 
+ * @returns {Array<Promise>} Loading sequence for each file.
  *
  */
-VJS.loader.dicom.prototype.load = function(url, onLoad, onProgress, onError) {
+VJS.loader.dicom.prototype.load = function(files, onLoad, onProgress, onError) {
 
   var scope = this;
+  scope._imageHelper = new Array(files.length);
+  scope._image = new Array(files.length);
 
-  var loader = new THREE.XHRLoader(scope.manager);
-  loader.setCrossOrigin(this.crossOrigin);
-  loader.setResponseType(this.responseType);
-  loader.load(url, function(response) {
+  // Build the promise sequence for each file
+  return files.map(function(url, i) {
 
-    onLoad(scope.parse(response));
+    var loader = new VJS.loader.xhrpromise(scope.manager);
+    loader.setCrossOrigin(scope.crossOrigin);
+    loader.setResponseType(scope.responseType);
 
-  }, onProgress, onError);
+    // 1- get the data
+    // return an array buffer
+    return loader.load(url, onProgress)
+      .catch(function(error) {
+        window.console.log(error);
+        if (onError) {
+          onError(error);
+        }
+      })
+    // 2- parse the array buffer
+    // return an image model
+      .then(function(response) {
+        var imageHelper = new VJS.helpers.image();
+        scope._imageHelper[i] = imageHelper;
+        var dicomParser = new VJS.parsers.dicom(response, imageHelper.id);
+        return dicomParser.parse();
+      })
+    // 3- create helper with image
+    // return the image helper
+      .then(function(image) {
+        scope._imageHelper[i].addImage(image);
+        scope._image[i] = image;
 
+        // a helper is an object we can directly add to the scene and visualize
+        window.console.log('ALL SET');
+
+        return scope._imageHelper[i];
+      })
+    // 4- run onLoad callback
+    // input is imageHelper
+    // (should it be the image?)
+      .then(function(imageHelper) {
+        if (onLoad) {
+          window.console.log('onLoad callback (i.e. add to scene or play with helper)');
+          onLoad(imageHelper);
+        }
+      });
+  });
 };
 
 /**
@@ -94,16 +134,32 @@ VJS.loader.dicom.prototype.load = function(url, onLoad, onProgress, onError) {
  *
  */
 VJS.loader.dicom.prototype.parse = function(response) {
+  window.console.log(response);
+  //var self = this;
 
-  console.time('LoaderDicom');
-  // use response as input to image helper.
-  // can provide an image or not...
-  var imageHelper = new VJS.helpers.image();
+  //return new Promise(function(resolve) {
 
-  var dicomParser = new VJS.parsers.dicom(response, imageHelper.id);
-  //var image = dicomParser.parse();
+  // console.time('LoaderDicom');
+  // // use response as input to image helper.
+  // // can provide an image or not...
+  // var imageHelper = new VJS.helpers.image();
+  // var dicomParser = new VJS.parsers.dicom(response, imageHelper.id);
 
-  imageHelper.add(dicomParser.parse());
+  // //var image = dicomParser.parse();
+  // var sequence = Promise.resolve();
+  // sequence
+  //   .then(function() {
+  //     return dicomParser.parse();
+  //   })
+  //   .then(function(image) {
+  //     imageHelper.add(image);
+  //     console.timeEnd('LoaderDicom');
+  //     return (imageHelper);
+  //   });
+
+  // return sequence;
+
+  //imageHelper.add(dicomParser.parse());
 
   //
   //  Create A dicom parser to help us fill the Image Helper!
@@ -141,8 +197,7 @@ VJS.loader.dicom.prototype.parse = function(response) {
 
   // }
 
-  console.timeEnd('LoaderDicom');
-
-  return imageHelper;
+  //resolve(imageHelper);
+  //});
 
 };

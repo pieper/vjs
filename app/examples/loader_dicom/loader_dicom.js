@@ -8,123 +8,126 @@ var controls, renderer, stats, scene, camera, dat;
 
 // FUNCTIONS
 function onProgressCallback(evt, filename) {
-    var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+  var percentComplete = Math.round((evt.loaded / evt.total) * 100);
 
-    var fileContainer = document.getElementById(filename);
-    if (!fileContainer) {
-        var progressContainer = document.getElementById('my-progress-container');
-        var div = document.createElement('div');
-        div.setAttribute('id', filename);
-        div.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
+  // window.console.log(filename);
 
-        progressContainer.appendChild(div);
-    } else {
-        fileContainer.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
-    }
+  var fileContainer = document.getElementById(filename);
+  if (!fileContainer) {
+    var progressContainer = document.getElementById('my-progress-container');
+    var div = document.createElement('div');
+    div.setAttribute('id', filename);
+    div.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
 
-    // fileContainer
+    progressContainer.appendChild(div);
+  } else {
+    fileContainer.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
+  }
 
+  // fileContainer
 
-    // window.console.log(percentComplete + '%');
+  // window.console.log(percentComplete + '%');
 }
 
 function init() {
 
-    // this function is executed on each animation frame
-    function animate() {
-        // render
-        controls.update();
-        renderer.render(scene, camera);
-        stats.update();
+  // this function is executed on each animation frame
+  function animate() {
+    // render
+    controls.update();
+    renderer.render(scene, camera);
+    stats.update();
 
-        // request new frame
-        requestAnimationFrame(function() {
-            animate();
-        });
-    }
-
-    // renderer
-    var threeD = document.getElementById('r3d');
-    renderer = new THREE.WebGLRenderer({
-        antialias: true
+    // request new frame
+    requestAnimationFrame(function() {
+      animate();
     });
-    renderer.setSize(threeD.offsetWidth, threeD.offsetHeight);
-    renderer.setClearColor(0xFFFFFF, 1);
+  }
 
-    var maxTextureSize = renderer.context.getParameter(renderer.context.MAX_TEXTURE_SIZE);
-    window.console.log(maxTextureSize);
+  // renderer
+  var threeD = document.getElementById('r3d');
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(threeD.offsetWidth, threeD.offsetHeight);
+  renderer.setClearColor(0xFFFFFF, 1);
 
-    threeD.appendChild(renderer.domElement);
+  var maxTextureSize = renderer.context.getParameter(renderer.context.MAX_TEXTURE_SIZE);
+  window.console.log(maxTextureSize);
 
-    // stats
-    stats = new Stats();
-    threeD.appendChild(stats.domElement);
+  threeD.appendChild(renderer.domElement);
 
-    // scene
-    scene = new THREE.Scene();
-    // camera
-    camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
-    camera.position.x = 150;
-    camera.position.y = 150;
-    camera.position.z = 100;
-    camera.lookAt(scene.position);
-    // controls
-    controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+  // stats
+  stats = new Stats();
+  threeD.appendChild(stats.domElement);
 
-    animate();
+  // scene
+  scene = new THREE.Scene();
+  // camera
+  camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+  camera.position.x = 150;
+  camera.position.y = 150;
+  camera.position.z = 100;
+  camera.lookAt(scene.position);
+  // controls
+  controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+
+  animate();
 }
 
 window.onload = function() {
 
-    // init threeJS...
-    init();
+  // init threeJS...
+  init();
 
-    var files = ['/data/dcm/corn', '/data/dcm/tomato'];
+  window.console.log(dat);
 
-    window.console.log(dat);
+  // create loader manager (to keep track of progress over N files...)
+  // might not be useful with promises anymore.
 
-    // create loader manager (to support multiple files)
-    var manager = new THREE.LoadingManager();
-    manager.onProgress = function(item, loaded, total) {
-        var fileContainer = document.getElementById(item);
-        fileContainer.innerHTML = ' ' + item + ' is ready! ' + '(' + loaded + '/' + total + ')';
-        // merge images!
-        // add it to the scene!
-    };
+  // can not promise do it for us??
+  var manager = new THREE.LoadingManager();
+  manager.onProgress = function(item, loaded, total) {
+    window.console.log(item);
+    var fileContainer = document.getElementById(item);
+    if (fileContainer) {
+      fileContainer.innerHTML = ' ' + item + ' is ready! ' + '(' + loaded + '/' + total + ')';
+      // merge images!
+      // add it to the scene!
+    }
+  };
 
-    // let's load some dicoms!
-    // instantiate a loader
-    // todo: show progress somewhere!
-    var loader = new VJS.loader.dicom(manager);
-    // load a resource
-    loader.load(
-        // resource URL
-        files[1],
-        // Function when resource is loaded
+  // var files = ['/data/dcm/corn', '/data/dcm/tomato', '/data/dcm/fruit', '/data/dcm/bellpepper'];
+  var files = ['/data/dcm/corn', '/data/dcm/tomato'];
+  // instantiate the loader
+  var loader = new VJS.loader.dicom(manager);
+
+  // Go!
+  Promise
+  // all data downloaded and parsed
+    .all(
+      loader.load(
+        // files to be loaded
+        files,
+        // loaded callback
         function(object) {
-            //scene.add( object );
-            window.console.log(object);
+          //scene.add( object );
+          window.console.log('imageHelper ready!');
+          window.console.log(object);
+          scene.add(object);
         },
-        function() {
-            onProgressCallback(event, files[1]);
-        }
+        // progress callback
+        onProgressCallback,
+        // (network) error callback
+        null
+    ))
+    .then(function(message) {
+      window.console.log(message);
+      window.console.log(scene);
+      window.console.log('ALL SET YAY DICOM');
+    })
+    .catch(function(error) {
+      window.console.log(error);
+    });
 
-    );
-
-    var loader2 = new VJS.loader.dicom(manager);
-    // load a resource
-    loader2.load(
-        // resource URL
-        files[0],
-        // Function when resource is loaded
-        function(object) {
-            //scene.add( object );
-            // should merge all images!
-
-            window.console.log(object);
-        },
-        function() {
-            onProgressCallback(event, files[0]);
-        }
-    );
 };
