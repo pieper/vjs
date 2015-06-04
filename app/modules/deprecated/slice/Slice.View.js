@@ -65,7 +65,9 @@ VJS.slice.view.prototype.RASSlice = function() {
     // should it be separate...?
     // create the border!
     var material = new THREE.LineBasicMaterial({
-        color: 0x0000ff
+        color: 0x0000ff,
+polygonOffset: true,
+polygonOffsetFactor: -0.1
     });
     var geometry = new THREE.Geometry();
     for (var i = 0; i < this._sliceCore._intersections.length; i++) {

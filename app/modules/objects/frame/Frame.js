@@ -40,16 +40,6 @@ VJS.frame.model = function() {
     this._columns = 0;
     /**
      * @member
-     * @type {number}
-     */
-    this._temporalPositionIndex = null;
-    /**
-     * @member
-     * @type {number}
-     */
-    this._inStackPosition = -1;
-    /**
-     * @member
      * @type {Array.number}
      */
     this._dimensionIndexValues = [];

@@ -26,6 +26,11 @@ VJS.helpers.image.prototype = Object.create(THREE.Object3D.prototype);
 
 VJS.helpers.image.prototype.constructor = VJS.helpers.image;
 
+
+VJS.helpers.image.prototype.merge = function(imageHelper) {
+  return this._image.merge(imageHelper._image);
+};
+
 VJS.helpers.image.prototype.addImage = function(image) {
   // try to merge image to current image...
   window.console.log('helpers Image!!!');
@@ -39,8 +44,8 @@ VJS.helpers.image.prototype.addImage = function(image) {
     window.console.log(stack);
 
     // Convenience function
-    var dimensions = new THREE.Vector3(stack._rows, stack._columns, stack._nbFrames);
-    var halfDimensions = dimensions.clone().divideScalar(2);
+    var dimensions = stack._dimensions;
+    var halfDimensions = stack._halfDimensions;
 
     // Bounding Box
     var geometry = new THREE.BoxGeometry(
@@ -53,7 +58,7 @@ VJS.helpers.image.prototype.addImage = function(image) {
       color: 0x61F2F3
     });
     var cube = new THREE.Mesh(geometry, material);
-    this.add(cube);
+    //this.add(cube);
 
     // Slice
     // Geometry
@@ -98,12 +103,28 @@ VJS.helpers.image.prototype.addImage = function(image) {
     uniforms.uTextureSize.value = stack._textureSize;
     uniforms.uTextureContainer.value = textures;
     // texture dimensions
-    uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._nbFrames);
+    uniforms.uDataDimensions.value = stack._dimensions;
     // world to model
     uniforms.uWorldToData.value = stack._lps2IJK;
 
     var slice = new THREE.Mesh(sliceGeometry, mySliceMaterial);
     this.add(slice);
+
+    // Border of the slice
+    var borderMaterial = new THREE.LineBasicMaterial({
+      color: 0xff0000,
+      polygonOffset: true,
+      polygonOffsetFactor: -0.1
+    });
+    var borderGeometry = new THREE.Geometry();
+    for (var i = 0; i < sliceGeometry.vertices.length; i++) {
+      borderGeometry.vertices.push(sliceGeometry.vertices[i]);
+    }
+    borderGeometry.vertices.push(sliceGeometry.vertices[0]);
+
+    // borderGeometry.vertices = sliceGeometry.vertices;
+    var borderLine = new THREE.Line(borderGeometry, borderMaterial);
+    this.add(borderLine);
 
   } else {
     window.console.log('image already exists, will try to merge it...');

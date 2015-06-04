@@ -3,8 +3,8 @@
 var VJS = VJS || {};
 
 /**
- * geometry namespace
- * @namespace geometry
+ * geometries namespace
+ * @namespace geometries
  * @memberOf VJS
  * @public
  */

@@ -80,12 +80,8 @@ VJS.parsers.dicom.prototype.parse = function() {
  * @returns {string} Xml dump from dicom file.
  */
 VJS.parsers.dicom.prototype.fileToFS = function(filename, arraybuffer) {
-  //return new Promise(function(resolve) {
   window.console.log('fileToFS');
-  // sleep(1000);
-  // return 'YAY';
   var uploadedObject = new Int8Array(arraybuffer);
-  // should create the FS tree maybe rather than just using filename...
   var options = {
       encoding: 'binary'
     };
@@ -95,14 +91,10 @@ VJS.parsers.dicom.prototype.fileToFS = function(filename, arraybuffer) {
   window.console.log(output);
 
   return output;
-  //});
 };
 
 VJS.parsers.dicom.prototype.framesToFS = function(filename, framenameFS) {
-  //return new Promise(function(resolve) {
   window.console.log('framesToFS');
-  // sleep(3000);
-  // return 'YAY';
   var dcm2pnmOptions =
     ['--verbose', '--all-frames', '--write-raw-pnm', filename, framenameFS];
   var output = dcmjs.utils.execute('dcm2pnm', dcm2pnmOptions);
@@ -126,6 +118,7 @@ VJS.parsers.dicom.prototype.dumpToXML = function(filename) {
   window.console.log(returnCode);
 
   var xml = dumpLines.join('\n');
+  window.console.log(xml);
   // also escape invalid characters!!!!!
 
   return xml;
@@ -139,51 +132,59 @@ VJS.parsers.dicom.prototype.dumpToXML = function(filename) {
  * Also extracts the frame with robust (but slow) dcm2pnm.
  * {@link http://support.dcmtk.org/docs/dcm2pnm.html}
  *
+ * Need to define strategy to parse the dicom file
+ * Has stacks?
+ * No stacks?
+ * Per Frame functional groups?
+ * Shared functional groups?
+ *
  *
  * @param dom {jQueryObj} - $.parseXML(xml) output.
- * @param url {string} - Target file url.
+ * @param filename {string} - Target file name.
  *
  * @returns {VJS.Image} VJS Image of target dicom.
  */
-VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
+VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
 
   window.console.log('domToImage', this);
   window.console.log(this);
 
-  // First we generate all frames
-  var imageFilePath = url;
+  var imageFilePath = filename;
   var $dom = $(dom);
 
   // Create the image
+  // Get information that is image specific
+  // http://medical.nema.org/medical/dicom/current/output/html/part03.html#sect_C.7.6.16
   var imageModel = new VJS.image.model();
-
+  // CONCATENATION SEEMS THE MOST IMPORTANT!
+  // if no, use series UID?
   imageModel._concatenationUID = this.imageConcatenationUID($dom);
   imageModel._seriesUID = this.imageSeriesUID($dom);
   imageModel._seriesNumber = this.imageSeriesNumber($dom);
-
-  // all dim uids in this SOP
-  //var dimensionOrganizationSequence = $dom.find('[tag="00209221"]').text();
-
-  // list of dims with more info...
+  imageModel._seriesNumber = this.imageSeriesNumber($dom);
+  imageModel._imageFrameOfReferenceUID = this.frameOfReferenceUID($dom);
   imageModel._dimensionIndexSequence = this.imageDimensionIndexSequence($dom);
-
+  imageModel._numberOfFrames = this.imageNumberOfFrames($dom);
+  // Are those image specific?
+  // image pixel module!!!!
+  // image pixel module!!!!
+  // no, it is frame specific!
   imageModel._rows = this.imageRows($dom);
+  // no, it is frame specific!
   imageModel._columns = this.imageColumns($dom);
   imageModel._photometricInterpretation = this.imagePhotometricInterpretation($dom);
 
-  //var $sharedFunctionalGroupsSequence = $dom.find('[tag="52009229"]');
-  imageModel._numberOfFrames = this.imageNumberOfFrames($dom);
-
+  // Create stacks and frames
+  // Get information that is stack and frame specific
   for (var i = 0; i < imageModel._numberOfFrames; i++) {
-    // run in //
-
     // get frame specific information
     var frameIndex = i + 1;
     var $perFrameFunctionalGroupsSequence = this.imagePerFrameFunctionalGroupSequence(frameIndex, $dom);
 
+    // Stack ID is unique???
     var stackID = this.getFrameStackID($perFrameFunctionalGroupsSequence, $dom);
-    var inStackPositionNumber = this.getFrameInStackPositionNumber($perFrameFunctionalGroupsSequence, $dom);
-    var temporalPositionIndex = this.getFrameTemporalPostionIndex($perFrameFunctionalGroupsSequence, $dom);
+    var dimensionIndexValues = this.getFrameDimensionIndexValues($perFrameFunctionalGroupsSequence, $dom);
+
 
     var currentStack = null;
     var stackByID = imageModel._stack.filter(this.filterByStackID, stackID);
@@ -207,22 +208,21 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
     var currentFrame = null;
 
     // use dimension instead to know if already there!
-    var frameByPositionAndTime = currentStack._frame.filter(this.positionAndTime, {
-      '_inStackPositionNumber': inStackPositionNumber,
-      '_temporalPositionIndex': temporalPositionIndex
-    });
+    var dimensionIndex = currentStack._frame.filter(this.dimensionIndex, dimensionIndexValues);
 
     // Create frame object and add it to image if necessary
-    if (frameByPositionAndTime.length === 0) {
-      //window.console.log('+++ frame');
+    if (dimensionIndex.length === 0) {
+      window.console.log('+++ frame');
       var frameModel = new VJS.frame.model();
-      frameModel._inStackPositionNumber = inStackPositionNumber;
-      frameModel._temporalPositionIndex = temporalPositionIndex;
+      frameModel._dimensionIndexValues = dimensionIndex;
       currentStack._frame.push(frameModel);
       currentFrame = frameModel;
     } else {
+      // frame exists, go to next frame.
+      window.console.log('--- frame');
+      continue;
       //window.console.log('= frame');
-      currentFrame = frameByPositionAndTime[0];
+      //currentFrame = frameByPositionAndTime[0];
     }
 
     // Fill content of a frame
@@ -237,15 +237,18 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, url) {
     // Frame Content Sequence
     //
     currentFrame._stackID = stackID;
-    currentFrame._inStackPositionNumber = inStackPositionNumber;
-    currentFrame._temporalPositionIndex = temporalPositionIndex;
-    currentFrame._dimensionIndexValues = this.getFrameDimensionIndexValues($perFrameFunctionalGroupsSequence, $dom);
+    currentFrame._dimensionIndexValues = dimensionIndexValues;
+    // http://medical.nema.org/medical/dicom/current/output/html/part03.html#sect_C.7.6.2
+    // image plane module!!!!
+    // image plane module!!!!
     currentFrame._imagePositionPatient = this.getFrameImagePositionPatient($perFrameFunctionalGroupsSequence, $dom);
     currentFrame._imageOrientationPatient = this.getFrameImageOrientationPatient($perFrameFunctionalGroupsSequence, $dom);
 
     //
     // Pixel Measure Sequence
     //
+    // image pixel module!
+    // http://medical.nema.org/medical/dicom/current/output/html/part03.html#sect_C.7.6.3
     currentFrame._sliceThickness = this.getFrameSliceThickness($perFrameFunctionalGroupsSequence, $dom);
     currentFrame._pixelSpacing = this.getFramePixelSpacing($perFrameFunctionalGroupsSequence, $dom);
     currentFrame._spacingBetweenSlices = this.getSpacingBetweenSlices($perFrameFunctionalGroupsSequence, $dom);
@@ -322,7 +325,7 @@ VJS.parsers.dicom.prototype.imageNumberOfFrames = function(imageJqueryDom) {
  */
 VJS.parsers.dicom.prototype.imageConcatenationUID = function(imageJqueryDom) {
   // try to access concatenationUID through its DICOM tag
-  var concatenationUID = imageJqueryDom.find('[tag="00209161"]').text();
+  var concatenationUID = imageJqueryDom.find('[tag="00209161"] Value').text();
 
   // if not available, assume we only have 1 frame
   if (concatenationUID === '') {
@@ -341,7 +344,8 @@ VJS.parsers.dicom.prototype.imageConcatenationUID = function(imageJqueryDom) {
  */
 VJS.parsers.dicom.prototype.imageSeriesUID = function(imageJqueryDom) {
   // try to access seriesUID through its DICOM tag
-  var seriesUID = imageJqueryDom.find('[tag="0020000E"]').text();
+  var seriesUID = imageJqueryDom.find('[tag="0020000E"] Value').text();
+  window.console.log(imageJqueryDom.find('[tag="0020000E"] Value'));
 
   // if not available, assume we only have 1 frame
   if (seriesUID === '') {
@@ -360,7 +364,18 @@ VJS.parsers.dicom.prototype.imageSeriesUID = function(imageJqueryDom) {
  */
 VJS.parsers.dicom.prototype.imageSeriesNumber = function(imageJqueryDom) {
   // try to access seriesNumber through its DICOM tag
-  var seriesNumber = imageJqueryDom.find('[tag="00200011"]').text();
+  var seriesNumber = imageJqueryDom.find('[tag="00200011"] Value').text();
+
+  // if not available, assume we only have 1 frame
+  if (seriesNumber === '') {
+    seriesNumber = 1;
+  }
+  return seriesNumber;
+};
+
+VJS.parsers.dicom.prototype.frameOfReferenceUID = function(imageJqueryDom) {
+  // try to access frame of reference UID through its DICOM tag
+  var seriesNumber = imageJqueryDom.find('[tag="00200052"] Value').text();
 
   // if not available, assume we only have 1 frame
   if (seriesNumber === '') {
@@ -478,7 +493,7 @@ VJS.parsers.dicom.prototype.getFrameStackID = function(frameJqueryPreFrameDom, i
   var stackID = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209056"] Value').text(), 10);
 
   // or look for it in the imageJqueryDom?
-  if (stackID === 'NaN') {
+  if (isNaN(stackID)) {
     window.console.log('stackID', stackID);
     window.console.log('imageJqueryDom', imageJqueryDom);
     stackID = 1;
@@ -491,7 +506,7 @@ VJS.parsers.dicom.prototype.getFrameInStackPositionNumber = function(frameJquery
   var inStackPositionNumber = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209057"] Value').text(), 10);
 
   // or look for it in the imageJqueryDom?
-  if (inStackPositionNumber === 'NaN') {
+  if (isNaN(inStackPositionNumber)) {
     window.console.log('inStackPositionNumber', inStackPositionNumber);
     window.console.log('imageJqueryDom', imageJqueryDom);
     inStackPositionNumber = 1;
@@ -504,7 +519,7 @@ VJS.parsers.dicom.prototype.getFrameTemporalPostionIndex = function(frameJqueryP
   var temporalPositionIndex = parseInt(frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209128"] Value').text(), 10);
 
   // or look for it in the imageJqueryDom?
-  if (temporalPositionIndex === 'NaN') {
+  if (isNaN(temporalPositionIndex)) {
     window.console.log('temporalPositionIndex', temporalPositionIndex);
     window.console.log('imageJqueryDom', imageJqueryDom);
     temporalPositionIndex = 1;
@@ -533,11 +548,12 @@ VJS.parsers.dicom.prototype.fillDimensionIndexValues = function(container) {
   };
 };
 
-VJS.parsers.dicom.prototype.positionAndTime = function(obj) {
+VJS.parsers.dicom.prototype.dimensionIndex = function(obj) {
   /*jshint validthis:true*/
-  if ('_temporalPositionIndex' in obj && '_inStackPositionNumber' in obj && obj._temporalPositionIndex === this._temporalPositionIndex && obj._inStackPositionNumber === this._inStackPositionNumber) {
+  if(this._dimensionIndexValues.join() === obj.join()){
     return true;
-  } else {
+  }
+  else{
     return false;
   }
 };
@@ -553,14 +569,22 @@ VJS.parsers.dicom.prototype.getFrameImagePositionPatient = function(frameJqueryP
   imagePositionPatient.z = parseFloat(frameJqueryPreFrameDom.find('[tag="00209113"] [tag="00200032"] Value[number="3"]').text(), 10);
 
   // or look for it in the imageJqueryDom?
-  if (imagePositionPatient.x === 'NaN' || imagePositionPatient.y === 'NaN' || imagePositionPatient.z === 'NaN') {
-    window.console.log('imagePositionPatient', imagePositionPatient);
-    window.console.log('imageJqueryDom', imageJqueryDom);
-    imagePositionPatient = {
+  if (isNaN(imagePositionPatient.x) || isNaN(imagePositionPatient.y) || isNaN(imagePositionPatient.z)) {
+    // try to get it from the imageJqueryDom
+    imagePositionPatient.x = parseFloat(imageJqueryDom.find('[tag="00200032"] Value[number="1"]').text(), 10);
+    imagePositionPatient.y = parseFloat(imageJqueryDom.find('[tag="00200032"] Value[number="2"]').text(), 10);
+    imagePositionPatient.z = parseFloat(imageJqueryDom.find('[tag="00200032"] Value[number="3"]').text(), 10);
+
+    if (isNaN(imagePositionPatient.x) || isNaN(imagePositionPatient.y) || isNaN(imagePositionPatient.z)) {
+      window.console.log('imagePositionPatient', imagePositionPatient);
+      window.console.log('imageJqueryDom', imageJqueryDom);
+      imagePositionPatient = {
       'x': 0,
       'y': 0,
       'z': 0
     };
+    }
+
   }
 
   return imagePositionPatient;
@@ -569,13 +593,13 @@ VJS.parsers.dicom.prototype.getFrameImagePositionPatient = function(frameJqueryP
 VJS.parsers.dicom.prototype.getFrameImageOrientationPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {
   var imageOrientationPatient = {
     'row': {
-      'x': 0,
+      'x': 1,
       'y': 0,
       'z': 0
     },
     'column': {
       'x': 0,
-      'y': 0,
+      'y': 1,
       'z': 0
     }
   };
@@ -587,21 +611,41 @@ VJS.parsers.dicom.prototype.getFrameImageOrientationPatient = function(frameJque
   imageOrientationPatient.column.z = parseFloat(frameJqueryPreFrameDom.find('[tag="00209116"] [tag="00200037"] Value[number="6"]').text(), 10);
 
   // or look for it in the imageJqueryDom?
-  if (imageOrientationPatient.row.x === 'NaN' || imageOrientationPatient.row.y === 'NaN' || imageOrientationPatient.row.z === 'NaN' || imageOrientationPatient.column.x === 'NaN' || imageOrientationPatient.column.y === 'NaN' || imageOrientationPatient.column.z === 'NaN') {
-    window.console.log('imageOrientationPatient', imageOrientationPatient);
-    window.console.log('imageJqueryDom', imageJqueryDom);
-    imageOrientationPatient = {
+  if (isNaN(imageOrientationPatient.row.x) ||
+    isNaN(imageOrientationPatient.row.y) ||
+    isNaN(imageOrientationPatient.row.z) ||
+    isNaN(imageOrientationPatient.column.x) ||
+    isNaN(imageOrientationPatient.column.y) ||
+    isNaN(imageOrientationPatient.column.z)) {
+
+    imageOrientationPatient.row.x = parseFloat(imageJqueryDom.find('[tag="00200037"] Value[number="1"]').text(), 10);
+    imageOrientationPatient.row.y = parseFloat(imageJqueryDom.find('[tag="00200037"] Value[number="2"]').text(), 10);
+    imageOrientationPatient.row.z = parseFloat(imageJqueryDom.find('[tag="00200037"] Value[number="3"]').text(), 10);
+    imageOrientationPatient.column.x = parseFloat(imageJqueryDom.find('[tag="00200037"] Value[number="4"]').text(), 10);
+    imageOrientationPatient.column.y = parseFloat(imageJqueryDom.find('[tag="00200037"] Value[number="5"]').text(), 10);
+    imageOrientationPatient.column.z = parseFloat(imageJqueryDom.find('[tag="00200037"] Value[number="6"]').text(), 10);
+
+    if (isNaN(imageOrientationPatient.row.x) ||
+      isNaN(imageOrientationPatient.row.y) ||
+      isNaN(imageOrientationPatient.row.z) ||
+      isNaN(imageOrientationPatient.column.x) ||
+      isNaN(imageOrientationPatient.column.y) ||
+      isNaN(imageOrientationPatient.column.z)) {
+      window.console.log('imageOrientationPatient', imageOrientationPatient);
+      window.console.log('imageJqueryDom', imageJqueryDom);
+      imageOrientationPatient = {
       'row': {
-        'x': 0,
+        'x': 1,
         'y': 0,
         'z': 0
       },
       'column': {
         'x': 0,
-        'y': 0,
+        'y': 1,
         'z': 0
       }
     };
+    }
   }
 
   return imageOrientationPatient;
@@ -610,7 +654,7 @@ VJS.parsers.dicom.prototype.getFrameImageOrientationPatient = function(frameJque
 VJS.parsers.dicom.prototype.getFrameSliceThickness = function(frameJqueryPreFrameDom, imageJqueryDom) {
   var sliceThickness = parseFloat(frameJqueryPreFrameDom.find('[tag="00289110"] [tag="00180050"] Value').text(), 10);
   // or look for it in the imageJqueryDom?
-  if (sliceThickness === 'NaN') {
+  if (isNaN(sliceThickness)) {
     window.console.log('sliceThickness', sliceThickness);
     window.console.log('imageJqueryDom', imageJqueryDom);
     sliceThickness = 1;
@@ -629,26 +673,34 @@ VJS.parsers.dicom.prototype.getFramePixelSpacing = function(frameJqueryPreFrameD
   pixelSpacing.column = parseFloat(frameJqueryPreFrameDom.find('[tag="00289110"] [tag="00280030"] Value[number="2"]').text(), 10);
 
   // or look for it in the imageJqueryDom?
-  if (pixelSpacing.row === 'NaN' || pixelSpacing.column === 'NaN') {
-    window.console.log('pixelSpacing', pixelSpacing);
-    window.console.log('imageJqueryDom', imageJqueryDom);
-    pixelSpacing = {
+  if (isNaN(pixelSpacing.row) || isNaN(pixelSpacing.column)) {
+
+    pixelSpacing.row = parseFloat(imageJqueryDom.find('[tag="00280030"] Value[number="1"]').text(), 10);
+    pixelSpacing.column = parseFloat(imageJqueryDom.find('[tag="00280030"] Value[number="2"]').text(), 10);
+
+    if (isNaN(pixelSpacing.row) || isNaN(pixelSpacing.column)) {
+      window.console.log('pixelSpacing', pixelSpacing);
+      window.console.log('imageJqueryDom', imageJqueryDom);
+      pixelSpacing = {
       'row': 1,
       'column': 1
     };
+    }
   }
 
   return pixelSpacing;
 };
 
 VJS.parsers.dicom.prototype.getSpacingBetweenSlices = function(frameJqueryPreFrameDom, imageJqueryDom) {
-  var spacingBetweenSlices = 0;
+  var spacingBetweenSlices = 1.0;
 
   spacingBetweenSlices = parseFloat(frameJqueryPreFrameDom.find('[tag="00180088"] Value').text(), 10);
 
   // or look for it in the imageJqueryDom?
-  if (spacingBetweenSlices === 'NaN') {
-    spacingBetweenSlices = 0.0;
+  if (isNaN(spacingBetweenSlices)) {
+    window.console.log('spacingBetweenSlices', spacingBetweenSlices);
+    window.console.log('imageJqueryDom', imageJqueryDom);
+    spacingBetweenSlices = 1.0;
   }
 
   return spacingBetweenSlices;

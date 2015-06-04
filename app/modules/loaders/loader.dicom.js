@@ -118,6 +118,8 @@ VJS.loader.dicom.prototype.load = function(files, onLoad, onProgress, onError) {
           window.console.log('onLoad callback (i.e. add to scene or play with helper)');
           onLoad(imageHelper);
         }
+
+        return imageHelper;
       });
   });
 };

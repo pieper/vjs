@@ -108,7 +108,7 @@ VJS.stack.model.prototype.prepare = function() {
   this._nbFrames = this._frame.length;
   this._rows = this._frame[0]._rows;
   this._columns = this._frame[0]._columns;
-  this._dimensions = new THREE.Vector3(this._rows, this._columns, this._nbFrames);
+  this._dimensions = new THREE.Vector3(this._columns, this._rows, this._nbFrames);
 
   // extra
   this._pixelSpacing.row = this._frame[0]._pixelSpacing.row;
@@ -186,7 +186,8 @@ VJS.stack.model.prototype.prepare = function() {
       0, 0, 0, 1);
 
   // Spacing
-  var zSpacing = 0;
+  // can not be 0 if not matrix can not be inverted.
+  var zSpacing = 1;
   if (this._nbFrames > 1) {
     if (this._spacingBetweenSlices) {
       zSpacing = this._spacingBetweenSlices;
@@ -208,7 +209,8 @@ VJS.stack.model.prototype.prepare = function() {
       zSpacing);
 
   // half dimensions are useful for faster computations of intersection.
-  this._halfDimensions = new THREE.Vector3(this._rows / 2, this._columns / 2, this._nbFrames / 2);
+  this._halfDimensions = new THREE.Vector3(
+    this._dimensions.x / 2, this._dimensions.y / 2, this._dimensions.z / 2);
   // orientation needed to compute stack BBox interection against slice.
   // always same, might want to remove it.
   var baseX = new THREE.Vector3(1, 0, 0);
@@ -226,12 +228,13 @@ VJS.stack.model.prototype.prepare = function() {
       0, 0, 0, 1);
 
   this._lps2IJK = new THREE.Matrix4();
+  window.console.log(this._lps2IJK);
   this._lps2IJK.getInverse(this._ijk2LPS);
 
   window.console.log(this._lps2IJK, this._ijk2LPS);
 
   // only works with 1 channel for now...
-  var requiredPixels = this._rows * this._columns * this._nbFrames;
+  var requiredPixels = this._dimensions.x * this._dimensions.y * this._dimensions.z;
 
   var nbChannels = 1;
   for (var ii = 0; ii < this._nbTextures; ii++) {
@@ -239,22 +242,23 @@ VJS.stack.model.prototype.prepare = function() {
   }
 
   // if required pixels > this._textureSize * this._textureSize * nbChannels ?
-  window.console.log(requiredPixels);
-  window.console.log(this._rows);
-  window.console.log(this._columns);
-  window.console.log(this._rows * this._columns);
-  window.console.log(this._textureSize);
+  // window.console.log(requiredPixels);
+  // window.console.log(this._rows);
+  // window.console.log(this._columns);
+  // window.console.log(this._rows * this._columns);
+  // window.console.log(this._textureSize);
 
   // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
   //var prevFrame = -1;
   //var prevTexture = -1;
-
+  var frameDimension = this._dimensions.x * this._dimensions.y;
+  var textureDimension = this._textureSize * this._textureSize;
   for (var jj = 0; jj < requiredPixels; jj++) {
 
-    var frameIndex = Math.floor(jj / (this._rows * this._columns));
-    var inFrameIndex = jj % (this._rows * this._columns);
-    var textureIndex = Math.floor(jj / (this._textureSize * this._textureSize));
-    var inTextureIndex = jj % (this._textureSize * this._textureSize);
+    var frameIndex = Math.floor(jj / frameDimension);
+    var inFrameIndex = jj % (frameDimension);
+    var textureIndex = Math.floor(jj / textureDimension);
+    var inTextureIndex = jj % (textureDimension);
 
     // window.console.log(textureIndex, inTextureIndex);
     // different ways to itereate if 1 or N channels!!
@@ -336,7 +340,6 @@ VJS.stack.model.prototype.orderFrameOnDimensionIndices = function(a, b) {
 
   return 0;
 };
-
 
 // The Image Position (0020,0032) specifies the x, y, and z coordinates
 // of the upper left hand corner of the image; it is the center of the

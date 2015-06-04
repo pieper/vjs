@@ -31,3 +31,21 @@ VJS.image.model = function() {
 
     this._stack = [];
 };
+
+
+VJS.image.model.prototype.merge = function(image){
+  // try to merge imageHelper with current image.
+  // same image if same Series UID?
+  var sameSeriesUID = false;
+  if(this._seriesUID === image._seriesUID){
+    sameSeriesUID = true;
+
+    // Make sure image information is consisent?
+    // re-compute it?
+
+    // Merge Stacks (N against N)
+    // try to match all stack to current stacks, if not add it to stacks list!
+  }
+  
+  return sameSeriesUID;
+};
