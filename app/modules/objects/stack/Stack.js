@@ -103,6 +103,8 @@ VJS.stack.model.prototype.prepare = function() {
   // 1,1,2,3 will be next
   // 1,1,3,1 wil be next
   this._frame.sort(VJS.stack.model.prototype.orderFrameOnDimensionIndices);
+  // if no dimension, order by instaceNumber
+  // if no instance nuber, order by position?
 
   // dimensions of the stack
   this._nbFrames = this._frame.length;
@@ -339,6 +341,62 @@ VJS.stack.model.prototype.orderFrameOnDimensionIndices = function(a, b) {
   }
 
   return 0;
+};
+
+VJS.stack.model.prototype.merge = function(stack) {
+  // try to merge imageHelper with current image.
+  // same image if same Series UID?
+  // could use concatenation if available, to already know if image is complete!
+  var sameStackID = false;
+  if (this._stackID === stack._stackID) {
+    sameStackID = true;
+
+    // Make sure image information is consisent?
+    // re-compute it?
+    var frame = stack._frame;
+    // Merge Stacks (N against N)
+    // try to match all stack to current stacks, if not add it to stacks list!
+    for (var i = 0; i < frame.length; i++) {
+      // test stack against existing stack
+      for (var j = 0; j < this._frame.length; j++) {
+        // test dimension
+        if (this._frame[j]._dimensionIndexValues.length > 0) {
+          if (this._frame[j]._dimensionIndexValues.join() === frame[i]._dimensionIndexValues.join()) {
+            // frame alread there!
+            break;
+          } else if (j === this._frame.length - 1) {
+            this._frame.push(frame[i]);
+          }
+        }
+        // test instance number
+        else if (this._frame[j]._instanceNumber >= 0) {
+          if (this._frame[j]._instanceNumber === frame[i]._instanceNumber) {
+            // frame already there!
+            break;
+          } else if (j === this._frame.length - 1) {
+            this._frame.push(frame[i]);
+          }
+        }
+        // test image position patient
+        // else if(){
+
+        // }
+        // do not know how to merge stacks
+        else if (j === this._frame.length - 1) {
+          window.console.log('stacks could not be merged');
+          window.console.log(this._frame);
+          window.console.log(stack._frame);
+        }
+
+        // else, test instance number?
+
+        // else, test image position patient?
+      }
+       
+    }
+  }
+  
+  return sameStackID;
 };
 
 // The Image Position (0020,0032) specifies the x, y, and z coordinates

@@ -4,7 +4,7 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera, dat;
+var controls, renderer, stats, scene, camera, dat, orientation;
 
 // FUNCTIONS
 function onProgressCallback(evt, filename) {
@@ -34,6 +34,7 @@ function init() {
   // this function is executed on each animation frame
   function animate() {
     // render
+    orientation.update();
     controls.update();
     renderer.render(scene, camera);
     stats.update();
@@ -71,6 +72,9 @@ function init() {
   camera.lookAt(scene.position);
   // controls
   controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+
+  // orientation widget
+  orientation = new VJS.Widgets.Orientation('r3d', camera, controls);
 
   animate();
 }
@@ -166,7 +170,7 @@ window.onload = function() {
           //scene.add( object );
           window.console.log('imageHelper ready!');
           window.console.log(object);
-          scene.add(object);
+          //scene.add(object);
         },
         // progress callback
         onProgressCallback,
@@ -191,7 +195,11 @@ window.onload = function() {
        
       }
 
+      mergedHelpers[0].prepare();
+      scene.add(mergedHelpers[0]);
+
       window.console.log(imageHelpers);
+      window.console.log(mergedHelpers);
       window.console.log(scene);
       window.console.log('ALL SET YAY DICOM');
     })

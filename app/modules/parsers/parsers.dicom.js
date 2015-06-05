@@ -118,7 +118,7 @@ VJS.parsers.dicom.prototype.dumpToXML = function(filename) {
   window.console.log(returnCode);
 
   var xml = dumpLines.join('\n');
-  window.console.log(xml);
+  //window.console.log(xml);
   // also escape invalid characters!!!!!
 
   return xml;
@@ -156,11 +156,9 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
   // Get information that is image specific
   // http://medical.nema.org/medical/dicom/current/output/html/part03.html#sect_C.7.6.16
   var imageModel = new VJS.image.model();
-  // CONCATENATION SEEMS THE MOST IMPORTANT!
-  // if no, use series UID?
+  // why can't we use series UID? to concatenate?
   imageModel._concatenationUID = this.imageConcatenationUID($dom);
   imageModel._seriesUID = this.imageSeriesUID($dom);
-  imageModel._seriesNumber = this.imageSeriesNumber($dom);
   imageModel._seriesNumber = this.imageSeriesNumber($dom);
   imageModel._imageFrameOfReferenceUID = this.frameOfReferenceUID($dom);
   imageModel._dimensionIndexSequence = this.imageDimensionIndexSequence($dom);
@@ -178,8 +176,10 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
   // Get information that is stack and frame specific
   for (var i = 0; i < imageModel._numberOfFrames; i++) {
     // get frame specific information
+    // starts at 1
     var frameIndex = i + 1;
     var $perFrameFunctionalGroupsSequence = this.imagePerFrameFunctionalGroupSequence(frameIndex, $dom);
+    //get shared frame function group sequence too
 
     // Stack ID is unique???
     var stackID = this.getFrameStackID($perFrameFunctionalGroupsSequence, $dom);
@@ -227,6 +227,9 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
 
     // Fill content of a frame
 
+    // Instance number!
+    currentFrame._instanceNumber = this.getFrameInstanceNumber($perFrameFunctionalGroupsSequence, $dom);
+
     //
     // General Information
     //
@@ -253,8 +256,6 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
     currentFrame._pixelSpacing = this.getFramePixelSpacing($perFrameFunctionalGroupsSequence, $dom);
     currentFrame._spacingBetweenSlices = this.getSpacingBetweenSlices($perFrameFunctionalGroupsSequence, $dom);
 
-    // use dimension!!
-
     // currentFrame.pixelData = pnmBuffer;
     // pixel type? (to guess file extension)
     var ppmExtension = 'pgm';
@@ -269,6 +270,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
       ppmExtension = 'ppm';
       currentFrame._nbChannels = 3;
     }
+
     var stat = FS.stat(imageFilePath + '.' + i + '.' + ppmExtension);
     var stream = FS.open(imageFilePath + '.' + i + '.' + ppmExtension);
     var pnmBuffer = new Uint8Array(stat.size);
@@ -588,6 +590,20 @@ VJS.parsers.dicom.prototype.getFrameImagePositionPatient = function(frameJqueryP
   }
 
   return imagePositionPatient;
+};
+
+
+VJS.parsers.dicom.prototype.getFrameInstanceNumber = function(frameJqueryPreFrameDom, imageJqueryDom) {
+  var instanceNumber = -1;
+  instanceNumber = parseFloat(imageJqueryDom.find('[tag="00200013"]').text(), 10);
+
+    if (isNaN(instanceNumber)) {
+      window.console.log('instanceNumber', instanceNumber);
+      window.console.log('imageJqueryDom', imageJqueryDom);
+      instanceNumber = -1;
+  }
+
+  return instanceNumber;
 };
 
 VJS.parsers.dicom.prototype.getFrameImageOrientationPatient = function(frameJqueryPreFrameDom, imageJqueryDom) {

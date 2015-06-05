@@ -34,6 +34,8 @@
 <!-- Textures -->
 <script src="../../modules/shaders/shaders.data.js"></script>
 
+<script src="../../modules/widgets/orientation/Orientation.js"></script>
+
 <!-- Load the loaders -->
 <script type="text/javascript" src="../../modules/loaders/loader.xhrpromise.js"></script>
 <script type="text/javascript" src="../../modules/loaders/loader.dicom.js"></script>
@@ -74,10 +76,28 @@
       }
 
       #my-progress-container {
+        background-color: rgba(249, 249, 249, .7);
         position: fixed;
-        bottom: 0px;
-        right: 20px;
+        max-height: 100px;
+        width:300px;
+        border: 1px solid #212121;
+        color: #FFF;
+        background-color: rgba(33, 33, 33, .7);
+        overflow-y: auto;
+        top: 0px;
+        right: 0px;
         z-index:1;
+      }
+
+      #VJSOrientation{
+        background-color: rgba(249, 249, 249, .7);
+        border: 1px solid #212121;
+        margin: 0px;
+        padding: 0px;
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+        z-index: 100;
       }
 
 </style>

@@ -32,11 +32,21 @@ VJS.helpers.image.prototype.merge = function(imageHelper) {
 };
 
 VJS.helpers.image.prototype.addImage = function(image) {
-  // try to merge image to current image...
-  window.console.log('helpers Image!!!');
-  if (!this._image) {
-    window.console.log(image);
-    this._image = image;
+  this._image = image;
+};
+
+VJS.helpers.image.prototype.getStack = function(stackIndex) {
+  return stackIndex;
+};
+
+VJS.helpers.image.prototype.prepare = function() {
+    // try to merge image to current image...
+    // cleanup previous state...
+
+  window.console.log('helpers Image Prepare!!!');
+  if (this._image) {
+    //window.console.log(image);
+    //this._image = image;
 
     // get first stack!
     var stack = this._image._stack[0];
@@ -58,7 +68,7 @@ VJS.helpers.image.prototype.addImage = function(image) {
       color: 0x61F2F3
     });
     var cube = new THREE.Mesh(geometry, material);
-    //this.add(cube);
+    this.add(cube);
 
     // Slice
     // Geometry
@@ -127,12 +137,7 @@ VJS.helpers.image.prototype.addImage = function(image) {
     this.add(borderLine);
 
   } else {
-    window.console.log('image already exists, will try to merge it...');
+    window.console.log('no image to be prepared...');
     //this._image.merge(image);
   }
-  
-};
-
-VJS.helpers.image.prototype.getStack = function(stackIndex) {
-  return stackIndex;
 };

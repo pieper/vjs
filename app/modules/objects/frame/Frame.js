@@ -100,6 +100,8 @@ VJS.frame.model = function() {
      * @type {Array}
      */
     this._pixelData = null;
+
+    this._instanceNumber = -1;
 };
 
 VJS.frame.model.prototype.constructor = VJS.frame.model;
