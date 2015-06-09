@@ -219,7 +219,7 @@ window.onload = function() {
       mergedHelpers[0].prepare();
       scene.add(mergedHelpers[0]);
 
-      probe = new VJS.widgets.imageProbe(mergedHelpers[0]._image, mergedHelpers[0].children);
+      probe = new VJS.widgets.pixelProbe(mergedHelpers[0]._image, mergedHelpers[0].children);
       var threeD = document.getElementById('r3d');
       threeD.appendChild(probe.domElement);
 

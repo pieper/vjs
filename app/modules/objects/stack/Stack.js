@@ -219,6 +219,7 @@ VJS.stack.model.prototype.prepare = function() {
   // half dimensions are useful for faster computations of intersection.
   this._halfDimensions = new THREE.Vector3(
     this._dimensions.x / 2, this._dimensions.y / 2, this._dimensions.z / 2);
+
   // orientation needed to compute stack BBox interection against slice.
   // always same, might want to remove it.
   var baseX = new THREE.Vector3(1, 0, 0);

@@ -137,7 +137,7 @@ VJS.shaders.data = {
             // 'vec4 vPosNext = floor(vPosNext1)/100000000000.0;',
             'vec4 dataCoordinateRaw = uWorldToData * vPos;',
             // account for machine epsilon
-            //'float epsilon = 0.00001;',
+            // 'float epsilon = 0.00001;',
             'dataCoordinateRaw += 0.5;',
             'vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));',
 
