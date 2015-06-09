@@ -82,8 +82,12 @@ VJS.geometries.slice = function(halfDimensions, center, orientation, position, d
     window.console.log('exiting...');
   }
 
+    window.console.log(intersections);
+
   var centerOfMass = this.centerOfMass(intersections);
   var orderedIntersections = this.orderIntersections(intersections, centerOfMass, direction);
+
+  window.console.log(orderedIntersections);
 
   // split for convenience
   var formatIntersections = [];

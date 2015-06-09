@@ -68,9 +68,12 @@ VJS.widgets.imageProbe.prototype.computeValues = function() {
     var worldToData = this.image._stack[0]._lps2IJK;
 
     var dataCoordinate = new THREE.Vector3().copy(this._worldCoordinate).applyMatrix4(worldToData);
-    dataCoordinate.x = Math.round(dataCoordinate.x);
-    dataCoordinate.y = Math.round(dataCoordinate.y);
-    dataCoordinate.z = Math.round(dataCoordinate.z);
+    
+    // same rounding in the shaders
+    // window.console.log(dataCoordinate);
+    dataCoordinate.x = Math.floor(dataCoordinate.x + 0.5);
+    dataCoordinate.y = Math.floor(dataCoordinate.y + 0.5);
+    dataCoordinate.z = Math.floor(dataCoordinate.z + 0.5);
     this._dataCoordinate = dataCoordinate;
 
     var textureSize = this.image._stack[0]._textureSize;
@@ -86,18 +89,25 @@ VJS.widgets.imageProbe.prototype.computeValues = function() {
   }
 };
 
-VJS.widgets.imageProbe.prototype.updateUI = function() {
+VJS.widgets.imageProbe.prototype.updateUI = function(mouse) {
   var rasContent = this._worldCoordinate.x.toFixed(2) + ' : ' + this._worldCoordinate.y.toFixed(2) + ' : ' + this._worldCoordinate.z.toFixed(2);
-  this.rasContainer.innerHTML = 'World Coordinates (LPS): ' + rasContent;
+  this.rasContainer.innerHTML = 'LPS: ' + rasContent;
 
-  var ijkContent = Math.floor(this._dataCoordinate.x) + ' : ' + Math.floor(this._dataCoordinate.y) + ' : ' + Math.floor(this._dataCoordinate.z);
-  this.ijkContainer.innerHTML = 'Data Coordinates (IJK): ' + ijkContent;
+  var ijkContent = this._dataCoordinate.x + ' : ' + this._dataCoordinate.y + ' : ' + this._dataCoordinate.z;
+  this.ijkContainer.innerHTML = 'IJK: ' + ijkContent;
 
   var valueContent = this._dataValue;
-  this.valueContainer.innerHTML = 'Data Value: ' + valueContent;
+  this.valueContainer.innerHTML = 'Value: ' + valueContent;
+
+  // position of the div...
+  // need a mode to track the mouse
+  document.getElementById('VJSProbe').style.display = 'block';
+  document.getElementById('VJSProbe').style.top = mouse.clientY + 20;
+  document.getElementById('VJSProbe').style.left = mouse.clientX + 20;
+  
 };
 
-VJS.widgets.imageProbe.prototype.update = function(raycaster) {
+VJS.widgets.imageProbe.prototype.update = function(raycaster, mouse) {
 
   if(!this.imageMeshes){
     return;
@@ -113,10 +123,17 @@ VJS.widgets.imageProbe.prototype.update = function(raycaster) {
     // TODO: review that
     if (intersects[intersect].object.material.type === 'ShaderMaterial') {
       this._worldCoordinate = worldCoordinates;
+      // window.console.log(this._worldCoordinate);
       this.computeValues();
-      this.updateUI();
-      break;
+      this.updateUI(mouse);
+      return;
     }
   }
+
+  // hide UI if not intersecting the planne
+  this.hideUI();
 };
 
+VJS.widgets.imageProbe.prototype.hideUI = function(){
+  document.getElementById('VJSProbe').style.display = 'none';
+};

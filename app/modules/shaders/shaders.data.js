@@ -119,7 +119,8 @@ VJS.shaders.data = {
             'return dataValue;',
             '}',
 
-            'precision highp sampler2D;',
+            'precision mediump float;',
+            'precision mediump sampler2D;',
 
             'uniform float uTextureSize;',
             'uniform sampler2D uTextureContainer[16];',
@@ -131,12 +132,17 @@ VJS.shaders.data = {
             'void main(void) {',
 
             // get data coordinates of current pixel
+            // 'vec4 vPosNext1 = vPos * 100000000000.0;',
+            // 'vPosNext1 += 0.5;',
+            // 'vec4 vPosNext = floor(vPosNext1)/100000000000.0;',
             'vec4 dataCoordinateRaw = uWorldToData * vPos;',
-            // shader rounding trick
-            'dataCoordinateRaw += .50;',
+            // account for machine epsilon
+            //'float epsilon = 0.00001;',
+            'dataCoordinateRaw += 0.5;',
             'vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));',
 
             // if data in range, look for it!
+            // should use integers...
             'if(dataCoordinate[0] >= 0.0',
             '&& dataCoordinate[1] >= 0.0',
             '&& dataCoordinate[2] >= 0.0',
@@ -149,13 +155,15 @@ VJS.shaders.data = {
             'color.rgb = dataValue.rgb;',
             'gl_FragColor = vec4(color, 1.0);',
             //'gl_FragColor = vec4(dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, 1.0);',
-            //'gl_FragColor = vec4(30.0 - dataCoordinate[2], 30.0 - dataCoordinate[2], 30.0 - dataCoordinate[2], 1.0);',
+            // 'gl_FragColor = vec4(3.0 - dataCoordinate[2], 4.0 - dataCoordinate[2], 5.0 - dataCoordinate[2], 1.0);',
+            // 'gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);',
             '}',
             'else{',
             // should be able to choose what we want to do if not in range:
             // discard or specific color
             //'discard;',
-            'gl_FragColor = vec4(.01, .66, .96, 1.0);',
+            'gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);',
+
             '}',
 
             '}'

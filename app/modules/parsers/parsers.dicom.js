@@ -185,7 +185,6 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
     var stackID = this.getFrameStackID($perFrameFunctionalGroupsSequence, $dom);
     var dimensionIndexValues = this.getFrameDimensionIndexValues($perFrameFunctionalGroupsSequence, $dom);
 
-
     var currentStack = null;
     var stackByID = imageModel._stack.filter(this.filterByStackID, stackID);
 
@@ -552,10 +551,9 @@ VJS.parsers.dicom.prototype.fillDimensionIndexValues = function(container) {
 
 VJS.parsers.dicom.prototype.dimensionIndex = function(obj) {
   /*jshint validthis:true*/
-  if(this._dimensionIndexValues.join() === obj.join()){
+  if (this._dimensionIndexValues.join() === obj.join()) {
     return true;
-  }
-  else{
+  } else {
     return false;
   }
 };
@@ -592,15 +590,14 @@ VJS.parsers.dicom.prototype.getFrameImagePositionPatient = function(frameJqueryP
   return imagePositionPatient;
 };
 
-
 VJS.parsers.dicom.prototype.getFrameInstanceNumber = function(frameJqueryPreFrameDom, imageJqueryDom) {
   var instanceNumber = -1;
   instanceNumber = parseFloat(imageJqueryDom.find('[tag="00200013"]').text(), 10);
 
-    if (isNaN(instanceNumber)) {
-      window.console.log('instanceNumber', instanceNumber);
-      window.console.log('imageJqueryDom', imageJqueryDom);
-      instanceNumber = -1;
+  if (isNaN(instanceNumber)) {
+    window.console.log('instanceNumber', instanceNumber);
+    window.console.log('imageJqueryDom', imageJqueryDom);
+    instanceNumber = -1;
   }
 
   return instanceNumber;
@@ -663,6 +660,12 @@ VJS.parsers.dicom.prototype.getFrameImageOrientationPatient = function(frameJque
     };
     }
   }
+
+  window.console.log('image orientation!');
+
+var test = imageJqueryDom.find('[tag="00200037"] Value[number="1"]').text();
+  window.console.log(test, ' vs ', imageOrientationPatient.row.x);
+
 
   return imageOrientationPatient;
 };

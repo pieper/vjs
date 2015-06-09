@@ -169,11 +169,15 @@ VJS.stack.model.prototype.prepare = function() {
   this._origin = this._frame[0]._imagePositionPatient;
 
   // Direction
+    window.console.log('first frame value!');
+  window.console.log(this._frame[0]._imageOrientationPatient.row.x);
   var xCosine = new THREE.Vector3(
       this._frame[0]._imageOrientationPatient.row.x,
       this._frame[0]._imageOrientationPatient.row.y,
       this._frame[0]._imageOrientationPatient.row.z
   );
+  window.console.log(xCosine);
+
   var yCosine = new THREE.Vector3(
       this._frame[0]._imageOrientationPatient.column.x,
       this._frame[0]._imageOrientationPatient.column.y,
@@ -186,6 +190,8 @@ VJS.stack.model.prototype.prepare = function() {
       xCosine.y, yCosine.y, zCosine.y, 0,
       xCosine.z, yCosine.z, zCosine.z, 0,
       0, 0, 0, 1);
+
+  window.console.log(this._direction);
 
   // Spacing
   // can not be 0 if not matrix can not be inverted.
@@ -230,10 +236,9 @@ VJS.stack.model.prototype.prepare = function() {
       0, 0, 0, 1);
 
   this._lps2IJK = new THREE.Matrix4();
-  window.console.log(this._lps2IJK);
   this._lps2IJK.getInverse(this._ijk2LPS);
 
-  window.console.log(this._lps2IJK, this._ijk2LPS);
+  window.console.log(this._lps2IJK, this._ijk2LPS, this._direction);
 
   // only works with 1 channel for now...
   var requiredPixels = this._dimensions.x * this._dimensions.y * this._dimensions.z;

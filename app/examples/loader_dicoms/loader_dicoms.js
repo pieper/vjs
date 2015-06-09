@@ -4,7 +4,7 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera, dat, orientation;
+var controls, renderer, stats, scene, camera, dat, orientation, probe, raycaster, mouse;
 
 // FUNCTIONS
 function onProgressCallback(evt, filename) {
@@ -31,10 +31,25 @@ function onProgressCallback(evt, filename) {
 
 function init() {
 
+  function onDocumentMouseMove(event) {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    mouse.x = (event.clientX / threeD.offsetWidth) * 2 - 1;
+    mouse.y = -(event.clientY / threeD.offsetHeight) * 2 + 1;
+    mouse.clientX = event.clientX;
+    mouse.clientY = event.clientY;
+  }
+
   // this function is executed on each animation frame
   function animate() {
     // render
-    orientation.update();
+    // image probe widget
+    if (probe) {
+      raycaster.setFromCamera(mouse, camera);
+      probe.update(raycaster, mouse);
+    }
+
+    // orientation.update();
     controls.update();
     renderer.render(scene, camera);
     stats.update();
@@ -74,7 +89,13 @@ function init() {
   controls = new THREE.OrbitControls2D(camera, renderer.domElement);
 
   // orientation widget
-  orientation = new VJS.Widgets.Orientation('r3d', camera, controls);
+  // orientation = new VJS.Widgets.Orientation('r3d', camera, controls);
+
+  //
+  // mouse callbacks
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+  renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
 
   animate();
 }
@@ -90,7 +111,7 @@ window.onload = function() {
   var geometry = new THREE.BoxGeometry(500, 500, 500);
   var material = new THREE.MeshBasicMaterial({
       wireframe: true,
-      color: 0x61F2F3
+      color: 0x607D8B
     });
   var cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
@@ -198,9 +219,12 @@ window.onload = function() {
       mergedHelpers[0].prepare();
       scene.add(mergedHelpers[0]);
 
+      probe = new VJS.widgets.imageProbe(mergedHelpers[0]._image, mergedHelpers[0].children);
+      var threeD = document.getElementById('r3d');
+      threeD.appendChild(probe.domElement);
+
       window.console.log(imageHelpers);
       window.console.log(mergedHelpers);
-      window.console.log(scene);
       window.console.log('ALL SET YAY DICOM');
     })
     .catch(function(error) {

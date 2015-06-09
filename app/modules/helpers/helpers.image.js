@@ -72,13 +72,15 @@ VJS.helpers.image.prototype.prepare = function() {
 
     // Slice
     // Geometry
+    //
     var center = new THREE.Vector3(0, 0, 0);
     var orientation = new THREE.Vector3(
         new THREE.Vector3(1, 0, 0),
         new THREE.Vector3(0, 1, 0),
         new THREE.Vector3(0, 0, 1));
 
-    var position = center.clone();
+    // offset to get center of voxel!
+    var position = new THREE.Vector3(0.5, 0.5, 0.5);
     var direction = new THREE.Vector3(0, 0, 1);
 
     var sliceGeometry = new VJS.geometries.slice(
