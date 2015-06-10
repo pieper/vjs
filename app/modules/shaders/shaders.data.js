@@ -119,8 +119,8 @@ VJS.shaders.data = {
             'return dataValue;',
             '}',
 
-            'precision mediump float;',
-            'precision mediump sampler2D;',
+            // 'precision mediump float;',
+            // 'precision mediump sampler2D;',
 
             'uniform float uTextureSize;',
             'uniform sampler2D uTextureContainer[16];',
@@ -135,11 +135,11 @@ VJS.shaders.data = {
             // 'vec4 vPosNext1 = vPos * 100000000000.0;',
             // 'vPosNext1 += 0.5;',
             // 'vec4 vPosNext = floor(vPosNext1)/100000000000.0;',
-            'vec4 dataCoordinateRaw = uWorldToData * vPos;',
+            'highp vec4 dataCoordinateRaw = uWorldToData * vPos;',
             // account for machine epsilon
             // 'float epsilon = 0.00001;',
-            'dataCoordinateRaw += 0.5;',
-            'vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));',
+            //'dataCoordinateRaw += 0.5;',
+            'highp vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));',
 
             // if data in range, look for it!
             // should use integers...
@@ -172,7 +172,7 @@ VJS.shaders.data = {
 
         vertexShader: [
 
-            'varying vec4 vPos;',
+            'varying highp vec4 vPos;',
 
             //
             // main

@@ -14,7 +14,7 @@ VJS.widgets = VJS.widgets || {};
  *
  * It is typically used to get information about an image from the mouse cursor.
  *
- * Demo: {@link https://fnndsc.github.io/vjs#widget_imageProbe}
+ * Demo: {@link https://fnndsc.github.io/vjs#widget_squareProbe}
  *
  * @constructor
  * @class
@@ -22,18 +22,19 @@ VJS.widgets = VJS.widgets || {};
  * @public
  *
  */
-VJS.widgets.imageProbe = function(image, imageMeshes) {
+VJS.widgets.squareProbe = function(helper, image, imageMeshes) {
   this.domElement = null;
   this.rasContainer = null;
   this.ijkContainer = null;
   this.valueContainer = null;
 
+  this.helper = helper;
   this.imageMeshes = imageMeshes;
   this.image = image;
+  this.handles = [];
+  this.activeHandleId = null;
 
   this.volumeCore = null;
-
-  this.createDomElement();
 
   this._worldCoordinate = null;  //LPS
   this._dataCoordinate = null; //IJK
@@ -41,28 +42,73 @@ VJS.widgets.imageProbe = function(image, imageMeshes) {
   this._labelValue = null;       //
 };
 
-VJS.widgets.imageProbe.prototype.createDomElement = function() {
+VJS.widgets.squareProbe.prototype.select = function(raycaster) {
+  // calculate image intersecting against itself (ideally N spheres)
+  var intersects = raycaster.intersectObjects(this.helper.children);
+  var worldCoordinates = null;
+  // Look for a handle
+  for (var intersect in intersects) {
+    worldCoordinates = new THREE.Vector3().copy(intersects[intersect].point);
+    
+    // if intersect a handle, select/un-select it!
+    window.console.log(intersects[intersect]);
+    if (intersects[intersect].object.name === 'squareProbeHandle') {
+      window.console.log('intersect squareProbeHandle!');
 
-  // RAS
-  this.rasContainer = document.createElement('div');
-  this.rasContainer.setAttribute('id', 'VJSProbeRAS');
+      // select it!
+      window.console.log('+++ select ', intersects[intersect].object.id);
+      this.activeHandleId = intersects[intersect].object.id;
 
-  // IJK
-  this.ijkContainer = document.createElement('div');
-  this.ijkContainer.setAttribute('id', 'VJSProbeIJK');
+      return null;
+    }
+  }
 
-  // Value
-  this.valueContainer = document.createElement('div');
-  this.valueContainer.setAttribute('id', 'VJSProbeValue');
+  // Look for intersection against image
+  window.console.log(this);
+  intersects = raycaster.intersectObjects(this.imageMeshes);
+  for (var intersect2 in intersects) {
+    worldCoordinates = new THREE.Vector3().copy(intersects[intersect2].point);
 
-  this.domElement = document.createElement('div');
-  this.domElement.setAttribute('id', 'VJSProbe');
-  this.domElement.appendChild(this.rasContainer);
-  this.domElement.appendChild(this.ijkContainer);
-  this.domElement.appendChild(this.valueContainer);
+    // might be better to re-loop
+    // if we intersect an image with a ShaderMaterial
+    // TODO: review that
+    if (intersects[intersect2].object.material.type === 'ShaderMaterial') {
+      window.console.log('intersect shader material!');
+      window.console.log(intersects[intersect2]);
+      if (this.handles.length < 2) {
+        // create the geometry for it!
+        var sphereGeometry = new THREE.SphereGeometry(1);
+        var material = new THREE.MeshBasicMaterial({
+          // not selected: amber? #FFC107
+          // orange? #FF9800
+          // selected: deep orange? #FF5722
+          color: 0xFF5722
+        });
+        var sphere = new THREE.Mesh(sphereGeometry, material);
+        sphere.applyMatrix(new THREE.Matrix4().makeTranslation(
+          worldCoordinates.x, worldCoordinates.y, worldCoordinates.z));
+        sphere.name = 'squareProbeHandle';
+        this.handles.push(sphere);
+
+        // add it to the image!
+        // should be a 3d object of its own...
+        this.helper.add(sphere);
+
+        return null;
+      }
+
+      return null;
+    }
+  }
 };
 
-VJS.widgets.imageProbe.prototype.computeValues = function() {
+VJS.widgets.squareProbe.prototype.unselect = function() {
+  window.console.log('--- select ');
+
+  this.activeHandleId = null;
+};
+
+VJS.widgets.squareProbe.prototype.computeValues = function() {
   // convert point to IJK
   if (this.image) {
     var worldToData = this.image._stack[0]._lps2IJK;
@@ -89,7 +135,7 @@ VJS.widgets.imageProbe.prototype.computeValues = function() {
   }
 };
 
-VJS.widgets.imageProbe.prototype.updateUI = function(mouse) {
+VJS.widgets.squareProbe.prototype.updateUI = function(mouse) {
   var rasContent = this._worldCoordinate.x.toFixed(2) + ' : ' + this._worldCoordinate.y.toFixed(2) + ' : ' + this._worldCoordinate.z.toFixed(2);
   this.rasContainer.innerHTML = 'LPS: ' + rasContent;
 
@@ -107,9 +153,9 @@ VJS.widgets.imageProbe.prototype.updateUI = function(mouse) {
   
 };
 
-VJS.widgets.imageProbe.prototype.update = function(raycaster, mouse) {
+VJS.widgets.squareProbe.prototype.update = function(raycaster, mouse) {
 
-  if(!this.imageMeshes){
+  if (!this.imageMeshes) {
     return;
   }
 
@@ -134,6 +180,6 @@ VJS.widgets.imageProbe.prototype.update = function(raycaster, mouse) {
   this.hideUI();
 };
 
-VJS.widgets.imageProbe.prototype.hideUI = function(){
+VJS.widgets.squareProbe.prototype.hideUI = function() {
   document.getElementById('VJSProbe').style.display = 'none';
 };

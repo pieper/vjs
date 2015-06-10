@@ -70,10 +70,9 @@ VJS.widgets.pixelProbe.prototype.computeValues = function() {
     var dataCoordinate = new THREE.Vector3().copy(this._worldCoordinate).applyMatrix4(worldToData);
     
     // same rounding in the shaders
-    // window.console.log(dataCoordinate);
-    dataCoordinate.x = Math.floor(dataCoordinate.x + 0.5);
-    dataCoordinate.y = Math.floor(dataCoordinate.y + 0.5);
-    dataCoordinate.z = Math.floor(dataCoordinate.z + 0.5);
+    dataCoordinate.x = Math.floor(dataCoordinate.x);
+    dataCoordinate.y = Math.floor(dataCoordinate.y);
+    dataCoordinate.z = Math.floor(dataCoordinate.z);
     this._dataCoordinate = dataCoordinate;
 
     var textureSize = this.image._stack[0]._textureSize;

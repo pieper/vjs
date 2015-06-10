@@ -174,16 +174,7 @@ VJS.helpers.image.prototype.prepare = function() {
 
     // logic to be propagated to shaders too!!!!
 
-    var position = offset.clone();//new THREE.Vector3(0, 0, 0);
-    if(dimensions.x%2 === 0 ){
-      position.x = -0.5;
-    }
-    if(dimensions.y%2 === 0 ){
-      position.y = -0.5;
-    }
-    if(dimensions.z%2 === 0 ){
-      position.z = -0.5;
-    }
+    var position = offset.clone();
 
     var direction = new THREE.Vector3(0, 0, 1);
 

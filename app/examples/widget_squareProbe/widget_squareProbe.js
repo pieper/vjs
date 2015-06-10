@@ -4,7 +4,7 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse;
+var controls, renderer, stats, scene, camera, dat, squareprobe, raycaster, mouse;
 
 // FUNCTIONS
 function onProgressCallback(evt, filename) {
@@ -32,19 +32,43 @@ function onProgressCallback(evt, filename) {
 function init() {
 
   function onDocumentMouseMove(event) {
+    event.preventDefault();
+    
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components
     mouse.x = (event.clientX / threeD.offsetWidth) * 2 - 1;
     mouse.y = -(event.clientY / threeD.offsetHeight) * 2 + 1;
+
+  }
+
+  function onDocumentMouseDown(event) {
+    event.preventDefault();
+
+    // create/select handle
+    raycaster.setFromCamera(mouse, camera);
+    squareprobe.select(raycaster);
+
+  }
+
+  function onDocumentMouseUp(event) {
+    event.preventDefault();
+
+    // un - select handle
+    squareprobe.unselect();
+
+    // compute stats
+    //squareprobe.select(raycaster);
   }
 
   // this function is executed on each animation frame
   function animate() {
 
     // image probe widget
-    if (probe) {
-      raycaster.setFromCamera(mouse, camera);
-      // probe.update(raycaster);
+    if (squareprobe) {
+      //raycaster.setFromCamera(mouse, camera);
+      // re compute new ROI
+      // re draw it
+      // probesquare.updateROI();
     }
 
     // render
@@ -91,6 +115,8 @@ function init() {
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
   renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
+  renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
+  renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
 
   animate();
 }
@@ -113,7 +139,6 @@ window.onload = function() {
     });
   var cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
-
 
   // can not promise do it for us??
   var manager = new THREE.LoadingManager();
@@ -145,10 +170,7 @@ window.onload = function() {
           imageHelper.prepare();
           scene.add(imageHelper);
 
-          // probe = new VJS.widgets.imageProbe(imageHelper._image, imageHelper.children);
-          // var threeD = document.getElementById('r3d');
-          // threeD.appendChild(probe.domElement);
-          
+          squareprobe = new VJS.widgets.squareProbe(imageHelper, imageHelper._image, imageHelper.children);
         },
         // progress callback
         onProgressCallback,
