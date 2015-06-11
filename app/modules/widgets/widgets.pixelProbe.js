@@ -22,16 +22,19 @@ VJS.widgets = VJS.widgets || {};
  * @public
  *
  */
-VJS.widgets.pixelProbe = function(image, imageMeshes) {
+VJS.widgets.pixelProbe = function(helper, image, imageMeshes) {
   this.domElement = null;
   this.rasContainer = null;
   this.ijkContainer = null;
   this.valueContainer = null;
 
+  this.helper = helper;
   this.imageMeshes = imageMeshes;
   this.image = image;
 
   this.volumeCore = null;
+
+  this.marks = [];
 
   this.createDomElement();
 
@@ -68,23 +71,32 @@ VJS.widgets.pixelProbe.prototype.computeValues = function() {
     var worldToData = this.image._stack[0]._lps2IJK;
 
     var dataCoordinate = new THREE.Vector3().copy(this._worldCoordinate).applyMatrix4(worldToData);
+    var temp = dataCoordinate.clone();
     
     // same rounding in the shaders
-    dataCoordinate.x = Math.floor(dataCoordinate.x);
-    dataCoordinate.y = Math.floor(dataCoordinate.y);
-    dataCoordinate.z = Math.floor(dataCoordinate.z);
+    dataCoordinate.x = Math.floor(dataCoordinate.x + 0.5);
+    dataCoordinate.y = Math.floor(dataCoordinate.y + 0.5);
+    dataCoordinate.z = Math.floor(dataCoordinate.z + 0.5);
     this._dataCoordinate = dataCoordinate;
 
-    var textureSize = this.image._stack[0]._textureSize;
-    var rows = this.image._stack[0]._rows;
-    var columns = this.image._stack[0]._columns;
+    if (dataCoordinate.x >= 0 &&
+      dataCoordinate.y >= 0 &&
+      dataCoordinate.z >= 0) {
+      var textureSize = this.image._stack[0]._textureSize;
+      var rows = this.image._stack[0]._rows;
+      var columns = this.image._stack[0]._columns;
 
-    var index = this._dataCoordinate.x + columns * this._dataCoordinate.y + rows * columns * this._dataCoordinate.z;
+      var index = this._dataCoordinate.x + columns * this._dataCoordinate.y + rows * columns * this._dataCoordinate.z;
 
-    var textureIndex = Math.floor(index / (textureSize * textureSize));
-    var inTextureIndex = index % (textureSize * textureSize);
+      var textureIndex = Math.floor(index / (textureSize * textureSize));
+      var inTextureIndex = index % (textureSize * textureSize);
 
-    this._dataValue = this.image._stack[0]._rawData[textureIndex][inTextureIndex];
+      this._dataValue = this.image._stack[0]._rawData[textureIndex][inTextureIndex];
+    } else {
+      window.console.log('something funny happening in compute value');
+      window.console.log(dataCoordinate);
+      window.console.log(temp);
+    }
   }
 };
 
@@ -101,16 +113,19 @@ VJS.widgets.pixelProbe.prototype.updateUI = function(mouse) {
   // position of the div...
   // need a mode to track the mouse
   document.getElementById('VJSProbe').style.display = 'block';
-  document.getElementById('VJSProbe').style.top = mouse.clientY + 20;
-  document.getElementById('VJSProbe').style.left = mouse.clientX + 20;
+  window.console.log(mouse);
+  document.getElementById('VJSProbe').style.top = mouse.clientY + 10;
+  document.getElementById('VJSProbe').style.left = mouse.clientX + 10;
   
 };
 
-VJS.widgets.pixelProbe.prototype.update = function(raycaster, mouse) {
+VJS.widgets.pixelProbe.prototype.update = function(raycaster, mouse, camera, canvas) {
 
-  if(!this.imageMeshes){
+  if (!this.imageMeshes) {
     return;
   }
+
+  this.updateMarkDom(raycaster, mouse, camera, canvas);
 
   // calculate image intersecting the picking ray
   var intersects = raycaster.intersectObjects(this.imageMeshes);
@@ -133,6 +148,142 @@ VJS.widgets.pixelProbe.prototype.update = function(raycaster, mouse) {
   this.hideUI();
 };
 
-VJS.widgets.pixelProbe.prototype.hideUI = function(){
+VJS.widgets.pixelProbe.prototype.hideUI = function() {
   document.getElementById('VJSProbe').style.display = 'none';
+};
+
+VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
+  // calculate image intersecting against itself (ideally N spheres)
+  // no all good yet, because we can click on Shader Materail and still
+  // intersect another voxel if looking at plane from the side
+  var intersects = raycaster.intersectObjects(this.helper.children);
+  var worldCoordinates = null;
+  // Look for a pixelProbeMark
+  for (var intersect in intersects) {
+    worldCoordinates = new THREE.Vector3().copy(intersects[intersect].point);
+    
+    // if on a mark, do not do anything
+    if (intersects[intersect].object.name === 'pixelProbeMark') {
+      window.console.log('intersect pixelProbeMark!');
+
+      return null;
+    }
+  }
+
+  // Look for intersection against image
+  window.console.log(this);
+  intersects = raycaster.intersectObjects(this.imageMeshes);
+  for (var intersect2 in intersects) {
+    worldCoordinates = new THREE.Vector3().copy(intersects[intersect2].point);
+
+    // might be better to re-loop
+    // if we intersect an image with a ShaderMaterial
+    // TODO: review that
+    if (intersects[intersect2].object.material.type === 'ShaderMaterial') {
+      window.console.log('intersect shader material!');
+      this._worldCoordinate = worldCoordinates;
+      this.computeValues();
+
+      // create the geometry for it!
+      // var sphereGeometry = new THREE.SphereGeometry(1);
+      // var material = new THREE.MeshBasicMaterial({
+      //     // not selected: amber? #FFC107
+      //     // orange? #FF9800
+      //     // selected: deep orange? #FF5722
+      //     color: 0xFF5722
+      //   });
+      // var sphere = new THREE.Mesh(sphereGeometry, material);
+      // sphere.applyMatrix(new THREE.Matrix4().makeTranslation(
+      //   worldCoordinates.x, worldCoordinates.y, worldCoordinates.z));
+      
+      var voxelGeometry = new THREE.BoxGeometry(1, 1, 1);
+      window.console.log(this._dataCoordinate);
+      voxelGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
+        this._dataCoordinate.x,
+        this._dataCoordinate.y,
+        this._dataCoordinate.z));
+      voxelGeometry.applyMatrix(this.image._stack[0]._ijk2LPS);
+      var voxelMaterial = new THREE.MeshBasicMaterial({
+        wireframe: true,
+        color: 0xFFC107
+      });
+      var voxel = new THREE.Mesh(voxelGeometry, voxelMaterial);
+      // move to world space!
+      // voxel.applyMatrix(new THREE.Matrix4().makeTranslation(
+      //   worldCoordinates.x, worldCoordinates.y, worldCoordinates.z));
+      voxel.name = 'pixelProbeMark';
+      this.helper.add(voxel);
+
+      // store mark
+      var mark = {id: voxel.id, position: worldCoordinates};
+      this.marks.push(mark);
+      window.console.log(this.marks);
+
+      var domElement = this.markDom(mark, mouse);
+
+      return domElement;
+    }
+  }
+};
+
+// do not need mouse in theory...
+VJS.widgets.pixelProbe.prototype.markDom = function(mark, mouse) {
+
+  // that could be a web-component!
+  // RAS
+  var rasContainer = document.createElement('div');
+  rasContainer.setAttribute('class', 'VJSProbeRAS');
+
+  var rasContent = this._worldCoordinate.x.toFixed(2) + ' : ' + this._worldCoordinate.y.toFixed(2) + ' : ' + this._worldCoordinate.z.toFixed(2);
+  rasContainer.innerHTML = 'LPS: ' + rasContent;
+
+  // IJK
+  var ijkContainer = document.createElement('div');
+  ijkContainer.setAttribute('class', 'VJSProbeIJK');
+
+  var ijkContent = this._dataCoordinate.x + ' : ' + this._dataCoordinate.y + ' : ' + this._dataCoordinate.z;
+  ijkContainer.innerHTML = 'IJK: ' + ijkContent;
+
+  // Value
+  var valueContainer = document.createElement('div');
+  valueContainer.setAttribute('class', 'VJSProbeValue');
+
+  var valueContent = this._dataValue;
+  valueContainer.innerHTML = 'Value: ' + valueContent;
+
+  // Package everything
+  var domElement = document.createElement('div');
+  domElement.setAttribute('id', 'mark' + mark.id);
+  domElement.setAttribute('class', 'mark');
+  domElement.appendChild(rasContainer);
+  domElement.appendChild(ijkContainer);
+  domElement.appendChild(valueContainer);
+
+  domElement.style.display = 'block';
+  domElement.style.top = mouse.clientY + 20;
+  domElement.style.left = mouse.clientX + 20;
+
+  return domElement;
+};
+
+// do not need mouse in theory...
+VJS.widgets.pixelProbe.prototype.updateMarkDom = function(raycaster, mouse, camera, canvas) {
+
+  for (var i = 0; i < this.marks.length; i++) {
+    // find element in DOM!
+    // world coordinates to screen
+    var screenCoordinates = this.marks[i].position.clone();
+    screenCoordinates.project(camera);
+
+    screenCoordinates.x = Math.round((screenCoordinates.x + 1) * canvas.offsetWidth  / 2);
+    screenCoordinates.y = Math.round((-screenCoordinates.y + 1) * canvas.offsetHeight / 2);
+    screenCoordinates.z = 0;
+
+    // update div position
+    // window.console.log(document.getElementById('mark' + this.marks[i].id));
+    document.getElementById('mark' + this.marks[i].id).style.top = screenCoordinates.y + 10;
+    document.getElementById('mark' + this.marks[i].id).style.left = screenCoordinates.x + 10;
+
+  }
+  
 };

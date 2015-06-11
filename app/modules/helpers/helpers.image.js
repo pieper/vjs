@@ -26,7 +26,6 @@ VJS.helpers.image.prototype = Object.create(THREE.Object3D.prototype);
 
 VJS.helpers.image.prototype.constructor = VJS.helpers.image;
 
-
 VJS.helpers.image.prototype.merge = function(imageHelper) {
   return this._image.merge(imageHelper._image);
 };
@@ -40,8 +39,8 @@ VJS.helpers.image.prototype.getStack = function(stackIndex) {
 };
 
 VJS.helpers.image.prototype.prepare = function() {
-    // try to merge image to current image...
-    // cleanup previous state...
+  // try to merge image to current image...
+  // cleanup previous state...
 
   window.console.log('helpers Image Prepare!!!');
   if (this._image) {
@@ -57,52 +56,8 @@ VJS.helpers.image.prototype.prepare = function() {
     var dimensions = stack._dimensions;
     var halfDimensions = stack._halfDimensions;
 
-    // Compute offset based on dimension.
-    // update doc...
-    //
-    // Even 2D case:
-    // +-------+-------+-------+-------+
-    // | (0,0) | (0,1) | (0,2) | (0,3) |
-    // +-------+-------+-------+-------+
-    // | (1,0) | (1,1) | (1,2) | (1,3) |
-    // +-------+-------+-------+-------+
-    //
-    // Position x = 0, y = 0 is between slices (0,1), (0,2), (1,1) and (1,2).
-    // Therefore we do not want the center of our slice to be in x=0 and y=0 if
-    // because if so we run into rounding issues not sorted out yet.
-    //
-    // We want our slice to be center on the lower closer voxel center, i.e.
-    // (0,1).
-    // We shift by -0.5 the position of the center to be center on a real
-    // physical voxel.
-    //
-    //
-    // Odd 2D case:
-    // +-------+-------+-------+-------+-------+
-    // | (0,0) | (0,1) | (0,2) | (0,3) | (0,4) |
-    // +-------+-------+-------+-------+-------+
-    // | (1,0) | (1,1) | (1,2) | (1,3) | (1,4) |
-    // +-------+-------+-------+-------+-------+
-    //
-    // Position x = 0, y = 0 is between slices (0,2) and (1,2).
-    // Therefore we do not want the center of our slice to be in y=0 if
-    // because if so we run into rounding issues not sorted out yet.
-    //
-    // x = 0 is OK because in the x direction, we are in the center of a voxel.
-    //
-    // in this case we still have to shift the y by -0.5 to ensure the slice to
-    // be centered on a voxel.
-
-    var offset = new THREE.Vector3(0, 0, 0);
-    if(dimensions.x%2 === 0 ){
-      offset.x = -0.5;
-    }
-    if(dimensions.y%2 === 0 ){
-      offset.y = -0.5;
-    }
-    if(dimensions.z%2 === 0 ){
-      offset.z = -0.5;
-    }
+    // voxel offset
+    var offset = new THREE.Vector3(-0.5, -0.5, -0.5);
 
     // Bounding Box
     var geometry = new THREE.BoxGeometry(
@@ -131,50 +86,7 @@ VJS.helpers.image.prototype.prepare = function() {
         new THREE.Vector3(0, 1, 0),
         new THREE.Vector3(0, 0, 1));
 
-    // Define the slice we want to extract
-    // position of the voxel
-    // we provide the center of the voxel location, which depends if the
-    // dimensions are even or odd
-    //
-    // BBox is centered on (0, 0, 0)
-    //
-    //
-    // Even 2D case:
-    // +-------+-------+-------+-------+
-    // | (0,0) | (0,1) | (0,2) | (0,3) |
-    // +-------+-------+-------+-------+
-    // | (1,0) | (1,1) | (1,2) | (1,3) |
-    // +-------+-------+-------+-------+
-    //
-    // Position x = 0, y = 0 is between slices (0,1), (0,2), (1,1) and (1,2).
-    // Therefore we do not want the center of our slice to be in x=0 and y=0 if
-    // because if so we run into rounding issues not sorted out yet.
-    //
-    // We want our slice to be center on the lower closer voxel center, i.e.
-    // (0,1).
-    // We shift by -0.5 the position of the center to be center on a real
-    // physical voxel.
-    //
-    //
-    // Odd 2D case:
-    // +-------+-------+-------+-------+-------+
-    // | (0,0) | (0,1) | (0,2) | (0,3) | (0,4) |
-    // +-------+-------+-------+-------+-------+
-    // | (1,0) | (1,1) | (1,2) | (1,3) | (1,4) |
-    // +-------+-------+-------+-------+-------+
-    //
-    // Position x = 0, y = 0 is between slices (0,2) and (1,2).
-    // Therefore we do not want the center of our slice to be in y=0 if
-    // because if so we run into rounding issues not sorted out yet.
-    //
-    // x = 0 is OK because in the x direction, we are in the center of a voxel.
-    //
-    // in this case we still have to shift the y by -0.5 to ensure the slice to
-    // be centered on a voxel.
-
-    // logic to be propagated to shaders too!!!!
-
-    var position = offset.clone();
+    var position = new THREE.Vector3(0, 0, 0);
 
     var direction = new THREE.Vector3(0, 0, 1);
 

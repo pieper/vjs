@@ -138,7 +138,7 @@ VJS.shaders.data = {
             'highp vec4 dataCoordinateRaw = uWorldToData * vPos;',
             // account for machine epsilon
             // 'float epsilon = 0.00001;',
-            //'dataCoordinateRaw += 0.5;',
+            'dataCoordinateRaw += 0.5;',
             'highp vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));',
 
             // if data in range, look for it!

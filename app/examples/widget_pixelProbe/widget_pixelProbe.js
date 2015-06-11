@@ -36,15 +36,31 @@ function init() {
     // (-1 to +1) for both components
     mouse.x = (event.clientX / threeD.offsetWidth) * 2 - 1;
     mouse.y = -(event.clientY / threeD.offsetHeight) * 2 + 1;
+    mouse.clientX = event.clientX;
+    mouse.clientY = event.clientY;
+  }
+
+  function onDocumentMouseDown(event) {
+    event.preventDefault();
+
+    // create/select handle
+    raycaster.setFromCamera(mouse, camera);
+    // name???
+    var domElement = probe.mark(raycaster, mouse);
+    if (domElement) {
+      var threeD = document.getElementById('r3d');
+      threeD.appendChild(domElement);
+    }
+
   }
 
   // this function is executed on each animation frame
   function animate() {
 
     // image probe widget
-    if (probe) {
+    if (mouse && raycaster && probe) {
       raycaster.setFromCamera(mouse, camera);
-      probe.update(raycaster);
+      probe.update(raycaster, mouse, camera, threeD);
     }
 
     // render
@@ -91,6 +107,7 @@ function init() {
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
   renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
+  renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
 
   animate();
 }
@@ -117,7 +134,7 @@ window.onload = function() {
     }
   };
 
-  var files = ['/data/dcm/fruit'];
+  var files = ['/data/dcm/adi/36749894'];
   // instantiate the loader
   var loader = new VJS.loader.dicom(manager);
 
@@ -132,9 +149,10 @@ window.onload = function() {
         function(imageHelper) {
           // should it just return an image model?
           // add image helper to scene
+          imageHelper.prepare();
           scene.add(imageHelper);
 
-          probe = new VJS.widgets.pixelProbe(imageHelper._image, imageHelper.children);
+          probe = new VJS.widgets.pixelProbe(imageHelper, imageHelper._image, imageHelper.children);
           var threeD = document.getElementById('r3d');
           threeD.appendChild(probe.domElement);
           
