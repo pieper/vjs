@@ -152,7 +152,9 @@ window.onload = function() {
           imageHelper.prepare();
           scene.add(imageHelper);
 
-          probe = new VJS.widgets.pixelProbe(imageHelper, imageHelper._image, imageHelper.children);
+          probe = new VJS.widgets.pixelProbe(imageHelper._image, imageHelper.children);
+          scene.add(probe);
+
           var threeD = document.getElementById('r3d');
           threeD.appendChild(probe.domElement);
           

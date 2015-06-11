@@ -22,13 +22,15 @@ VJS.widgets = VJS.widgets || {};
  * @public
  *
  */
-VJS.widgets.pixelProbe = function(helper, image, imageMeshes) {
+VJS.widgets.pixelProbe = function(image, imageMeshes) {
+  // it is an object 3D that we can add to the scene :)
+  THREE.Object3D.call(this);
+
   this.domElement = null;
   this.rasContainer = null;
   this.ijkContainer = null;
   this.valueContainer = null;
 
-  this.helper = helper;
   this.imageMeshes = imageMeshes;
   this.image = image;
 
@@ -43,6 +45,9 @@ VJS.widgets.pixelProbe = function(helper, image, imageMeshes) {
   this._dataValue = null;        //
   this._labelValue = null;       //
 };
+
+VJS.widgets.pixelProbe.prototype = Object.create(THREE.Object3D.prototype);
+VJS.widgets.pixelProbe.prototype.constructor = VJS.widgets.pixelProbe;
 
 VJS.widgets.pixelProbe.prototype.createDomElement = function() {
 
@@ -156,7 +161,8 @@ VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
   // calculate image intersecting against itself (ideally N spheres)
   // no all good yet, because we can click on Shader Materail and still
   // intersect another voxel if looking at plane from the side
-  var intersects = raycaster.intersectObjects(this.helper.children);
+  // do we intersect a cube of the probe (in front of the plane not detected yet...)
+  var intersects = raycaster.intersectObjects(this.children);
   var worldCoordinates = null;
   // Look for a pixelProbeMark
   for (var intersect in intersects) {
@@ -212,7 +218,7 @@ VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
       // voxel.applyMatrix(new THREE.Matrix4().makeTranslation(
       //   worldCoordinates.x, worldCoordinates.y, worldCoordinates.z));
       voxel.name = 'pixelProbeMark';
-      this.helper.add(voxel);
+      this.add(voxel);
 
       // store mark
       var mark = {id: voxel.id, position: worldCoordinates};
