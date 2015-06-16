@@ -3,7 +3,7 @@
 var VJS = VJS || {};
 VJS.Widgets = VJS.Widget || {};
 
-VJS.Widgets.Orientation = function(parentID, targetCamera, targetControl) {
+VJS.widgets.orientation = function(parentID, targetCamera, targetControl) {
     this._ParentId = parentID;
     this._TargetCamera = targetCamera;
     this._TargetControl = targetControl;
@@ -22,7 +22,7 @@ VJS.Widgets.Orientation = function(parentID, targetCamera, targetControl) {
     this.setupObject();
 };
 
-VJS.Widgets.Orientation.prototype.createDomContainer = function() {
+VJS.widgets.orientation.prototype.createDomContainer = function() {
 
     // create it
     this._DomElement = document.createElement('div');
@@ -37,7 +37,7 @@ VJS.Widgets.Orientation.prototype.createDomContainer = function() {
     parent.appendChild(this._DomElement);
 };
 
-VJS.Widgets.Orientation.prototype.setupObject = function() {
+VJS.widgets.orientation.prototype.setupObject = function() {
     this._Renderer = new THREE.WebGLRenderer({
         alpha: true
     });
@@ -58,7 +58,7 @@ VJS.Widgets.Orientation.prototype.setupObject = function() {
 
 
 
-VJS.Widgets.Orientation.prototype.update = function() {
+VJS.widgets.orientation.prototype.update = function() {
     // call to render!
     this._Camera.position.copy(this._TargetCamera.position);
     this._Camera.position.sub(this._TargetControl.target); // added by @libe

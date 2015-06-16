@@ -38,6 +38,28 @@ VJS.parsers.dicom.prototype.parse = function() {
   console.time('Parsing Dicom');
   var imageNameFS = 'image_' + self._id;
   var frameNameFS = imageNameFS + '-raw.8b';
+
+  // save on FS
+  self.fileToFS(imageNameFS, self._arrayBuffer);
+
+  // save frames on FS
+  self.framesToFS(imageNameFS, frameNameFS);
+
+  // dump dicom header to XML
+  var xml = self.dumpToXML(imageNameFS);
+
+  // create VJS friendly image
+  var $dicomDom = $.parseXML(xml);
+  var image = self.domToImage($dicomDom, frameNameFS);
+
+  return image;
+};
+
+VJS.parsers.dicom.prototype.parsePromise = function() {
+  var self = this;
+  console.time('Parsing Dicom');
+  var imageNameFS = 'image_' + self._id;
+  var frameNameFS = imageNameFS + '-raw.8b';
   //
   // Promises in action!
   //
@@ -205,6 +227,9 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
 
     // Add frame to Stack
     var currentFrame = null;
+
+    window.console.log(dimensionIndexValues);
+    window.console.log(currentStack._frame);
 
     // use dimension instead to know if already there!
     var dimensionIndex = currentStack._frame.filter(this.dimensionIndex, dimensionIndexValues);

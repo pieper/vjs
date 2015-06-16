@@ -118,7 +118,6 @@ VJS.widgets.pixelProbe.prototype.updateUI = function(mouse) {
   // position of the div...
   // need a mode to track the mouse
   document.getElementById('VJSProbe').style.display = 'block';
-  window.console.log(mouse);
   document.getElementById('VJSProbe').style.top = mouse.clientY + 10;
   document.getElementById('VJSProbe').style.left = mouse.clientX + 10;
   
@@ -203,7 +202,6 @@ VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
       //   worldCoordinates.x, worldCoordinates.y, worldCoordinates.z));
       
       var voxelGeometry = new THREE.BoxGeometry(1, 1, 1);
-      window.console.log(this._dataCoordinate);
       voxelGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
         this._dataCoordinate.x,
         this._dataCoordinate.y,

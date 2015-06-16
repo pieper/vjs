@@ -134,43 +134,35 @@ window.onload = function() {
     }
   };
 
-  var files = ['/data/dcm/adi/36749894'];
+  var file = '/data/dcm/adi/36749894';
   // instantiate the loader
   var loader = new VJS.loader.dicom(manager);
+  loader.load(
+    file,
+    // on load
+    function(imageHelper) {
+      // should it just return an image model?
+      // add image helper to scene
+      imageHelper.prepare();
+      scene.add(imageHelper);
 
-  // Go!
-  Promise
-  // all data downloaded and parsed
-    .all(
-      loader.load(
-        // files to be loaded
-        files,
-        // loaded callback
-        function(imageHelper) {
-          // should it just return an image model?
-          // add image helper to scene
-          imageHelper.prepare();
-          scene.add(imageHelper);
+      probe = new VJS.widgets.pixelProbe(imageHelper._image, imageHelper.children);
+      scene.add(probe);
 
-          probe = new VJS.widgets.pixelProbe(imageHelper._image, imageHelper.children);
-          scene.add(probe);
+      var threeD = document.getElementById('r3d');
+      threeD.appendChild(probe.domElement);
+    },
+    // progress
+    function() {
+      onProgressCallback(event, file);
+    },
+    // error
+    function(message) {
+      window.console.log('error: ', message);
+    }
+    );
 
-          var threeD = document.getElementById('r3d');
-          threeD.appendChild(probe.domElement);
-          
-        },
-        // progress callback
-        onProgressCallback,
-        // (network) error callback
-        null
-    ))
-    .then(function(message) {
-      window.console.log(message);
-      window.console.log(scene);
-      window.console.log('ALL SET YAY DICOM');
-    })
-    .catch(function(error) {
-      window.console.log(error);
-    });
+  // use manager to deal with "all loaded"
+  // similar to promise all
 
 };
