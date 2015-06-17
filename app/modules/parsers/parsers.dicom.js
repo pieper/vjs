@@ -228,6 +228,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
     // Add frame to Stack
     var currentFrame = null;
 
+    window.console.log('outside!!!');
     window.console.log(dimensionIndexValues);
     window.console.log(currentStack._frame);
 
@@ -576,7 +577,10 @@ VJS.parsers.dicom.prototype.fillDimensionIndexValues = function(container) {
 
 VJS.parsers.dicom.prototype.dimensionIndex = function(obj) {
   /*jshint validthis:true*/
-  if (this._dimensionIndexValues.join() === obj.join()) {
+  window.console.log('inside!!!');
+  window.console.log(this);
+  window.console.log(obj);
+  if (this.join() === obj._dimensionIndexValues.join()) {
     return true;
   } else {
     return false;
