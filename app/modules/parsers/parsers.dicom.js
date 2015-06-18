@@ -177,7 +177,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
   // Create the image
   // Get information that is image specific
   // http://medical.nema.org/medical/dicom/current/output/html/part03.html#sect_C.7.6.16
-  var imageModel = new VJS.image.model();
+  var imageModel = new VJS.models.image();
   // why can't we use series UID? to concatenate?
   imageModel._concatenationUID = this.imageConcatenationUID($dom);
   imageModel._seriesUID = this.imageSeriesUID($dom);
@@ -213,7 +213,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
     // Create stack object and add it to image if necessary
     if (stackByID.length === 0) {
       //window.console.log('+++ stack');
-      var stackModel = new VJS.stack.model();
+      var stackModel = new VJS.models.stack();
       stackModel._stackID = stackID;
       imageModel._stack.push(stackModel);
       currentStack = stackModel;
@@ -238,7 +238,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
     // Create frame object and add it to image if necessary
     if (dimensionIndex.length === 0) {
       window.console.log('+++ frame');
-      var frameModel = new VJS.frame.model();
+      var frameModel = new VJS.models.frame();
       frameModel._dimensionIndexValues = dimensionIndex;
       currentStack._frame.push(frameModel);
       currentFrame = frameModel;

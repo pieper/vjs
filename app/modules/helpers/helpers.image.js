@@ -44,8 +44,6 @@ VJS.helpers.image.prototype.prepare = function() {
 
   window.console.log('helpers Image Prepare!!!');
   if (this._image) {
-    //window.console.log(image);
-    //this._image = image;
 
     // get first stack!
     var stack = this._image._stack[0];
@@ -87,6 +85,17 @@ VJS.helpers.image.prototype.prepare = function() {
         new THREE.Vector3(0, 0, 1));
 
     var position = new THREE.Vector3(0, 0, 0);
+    // we want to center the slice on a voxel (not at the limit between 2 voxels)
+    // precision issue if at limit (pixels intensity flickers between voxels)
+    if(dimensions.x%2 === 0 ){
+      position.x = -0.5;
+    }
+    if(dimensions.y%2 === 0 ){
+      position.y = -0.5;
+    }
+    if(dimensions.z%2 === 0 ){
+      position.z = -0.5;
+    }
 
     var direction = new THREE.Vector3(0, 0, 1);
 

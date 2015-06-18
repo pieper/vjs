@@ -4,13 +4,13 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera, dat, orientation, probe, raycaster, mouse;
+var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse, orientation;
 
 // FUNCTIONS
 function onProgressCallback(evt, filename) {
   var percentComplete = Math.round((evt.loaded / evt.total) * 100);
 
-  // window.console.log(filename);
+  window.console.log(filename);
 
   var fileContainer = document.getElementById(filename);
   if (!fileContainer) {
@@ -23,10 +23,6 @@ function onProgressCallback(evt, filename) {
   } else {
     fileContainer.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
   }
-
-  // fileContainer
-
-  // window.console.log(percentComplete + '%');
 }
 
 function init() {
@@ -40,16 +36,29 @@ function init() {
     mouse.clientY = event.clientY;
   }
 
-  // this function is executed on each animation frame
-  function animate() {
-    // render
-    // image probe widget
-    if (probe) {
-      raycaster.setFromCamera(mouse, camera);
-      probe.update(raycaster, mouse);
+  function onDocumentMouseDown(event) {
+    event.preventDefault();
+
+    // create/select handle
+    raycaster.setFromCamera(mouse, camera);
+    // name???
+    var domElement = probe.mark(raycaster, mouse);
+    if (domElement) {
+      var threeD = document.getElementById('r3d');
+      threeD.appendChild(domElement);
     }
 
-    // orientation.update();
+  }
+
+  // this function is executed on each animation frame
+  function animate() {
+    // image probe widget
+    if (mouse && raycaster && probe) {
+      raycaster.setFromCamera(mouse, camera);
+      probe.update(raycaster, mouse, camera, threeD);
+    }
+
+    orientation.update();
     controls.update();
     renderer.render(scene, camera);
     stats.update();
@@ -89,13 +98,14 @@ function init() {
   controls = new THREE.OrbitControls2D(camera, renderer.domElement);
 
   // orientation widget
-  // orientation = new VJS.Widgets.Orientation('r3d', camera, controls);
+  orientation = new VJS.widgets.orientation('r3d', camera, controls);
 
   //
   // mouse callbacks
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
   renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
+  renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
 
   animate();
 }
@@ -120,12 +130,42 @@ window.onload = function() {
   // might not be useful with promises anymore.
 
   // can not promise do it for us??
+  var imageHelpers = [];
   var manager = new THREE.LoadingManager();
   manager.onProgress = function(item, loaded, total) {
+    window.console.log('manager progress ----');
     window.console.log(item);
     var fileContainer = document.getElementById(item);
     if (fileContainer) {
       fileContainer.innerHTML = ' ' + item + ' is ready! ' + '(' + loaded + '/' + total + ')';
+    }
+
+    if (loaded === total) {
+      var mergedHelpers = [imageHelpers[0]];
+      // if all files loaded
+      for (var i = 0; i < imageHelpers.length; i++) {
+        // test image against existing imagess
+        for (var j = 0; j < mergedHelpers.length; j++) {
+          if (mergedHelpers[j].merge(imageHelpers[i])) {
+            // merged successfully
+            break;
+          } else if (j === mergedHelpers.length - 1) {
+            // last merge was not successful
+            // this is a new image
+            mergedHelpers.push(imageHelpers[i]);
+          }
+        }
+      }
+
+      mergedHelpers[0].prepare();
+      scene.add(mergedHelpers[0]);
+
+      probe = new VJS.widgets.pixelProbe(mergedHelpers[0]._image, mergedHelpers[0].children);
+      scene.add(probe);
+
+      var threeD = document.getElementById('r3d');
+      threeD.appendChild(probe.domElement);
+
     }
   };
 
@@ -176,59 +216,29 @@ window.onload = function() {
 
   window.console.log(files);
 
-  // instantiate the loader
-  var loader = new VJS.loader.dicom(manager);
+  function loadClosure(filename) {
+    var loader = new VJS.loader.dicom(manager);
+    loader.load(
+      filename,
+      // on load
+    function(imageHelper) {
+      // should it just return an image model?
+      // add image helper to scene
+      imageHelpers.push(imageHelper);
+    },
+    // progress
+    function() {
+      window.console.log(filename);
+      onProgressCallback(event, filename);
+    },
+    // error
+    function(message) {
+      window.console.log('error: ', message);
+    }
+    );
+  }
 
-  // Go!
-  Promise
-  // all data downloaded and parsed
-    .all(
-      loader.load(
-        // files to be loaded
-        files,
-        // loaded callback
-        function(object) {
-          //scene.add( object );
-          window.console.log('imageHelper ready!');
-          window.console.log(object);
-          //scene.add(object);
-        },
-        // progress callback
-        onProgressCallback,
-        // (network) error callback
-        null
-    ))
-    .then(function(imageHelpers) {
-      var mergedHelpers = [imageHelpers[0]];
-
-      for (var i = 0; i < imageHelpers.length; i++) {
-        // test image against existing imagess
-        for (var j = 0; j < mergedHelpers.length; j++) {
-          if (mergedHelpers[j].merge(imageHelpers[i])) {
-            // merged successfully
-            break;
-          } else if (j === mergedHelpers.length - 1) {
-            // last merge was not successful
-            // this is a new image
-            mergedHelpers.push(imageHelpers[i]);
-          }
-        }
-       
-      }
-
-      mergedHelpers[0].prepare();
-      scene.add(mergedHelpers[0]);
-
-      probe = new VJS.widgets.pixelProbe(mergedHelpers[0]._image, mergedHelpers[0].children);
-      var threeD = document.getElementById('r3d');
-      threeD.appendChild(probe.domElement);
-
-      window.console.log(imageHelpers);
-      window.console.log(mergedHelpers);
-      window.console.log('ALL SET YAY DICOM');
-    })
-    .catch(function(error) {
-      window.console.log(error);
-    });
-
+  for (var k = 0; k < files.length; k++) {
+    loadClosure(files[k]);
+  }
 };

@@ -132,9 +132,6 @@ VJS.shaders.data = {
             'void main(void) {',
 
             // get data coordinates of current pixel
-            // 'vec4 vPosNext1 = vPos * 100000000000.0;',
-            // 'vPosNext1 += 0.5;',
-            // 'vec4 vPosNext = floor(vPosNext1)/100000000000.0;',
             'highp vec4 dataCoordinateRaw = uWorldToData * vPos;',
             // account for machine epsilon
             // 'float epsilon = 0.00001;',
@@ -155,8 +152,8 @@ VJS.shaders.data = {
             'color.rgb = dataValue.rgb;',
             'gl_FragColor = vec4(color, 1.0);',
             //'gl_FragColor = vec4(dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, 1.0);',
-            // 'gl_FragColor = vec4(3.0 - dataCoordinate[2], 4.0 - dataCoordinate[2], 5.0 - dataCoordinate[2], 1.0);',
-            // 'gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);',
+            //'gl_FragColor = vec4(3.0 - dataCoordinate[2], 4.0 - dataCoordinate[2], 5.0 - dataCoordinate[2], 1.0);',
+            //'gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);',
             '}',
             'else{',
             // should be able to choose what we want to do if not in range:

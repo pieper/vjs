@@ -3,17 +3,16 @@
 <title>VJS Widget Probe</title>
 
 <!-- ThreeJS -->
-<script src="http://threejs.org/build/three.js"></script>
-<script src="http://threejs.org/examples/js/libs/stats.min.js"></script>
+<script type="text/javascript" src="http://threejs.org/build/three.js"></script>
+<script type="text/javascript" src="http://threejs.org/examples/js/libs/stats.min.js"></script>
 
 <!-- Load core elements -->
-<!-- <script src="../../modules/core/Adaptor.js"></script> -->
-<script src="../../modules/core/Intersections.js"></script>
+<script type="text/javascript" src="../../modules/core/Intersections.js"></script>
 
 <!-- Load objects we want to use (needed by loaders) -->
-<script src="../../modules/objects/image/Image.js"></script>
-<script src="../../modules/objects/stack/Stack.js"></script>
-<script src="../../modules/objects/frame/Frame.js"></script>
+<script type="text/javascript" src="../../modules/models/models.image.js"></script>
+<script type="text/javascript" src="../../modules/models/models.stack.js"></script>
+<script type="text/javascript" src="../../modules/models/models.frame.js"></script>
 
 <!-- Load the helpers -->
 <script type="text/javascript" src="../../modules/helpers/helpers.image.js"></script>
@@ -22,22 +21,22 @@
 <script type="text/javascript" src="../../modules/geometries/geometries.slice.js"></script>
 
 <!-- Textures -->
-<script src="../../modules/shaders/shaders.data.js"></script>
+<script type="text/javascript" src="../../modules/shaders/shaders.data.js"></script>
 
-<!-- Load the loaders -->
+<!-- Load the external libs -->
 <script type="text/javascript" src="../../libs/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="../../libs/pace.js"></script>
 <script type="text/javascript" src="../../libs/dcmjs.js"></script>
 <script type="text/javascript" src="../../libs/utils.js"></script>
 
 <script type="text/javascript" src="../../modules/loaders/loader.dicom.js"></script>
-<script src="../../modules/parsers/parsers.dicom.js"></script>
+<script type="text/javascript" src="../../modules/parsers/parsers.dicom.js"></script>
 
 <!-- Load controls we want to use -->
-<script src="../../modules/controls/OrbitControls2D.js"></script>
+<script type="text/javascript" src="../../modules/controls/OrbitControls2D.js"></script>
 
 <!-- Load the widgets -->
-<script src="../../modules/widgets/widgets.pixelProbe.js"></script>
+<script type="text/javascript" src="../../modules/widgets/widgets.pixelProbe.js"></script>
 
 <script type="text/javascript" src="widget_pixelProbe.js"></script>\
 <style type="text/css">
@@ -57,6 +56,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
+        overflow:hidden;
       }
 
       #my-gui-container {
@@ -74,7 +74,7 @@
       }
 
       #VJSProbe {
-                position: absolute;
+        position: absolute;
         bottom:0;
         left: 0;
         width: 260px;
@@ -85,7 +85,7 @@
       }
 
       .mark {
-                position: absolute;
+        position: absolute;
         bottom:0;
         left: 0;
         width: 260px;
@@ -93,6 +93,7 @@
         font-family: monospace;
         padding: 10px;
         background-color: rgba(249, 249, 249, .7);
+        pointer-events: none;
       }
 
 </style>

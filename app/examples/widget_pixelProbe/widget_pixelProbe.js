@@ -10,7 +10,7 @@ var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse;
 function onProgressCallback(evt, filename) {
   var percentComplete = Math.round((evt.loaded / evt.total) * 100);
 
-  // window.console.log(filename);
+  window.console.log(filename);
 
   var fileContainer = document.getElementById(filename);
   if (!fileContainer) {
@@ -23,10 +23,6 @@ function onProgressCallback(evt, filename) {
   } else {
     fileContainer.innerHTML = 'Downloading ' + filename + ': ' + percentComplete + '%';
   }
-
-  // fileContainer
-
-  // window.console.log(percentComplete + '%');
 }
 
 function init() {
