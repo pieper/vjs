@@ -1,0 +1,245 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0">
+  <meta charset="utf-8">
+  <title>Source: modules/shaders/shaders.data.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: modules/shaders/shaders.data.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+
+var VJS = VJS || {};
+VJS.shaders = VJS.shaders || {};
+
+/**
+ *
+ * Custom shader for the slice object. Should be a shader directory. We can add this shader to any object...
+ * @member
+ *
+ */
+
+VJS.shaders.data = {
+
+    /* -------------------------------------------------------------------------
+    //  Slice shader
+    // features:
+    //
+     ------------------------------------------------------------------------- */
+
+    &#x27;parameters&#x27;: {
+
+        uniforms: {
+            &#x27;uTextureSize&#x27;: {
+                type: &#x27;f&#x27;,
+                value: 0.0
+            },
+            &#x27;uTextureContainer&#x27;: {
+                type: &#x27;tv&#x27;,
+                value: null
+            },
+            &#x27;uDataDimensions&#x27;: {
+                type: &#x27;v3&#x27;,
+                value: new THREE.Vector3()
+            },
+            &#x27;uWorldToData&#x27;: {
+                type: &#x27;m4&#x27;,
+                value: new THREE.Matrix4()
+            }
+        },
+
+        fragmentShader: [
+
+            //
+            // Get data color given coordinate and texture
+            //
+
+            // https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences
+            &#x27;vec4 sampleAs3DTexture(sampler2D textureContainer[16], vec3 textureCoordinate, vec3 dataSize, float textureSize) {&#x27;,
+
+            &#x27;float slicePixelSize = 1.0 / textureSize;&#x27;,
+
+            // Model coordinate (IJK) to data index
+            &#x27;float index = textureCoordinate.x * dataSize.x + textureCoordinate.y * dataSize.y * dataSize.x + textureCoordinate.z * dataSize.z * dataSize.y * dataSize.x;&#x27;,
+
+            // Map data index to right sampler2D texture
+            &#x27;float textureIndex = floor(index / (textureSize*textureSize));&#x27;,
+            &#x27;float inTextureIndex = mod(index, textureSize*textureSize);&#x27;,
+
+            // Get row and column in the texture
+            &#x27;float rowIndex = floor(inTextureIndex/textureSize);&#x27;,
+            &#x27;float colIndex = mod(inTextureIndex, textureSize);&#x27;,
+
+            // Map row and column to uv
+            &#x27;vec2 uv = vec2(0,0);&#x27;,
+            &#x27;uv.x = slicePixelSize * 0.5 + colIndex * slicePixelSize;&#x27;,
+            &#x27;uv.y = 1.0 - (slicePixelSize * 0.5 + rowIndex * slicePixelSize);&#x27;,
+
+            &#x27;vec4 dataValue = vec4(0, 0, 0, 0);&#x27;,
+            &#x27;if(textureIndex == 0.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[0], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 1.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[1], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 2.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[2], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 3.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[3], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 4.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[4], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 5.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[5], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 6.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[6], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 7.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[7], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 8.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[8], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 9.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[9], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 10.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[10], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 11.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[11], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 12.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[12], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 13.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[13], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 14.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[14], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else if(textureIndex == 15.0){&#x27;,
+            &#x27;dataValue = texture2D(textureContainer[15], uv);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else {&#x27;,
+            &#x27;discard;&#x27;,
+            &#x27;}&#x27;,
+
+            &#x27;return dataValue;&#x27;,
+            &#x27;}&#x27;,
+
+            &#x27;uniform float uTextureSize;&#x27;,
+            &#x27;uniform sampler2D uTextureContainer[16];&#x27;,
+            &#x27;uniform vec3 uDataDimensions;&#x27;,
+            &#x27;uniform mat4 uWorldToData;&#x27;,
+
+            &#x27;varying vec4 vPos;&#x27;,
+
+            &#x27;void main(void) {&#x27;,
+
+            // get texture coordinates of current pixel
+            // might not be the right way to do it:
+            // precision issues ar voxels limits
+            // need to add machine epsilon?
+            &#x27;vec4 dataCoordinateRaw = uWorldToData * vPos;&#x27;,
+            &#x27;dataCoordinateRaw += 0.5;&#x27;,
+            &#x27;vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));&#x27;,
+            &#x27;vec3 textureCoordinate = dataCoordinate/uDataDimensions;&#x27;,
+
+            // if data in range, look it up in the texture!
+            &#x27;if(textureCoordinate.x &gt;= 0.0&#x27;,
+            &#x27;&amp;amp;&amp;amp; textureCoordinate.y &gt;= 0.0&#x27;,
+            &#x27;&amp;amp;&amp;amp; textureCoordinate.z &gt;= 0.0&#x27;,
+            &#x27;&amp;amp;&amp;amp; textureCoordinate.x &amp;lt;= 1.0&#x27;,
+            &#x27;&amp;amp;&amp;amp; textureCoordinate.y &amp;lt;= 1.0&#x27;,
+            &#x27;&amp;amp;&amp;amp; textureCoordinate.z &amp;lt;= 1.0&#x27;,
+            &#x27;){&#x27;,
+            &#x27;vec3 color = vec3(0, 0, 0);&#x27;,
+            &#x27;vec4 dataValue = sampleAs3DTexture(uTextureContainer, textureCoordinate, uDataDimensions, uTextureSize);&#x27;,
+            &#x27;color.rgb = dataValue.rgb;&#x27;,
+            &#x27;gl_FragColor = vec4(color, 1.0);&#x27;,
+            //&#x27;gl_FragColor = vec4(dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, 1.0);&#x27;,
+            //&#x27;gl_FragColor = vec4(3.0 - dataCoordinate[2], 4.0 - dataCoordinate[2], 5.0 - dataCoordinate[2], 1.0);&#x27;,
+            //&#x27;gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);&#x27;,
+            &#x27;}&#x27;,
+            &#x27;else{&#x27;,
+            // should be able to choose what we want to do if not in range:
+            // discard or specific color
+            //&#x27;discard;&#x27;,
+            &#x27;gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);&#x27;,
+
+            &#x27;}&#x27;,
+
+            &#x27;}&#x27;
+
+        ].join(&#x27;\n&#x27;),
+
+        vertexShader: [
+
+            &#x27;varying highp vec4 vPos;&#x27;,
+
+            //
+            // main
+            //
+            &#x27;void main() {&#x27;,
+
+            &#x27;vPos = modelMatrix * vec4(position, 1.0 );&#x27;,
+
+            &#x27;gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );&#x27;,
+
+            &#x27;}&#x27;
+
+        ].join(&#x27;\n&#x27;)
+
+    }
+
+};
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0 on June 19, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

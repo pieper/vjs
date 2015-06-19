@@ -189,15 +189,15 @@ www.threejs.org
       </a>
       <div id="content">
       <div>
-        <h2>devZone</h2>
+        <h2>welcome</h2>
         <div>
-          <a href="https://github.com/FNNDSC/vjs">github</a>
+          <a href="https://github.com/FNNDSC/vjs">src code @ github</a>
         </div>
         <div>
-          <a href="https://gitter.im/FNNDSC/vjs">chat</a>
+          <a href="https://fnndsc.slack.com/messages/vjs">chat @ slack</a>
         </div>
         <div>
-          <a href="doc/VJS.html">documentation</a>
+          <a href="doc/VJS.html">documentation @ jsdoc</a>
         </div>
         </div>
       </div>
@@ -206,26 +206,31 @@ www.threejs.org
 
     <script>
 
-    var files = {
-      "geometry": [
-        "geometry_slice"
-      ],
-      "texture": [
-        "texture_data"
-      ],
-      "loader": [
-        "loader_dicom"
-      ]
-    };
+'use strict';
 
-    var panel = document.getElementById( 'panel' );
-    var content = document.getElementById( 'content' );
-    var viewer = document.getElementById( 'viewer' );
+var files = {
+  'geometries': [
+    'geometries_slice'
+  ],
+  'texture': [
+    'texture_data'
+  ],
+  'loader': [
+    'loader_dicoms'
+  ],
+  'widget': [
+    'widget_pixelProbe'
+  ]
+};
 
-    var expandButton = document.getElementById( 'expandButton' );
-    expandButton.addEventListener( 'click', function ( event ) {
-      panel.classList.toggle( 'collapsed' );
-      event.preventDefault();
+var panel = document.getElementById( 'panel' );
+var content = document.getElementById( 'content' );
+var viewer = document.getElementById( 'viewer' );
+
+var expandButton = document.getElementById( 'expandButton' );
+expandButton.addEventListener( 'click', function ( event ) {
+  panel.classList.toggle( 'collapsed' );
+  event.preventDefault();
     } );
 
     // iOS8 workaround

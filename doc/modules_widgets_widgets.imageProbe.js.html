@@ -1,0 +1,193 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0">
+  <meta charset="utf-8">
+  <title>Source: modules/widgets/widgets.imageProbe.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: modules/widgets/widgets.imageProbe.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+
+var VJS = VJS || {};
+
+/**
+ * widgets namespace
+ * @namespace widgets
+ * @memberOf VJS
+ * @public
+ */
+VJS.widgets = VJS.widgets || {};
+
+/**
+ *
+ * It is typically used to get information about an image from the mouse cursor.
+ *
+ * Demo: {@link https://fnndsc.github.io/vjs#widget_imageProbe}
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.widgets
+ * @public
+ *
+ */
+VJS.widgets.imageProbe = function(image, imageMeshes) {
+  this.domElement = null;
+  this.rasContainer = null;
+  this.ijkContainer = null;
+  this.valueContainer = null;
+
+  this.imageMeshes = imageMeshes;
+  this.image = image;
+
+  this.volumeCore = null;
+
+  this.createDomElement();
+
+  this._worldCoordinate = null;  //LPS
+  this._dataCoordinate = null; //IJK
+  this._dataValue = null;        //
+  this._labelValue = null;       //
+};
+
+VJS.widgets.imageProbe.prototype.createDomElement = function() {
+
+  // RAS
+  this.rasContainer = document.createElement(&#x27;div&#x27;);
+  this.rasContainer.setAttribute(&#x27;id&#x27;, &#x27;VJSProbeRAS&#x27;);
+
+  // IJK
+  this.ijkContainer = document.createElement(&#x27;div&#x27;);
+  this.ijkContainer.setAttribute(&#x27;id&#x27;, &#x27;VJSProbeIJK&#x27;);
+
+  // Value
+  this.valueContainer = document.createElement(&#x27;div&#x27;);
+  this.valueContainer.setAttribute(&#x27;id&#x27;, &#x27;VJSProbeValue&#x27;);
+
+  this.domElement = document.createElement(&#x27;div&#x27;);
+  this.domElement.setAttribute(&#x27;id&#x27;, &#x27;VJSProbe&#x27;);
+  this.domElement.appendChild(this.rasContainer);
+  this.domElement.appendChild(this.ijkContainer);
+  this.domElement.appendChild(this.valueContainer);
+};
+
+VJS.widgets.imageProbe.prototype.computeValues = function() {
+  // convert point to IJK
+  if (this.image) {
+    var worldToData = this.image._stack[0]._lps2IJK;
+
+    var dataCoordinate = new THREE.Vector3().copy(this._worldCoordinate).applyMatrix4(worldToData);
+    
+    // same rounding in the shaders
+    // window.console.log(dataCoordinate);
+    dataCoordinate.x = Math.floor(dataCoordinate.x + 0.5);
+    dataCoordinate.y = Math.floor(dataCoordinate.y + 0.5);
+    dataCoordinate.z = Math.floor(dataCoordinate.z + 0.5);
+    this._dataCoordinate = dataCoordinate;
+
+    var textureSize = this.image._stack[0]._textureSize;
+    var rows = this.image._stack[0]._rows;
+    var columns = this.image._stack[0]._columns;
+
+    var index = this._dataCoordinate.x + columns * this._dataCoordinate.y + rows * columns * this._dataCoordinate.z;
+
+    var textureIndex = Math.floor(index / (textureSize * textureSize));
+    var inTextureIndex = index % (textureSize * textureSize);
+
+    this._dataValue = this.image._stack[0]._rawData[textureIndex][inTextureIndex];
+  }
+};
+
+VJS.widgets.imageProbe.prototype.updateUI = function(mouse) {
+  var rasContent = this._worldCoordinate.x.toFixed(2) + &#x27; : &#x27; + this._worldCoordinate.y.toFixed(2) + &#x27; : &#x27; + this._worldCoordinate.z.toFixed(2);
+  this.rasContainer.innerHTML = &#x27;LPS: &#x27; + rasContent;
+
+  var ijkContent = this._dataCoordinate.x + &#x27; : &#x27; + this._dataCoordinate.y + &#x27; : &#x27; + this._dataCoordinate.z;
+  this.ijkContainer.innerHTML = &#x27;IJK: &#x27; + ijkContent;
+
+  var valueContent = this._dataValue;
+  this.valueContainer.innerHTML = &#x27;Value: &#x27; + valueContent;
+
+  // position of the div...
+  // need a mode to track the mouse
+  document.getElementById(&#x27;VJSProbe&#x27;).style.display = &#x27;block&#x27;;
+  document.getElementById(&#x27;VJSProbe&#x27;).style.top = mouse.clientY + 20;
+  document.getElementById(&#x27;VJSProbe&#x27;).style.left = mouse.clientX + 20;
+  
+};
+
+VJS.widgets.imageProbe.prototype.update = function(raycaster, mouse) {
+
+  if(!this.imageMeshes){
+    return;
+  }
+
+  // calculate image intersecting the picking ray
+  var intersects = raycaster.intersectObjects(this.imageMeshes);
+
+  for (var intersect in intersects) {
+    var worldCoordinates = new THREE.Vector3().copy(intersects[intersect].point);
+    
+    // if we intersect an image with a ShaderMaterial
+    // TODO: review that
+    if (intersects[intersect].object.material.type === &#x27;ShaderMaterial&#x27;) {
+      this._worldCoordinate = worldCoordinates;
+      // window.console.log(this._worldCoordinate);
+      this.computeValues();
+      this.updateUI(mouse);
+      return;
+    }
+  }
+
+  // hide UI if not intersecting the planne
+  this.hideUI();
+};
+
+VJS.widgets.imageProbe.prototype.hideUI = function(){
+  document.getElementById(&#x27;VJSProbe&#x27;).style.display = &#x27;none&#x27;;
+};</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0 on June 9, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

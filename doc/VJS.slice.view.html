@@ -1,582 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+
 <head>
-    <meta charset="utf-8">
-    <title>Class: view</title>
-    
-    
-    
-    
-    
-    <meta property="og:title" content=""/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:image" content=""/>
-    
-    <meta property="og:url" content=""/>
-    
-    <script src="scripts/prettify/prettify.js"></script>
-    <script src="scripts/prettify/lang-css.js"></script>
-    <script src="scripts/jquery.min.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
-    <link type="text/css" rel="stylesheet" href="styles/jaguar.css">
-    
-    
-    <script>
-    var config = {"monospaceLinks":true,"cleverLinks":true,"default":{"outputSourceFiles":true},"applicationName":"VJS","disqus":"","googleAnalytics":"","openGraph":{"title":"","type":"website","image":"","site_name":"","url":""},"meta":{"title":"","description":"","keyword":""},"linenums":false};
-    </script>
-    
-
-    
+  <meta name="generator" content="JSDoc 3.3.0">
+  <meta charset="utf-8">
+  <title>Class: view</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
 </head>
-<body>
-<div id="wrap" class="clearfix">
-    
-<div class="navigation">
-    <h3 class="applicationName"><a href="index.html">VJS</a></h3>
 
-    <div class="search">
-        <input id="search" type="text" class="form-control input-sm" placeholder="Search Documentations">
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
     </div>
-    <ul class="list">
-    
-        <li class="item" data-name="VJS">
-            <span class="title">
-                <a href="VJS.html">VJS</a>
-                
-                <span class="static">static</span>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.frame">
-            <span class="title">
-                <a href="VJS.frame.html">VJS.frame</a>
-                
-                <span class="static">static</span>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.image">
-            <span class="title">
-                <a href="VJS.image.html">VJS.image</a>
-                
-                <span class="static">static</span>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            <span class="subtitle">Methods</span>
-            
-                <li data-name="VJS.image.model"><a href="VJS.image.html#model">model</a></li>
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.slice">
-            <span class="title">
-                <a href="VJS.slice.html">VJS.slice</a>
-                
-                <span class="static">static</span>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            <span class="subtitle">Members</span>
-            
-                <li data-name="VJS.slice.shader"><a href="VJS.slice.html#shader">shader</a></li>
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.stack">
-            <span class="title">
-                <a href="VJS.stack.html">VJS.stack</a>
-                
-                <span class="static">static</span>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            <span class="subtitle">Methods</span>
-            
-                <li data-name="VJS.stack.model"><a href="VJS.stack.html#model">model</a></li>
-            
-                <li data-name="VJS.stack.view"><a href="VJS.stack.html#view">view</a></li>
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.volume">
-            <span class="title">
-                <a href="VJS.volume.html">VJS.volume</a>
-                
-                <span class="static">static</span>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.frame.model">
-            <span class="title">
-                <a href="VJS.frame.model.html">VJS.frame.model</a>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.frame.view">
-            <span class="title">
-                <a href="VJS.frame.view.html">VJS.frame.view</a>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.slice.core">
-            <span class="title">
-                <a href="VJS.slice.core.html">VJS.slice.core</a>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            <span class="subtitle">Methods</span>
-            
-                <li data-name="VJS.slice.core#slice"><a href="VJS.slice.core.html#slice">slice</a></li>
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.slice.view">
-            <span class="title">
-                <a href="VJS.slice.view.html">VJS.slice.view</a>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            <span class="subtitle">Methods</span>
-            
-                <li data-name="VJS.slice.view#RASSlice"><a href="VJS.slice.view.html#RASSlice">RASSlice</a></li>
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.volume.core">
-            <span class="title">
-                <a href="VJS.volume.core.html">VJS.volume.core</a>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            <span class="subtitle">Methods</span>
-            
-                <li data-name="VJS.volume.core#computeConvenienceVars"><a href="VJS.volume.core.html#computeConvenienceVars">computeConvenienceVars</a></li>
-            
-                <li data-name="VJS.volume.core#createTexture"><a href="VJS.volume.core.html#createTexture">createTexture</a></li>
-            
-                <li data-name="VJS.volume.core#getValue"><a href="VJS.volume.core.html#getValue">getValue</a></li>
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-        <li class="item" data-name="VJS.volume.view">
-            <span class="title">
-                <a href="VJS.volume.view.html">VJS.volume.view</a>
-                
-            </span>
-            <ul class="members itemMembers">
-            
-            </ul>
-            <ul class="typedefs itemMembers">
-            
-            </ul>
-            <ul class="methods itemMembers">
-            
-            </ul>
-            <ul class="events itemMembers">
-            
-            </ul>
-        </li>
-    
-    </ul>
-</div>
-    <div class="main">
-        <h1 class="page-title" data-filename="VJS.slice.view.html">Class: view</h1>
-        
-
-
-
-<section>
-    
-<header>
-    <h2>
-        <span class="ancestors"><a href="VJS.html">VJS</a><a href="VJS.slice.html">.slice</a>.</span>
-    
-    view
-    </h2>
-    
-</header>  
-
-<article>
-    <div class="container-overview">
-    
-    
-    
-        
-<dt>
-    <div class="nameContainer">
-        <h4 class="name" id="view">
-            
-            new VJS.slice.view<span class="signature">(sliceCore)</span>
-        </h4>
-    
-        
-        <div class="tag-source">
-            <a href="Slice.View.js.html">modules/deprecated/slice/Slice.View.js</a>, <a href="Slice.View.js.html#line22">line 22</a>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="VJS.html">VJS</a>.<wbr>slice.<wbr></small><span class="symbol-name">view</span></h1>
+            <p class="source-link">Source: <a href="deprecated_modules_slice_Slice.View.js.html#source-line-22">deprecated/<wbr>modules/<wbr>slice/<wbr>Slice.<wbr>View.<wbr>js:22</a></p>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="VJS.slice.view.html#RASSlice">RASSlice()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="view">new&nbsp;<span class="symbol-name">view</span><span class="signature"><span class="signature-params">(sliceCore)</span></span></h2>
+            <p>View class of slice component. Provides method to generate and interact all slice related visualization.</p>
+            <p>It includes the slice, the border of the slice, the slice normal, the intersection between the slice, the slice center of mass, the data bouding box, etc.</p>
+            <p>Doesn't hold any slice-related generic logic.</p>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>sliceCore</p>
+                    </td>
+                    <td>
+                      <p><a href="VJS.slice.core.html">VJS.slice.core</a></p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Core slice instance.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Method</h2>
+            <section>
+              <h3 id="RASSlice"><span class="symbol-name">RASSlice</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Get a threeJS object that represents a slice. It is fully configured and just have to be added to the renderer. !!!! Make sure to call slice.core.slice() before. (should be hidden) Object is displayed in RAS space. This should be an option
+                somewhere...</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p>THREE.Object</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
         </div>
-        
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
     </div>
-
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>View class of slice component. Provides method to generate and interact all
-slice related visualization.</p>
-<p>It includes the slice, the border of the slice, the slice normal, the
-intersection between the slice, the slice center of mass, the data bouding
-box, etc.</p>
-<p>Doesn't hold any slice-related generic logic.</p>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0 on June 18, 2015.
+      </p>
     </div>
-    
-
-    
-    
-    
-    
-    
-        
-
-<table class="params">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-		
-		<th>Type</th>
-		
-		
-		
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-	
-	<tbody>
-	
-	
-        <tr>
-            
-                <td class="name"><code>sliceCore</code></td>
-            
-            
-            <td class="type">
-            
-                
-<span class="param-type"><a href="VJS.slice.core.html">VJS.slice.core</a></span>
-
-
-            
-            </td>
-            
-            
-            
-            <td class="description last">
-                
-                <p>Core slice instance.</p></td>
-        </tr>
-	
-	
-	</tbody>
-</table>
-    
-    
-    
-<dl class="details">
-    
-        
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-    
-    </div>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        <h3 class="subsection-title">Methods</h3>
-        
-        <dl>
-            
-<dt>
-    <div class="nameContainer">
-        <h4 class="name" id="RASSlice">
-            
-            RASSlice<span class="signature">()</span>
-        </h4>
-    
-        
-        <div class="tag-source">
-            <a href="Slice.View.js.html">modules/deprecated/slice/Slice.View.js</a>, <a href="Slice.View.js.html#line35">line 35</a>
-        </div>
-        
-    </div>
-
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>Get a threeJS object that represents a slice.
-It is fully configured and just have to be added to the renderer.
-!!!! Make sure to call slice.core.slice() before. (should be hidden)
-Object is displayed in RAS space. This should be an option somewhere...</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-    
-        
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-
-
-    
-    
-    
-</dd>
-
-        </dl>
-    
-    
-    
-    
-    
-</article>
-
-</section>  
-
-
-
-
-
-        
-
-        <footer>
-            Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a> on Wed May 13 2015 09:02:24 GMT+0200 (CEST)
-        </footer>
-    </div>
-</div>
-<script>prettyPrint();</script>
-<script src="scripts/linenumber.js"></script>
-<script src="scripts/main.js"></script>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
 </body>
+
 </html>

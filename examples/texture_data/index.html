@@ -2,41 +2,40 @@
 <head>
 <title>VJS Texture Data</title>
 
-<!-- polyfills -->
-<script type="text/javascript" src="../../modules/core/polyfills/Promise.Polyfill.js"></script>
-<script type="text/javascript" src="../../modules/core/polyfills/Fetch.Polyfill.js"></script>
-
 <!-- External tools -->
 <script type="text/javascript" src="https://rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
 
 <!-- ThreeJS -->
-<script src="http://threejs.org/build/three.js"></script>
-<script src="http://threejs.org/examples/js/libs/stats.min.js"></script>
+<script type="text/javascript" src="http://threejs.org/build/three.js"></script>
+<script type="text/javascript" src="http://threejs.org/examples/js/libs/stats.min.js"></script>
 
 <!-- Load core elements -->
-<script src="../../modules/core/Adaptor.js"></script>
-<script src="../../modules/core/Intersections.js"></script>
+<script type="text/javascript" src="../../modules/core/Intersections.js"></script>
 
 <!-- Load objects we want to use (needed by loaders) -->
-<script src="../../modules/objects/image/Image.js"></script>
-<script src="../../modules/objects/stack/Stack.js"></script>
-<script src="../../modules/objects/stack/Stack.View.js"></script>
-<script src="../../modules/objects/frame/Frame.js"></script>
+<script type="text/javascript" src="../../modules/objects/objects.image.js"></script>
+<script type="text/javascript" src="../../modules/objects/objects.stack.js"></script>
+<script type="text/javascript" src="../../modules/objects/objects.frame.js"></script>
+
+<!-- Load the helpers -->
+<script type="text/javascript" src="../../modules/helpers/helpers.image.js"></script>
 
 <!-- Textures -->
-<script src="../../modules/shaders/shader.data.js"></script>
+<script type="text/javascript" src="../../modules/shaders/shaders.data.js"></script>
 
 <!-- Load the loaders -->
-<script type="text/javascript" src="jquery-1.11.0.min.js"></script>
-<script type="text/javascript" src="pace.js"></script>
-<script type="text/javascript" src="dcmjs.js"></script>
-<script type="text/javascript" src="utils.js"></script>
-<script src="../../modules/parsers/dicom/Dicom.js"></script>
+<script type="text/javascript" src="../../libs/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="../../libs/pace.js"></script>
+<script type="text/javascript" src="../../libs/dcmjs.js"></script>
+<script type="text/javascript" src="../../libs/utils.js"></script>
+
+<script type="text/javascript" src="../../modules/loaders/loader.dicom.js"></script>
+<script type="text/javascript" src="../../modules/parsers/parsers.dicom.js"></script>
 
 <!-- Load controls we want to use -->
-<script src="../../modules/controls/OrbitControls2D.js"></script>
+<script type="text/javascript" src="../../modules/controls/OrbitControls2D.js"></script>
 
-<script type="text/javascript" src="texture_data.js"></script>\
+<script type="text/javascript" type="text/javascript" src="texture_data.js"></script>\
 <style type="text/css">
   
       #stats {
