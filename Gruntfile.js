@@ -199,7 +199,7 @@ module.exports = function (grunt) {
     },
     jsdoc : {
       dist : {
-        src: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/**/dcmjs.js', '!<%= vjs.app %>/**/*.min.js', '!<%= vjs.app %>/modules/deprecated/**/*'],
+        src: ['<%= vjs.app %>/**/*.js', '!<%= vjs.app %>/doc/**/*.js', '!<%= vjs.app %>/libs/**/*', '!<%= vjs.app %>/**/*.min.js', '!<%= vjs.app %>/deprecated/**/*'],
         options: {
           destination: '<%= vjs.app %>/doc',
           template: 'node_modules/jsdoc-baseline',

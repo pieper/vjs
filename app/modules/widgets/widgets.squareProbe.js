@@ -1,13 +1,6 @@
 'use strict';
 
 var VJS = VJS || {};
-
-/**
- * widgets namespace
- * @namespace widgets
- * @memberOf VJS
- * @public
- */
 VJS.widgets = VJS.widgets || {};
 
 /**

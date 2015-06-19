@@ -44,72 +44,75 @@ VJS.shaders.data = {
             //
             // Get data color given coordinate and texture
             //
-            'vec4 getDataValue(vec3 modelCoordinates, vec3 dataDimensions, float textureSize, sampler2D textureContainer[16]) {',
 
-            // Model coordinate to data index
-            'float index = modelCoordinates[0] + modelCoordinates[1]*dataDimensions[0] + modelCoordinates[2]*dataDimensions[0]*dataDimensions[1];',
+            // https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences
+            'vec4 sampleAs3DTexture(sampler2D textureContainer[16], vec3 textureCoordinate, vec3 dataSize, float textureSize) {',
+
+            'float slicePixelSize = 1.0 / textureSize;',
+
+            // Model coordinate (IJK) to data index
+            'float index = textureCoordinate.x * dataSize.x + textureCoordinate.y * dataSize.y * dataSize.x + textureCoordinate.z * dataSize.z * dataSize.y * dataSize.x;',
 
             // Map data index to right sampler2D texture
-            'float frameIndex = floor(index / (textureSize*textureSize));',
-            'float inFrameIndex = mod(index, textureSize*textureSize);',
+            'float textureIndex = floor(index / (textureSize*textureSize));',
+            'float inTextureIndex = mod(index, textureSize*textureSize);',
 
             // Get row and column in the texture
-            'float rowIndex = floor(inFrameIndex/textureSize);',
-            'float colIndex = mod(inFrameIndex, textureSize);',
+            'float rowIndex = floor(inTextureIndex/textureSize);',
+            'float colIndex = mod(inTextureIndex, textureSize);',
 
             // Map row and column to uv
-            'vec2 sliceSize = vec2(1.0 / textureSize, 1.0 / textureSize);',
-            'float u = colIndex*sliceSize.x + sliceSize.x/2.;',
-            'float v = 1.0 - (rowIndex*sliceSize.y + sliceSize.y/2.);',
+            'vec2 uv = vec2(0,0);',
+            'uv.x = slicePixelSize * 0.5 + colIndex * slicePixelSize;',
+            'uv.y = 1.0 - (slicePixelSize * 0.5 + rowIndex * slicePixelSize);',
 
-            'vec2 uv = vec2(u,v);',
             'vec4 dataValue = vec4(0, 0, 0, 0);',
-            'if(frameIndex == 0.0){',
+            'if(textureIndex == 0.0){',
             'dataValue = texture2D(textureContainer[0], uv);',
             '}',
-            'else if(frameIndex == 1.0){',
+            'else if(textureIndex == 1.0){',
             'dataValue = texture2D(textureContainer[1], uv);',
             '}',
-            'else if(frameIndex == 2.0){',
+            'else if(textureIndex == 2.0){',
             'dataValue = texture2D(textureContainer[2], uv);',
             '}',
-            'else if(frameIndex == 3.0){',
+            'else if(textureIndex == 3.0){',
             'dataValue = texture2D(textureContainer[3], uv);',
             '}',
-            'else if(frameIndex == 4.0){',
+            'else if(textureIndex == 4.0){',
             'dataValue = texture2D(textureContainer[4], uv);',
             '}',
-            'else if(frameIndex == 5.0){',
+            'else if(textureIndex == 5.0){',
             'dataValue = texture2D(textureContainer[5], uv);',
             '}',
-            'else if(frameIndex == 6.0){',
+            'else if(textureIndex == 6.0){',
             'dataValue = texture2D(textureContainer[6], uv);',
             '}',
-            'else if(frameIndex == 7.0){',
+            'else if(textureIndex == 7.0){',
             'dataValue = texture2D(textureContainer[7], uv);',
             '}',
-            'else if(frameIndex == 8.0){',
+            'else if(textureIndex == 8.0){',
             'dataValue = texture2D(textureContainer[8], uv);',
             '}',
-            'else if(frameIndex == 9.0){',
+            'else if(textureIndex == 9.0){',
             'dataValue = texture2D(textureContainer[9], uv);',
             '}',
-            'else if(frameIndex == 10.0){',
+            'else if(textureIndex == 10.0){',
             'dataValue = texture2D(textureContainer[10], uv);',
             '}',
-            'else if(frameIndex == 11.0){',
+            'else if(textureIndex == 11.0){',
             'dataValue = texture2D(textureContainer[11], uv);',
             '}',
-            'else if(frameIndex == 12.0){',
+            'else if(textureIndex == 12.0){',
             'dataValue = texture2D(textureContainer[12], uv);',
             '}',
-            'else if(frameIndex == 13.0){',
+            'else if(textureIndex == 13.0){',
             'dataValue = texture2D(textureContainer[13], uv);',
             '}',
-            'else if(frameIndex == 14.0){',
+            'else if(textureIndex == 14.0){',
             'dataValue = texture2D(textureContainer[14], uv);',
             '}',
-            'else if(frameIndex == 15.0){',
+            'else if(textureIndex == 15.0){',
             'dataValue = texture2D(textureContainer[15], uv);',
             '}',
             'else {',
@@ -118,9 +121,6 @@ VJS.shaders.data = {
 
             'return dataValue;',
             '}',
-
-            // 'precision mediump float;',
-            // 'precision mediump sampler2D;',
 
             'uniform float uTextureSize;',
             'uniform sampler2D uTextureContainer[16];',
@@ -131,24 +131,25 @@ VJS.shaders.data = {
 
             'void main(void) {',
 
-            // get data coordinates of current pixel
-            'highp vec4 dataCoordinateRaw = uWorldToData * vPos;',
-            // account for machine epsilon
-            // 'float epsilon = 0.00001;',
+            // get texture coordinates of current pixel
+            // might not be the right way to do it:
+            // precision issues ar voxels limits
+            // need to add machine epsilon?
+            'vec4 dataCoordinateRaw = uWorldToData * vPos;',
             'dataCoordinateRaw += 0.5;',
-            'highp vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));',
+            'vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));',
+            'vec3 textureCoordinate = dataCoordinate/uDataDimensions;',
 
-            // if data in range, look for it!
-            // should use integers...
-            'if(dataCoordinate[0] >= 0.0',
-            '&& dataCoordinate[1] >= 0.0',
-            '&& dataCoordinate[2] >= 0.0',
-            '&& dataCoordinate[0] < uDataDimensions[0]',
-            '&& dataCoordinate[1] < uDataDimensions[1]',
-            '&& dataCoordinate[2] < uDataDimensions[2]',
+            // if data in range, look it up in the texture!
+            'if(textureCoordinate.x >= 0.0',
+            '&& textureCoordinate.y >= 0.0',
+            '&& textureCoordinate.z >= 0.0',
+            '&& textureCoordinate.x <= 1.0',
+            '&& textureCoordinate.y <= 1.0',
+            '&& textureCoordinate.z <= 1.0',
             '){',
             'vec3 color = vec3(0, 0, 0);',
-            'vec4 dataValue = getDataValue(dataCoordinate, uDataDimensions, uTextureSize, uTextureContainer);',
+            'vec4 dataValue = sampleAs3DTexture(uTextureContainer, textureCoordinate, uDataDimensions, uTextureSize);',
             'color.rgb = dataValue.rgb;',
             'gl_FragColor = vec4(color, 1.0);',
             //'gl_FragColor = vec4(dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, 1.0);',

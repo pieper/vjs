@@ -4,7 +4,7 @@ var VJS = VJS || {};
 
 var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse;
+var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse, drag;
 
 // FUNCTIONS
 function onProgressCallback(evt, filename) {
@@ -28,6 +28,10 @@ function onProgressCallback(evt, filename) {
 function init() {
 
   function onDocumentMouseMove(event) {
+    event.preventDefault();
+
+    drag = 1;
+
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components
     mouse.x = (event.clientX / threeD.offsetWidth) * 2 - 1;
@@ -39,15 +43,23 @@ function init() {
   function onDocumentMouseDown(event) {
     event.preventDefault();
 
-    // create/select handle
-    raycaster.setFromCamera(mouse, camera);
-    // name???
-    var domElement = probe.mark(raycaster, mouse);
-    if (domElement) {
-      var threeD = document.getElementById('r3d');
-      threeD.appendChild(domElement);
-    }
+    drag = 0;
 
+  }
+
+  function onDocumentMouseUp(event) {
+    event.preventDefault();
+
+    if (drag === 0) {
+      // create/select handle
+      raycaster.setFromCamera(mouse, camera);
+      // name???
+      var domElement = probe.mark(raycaster, mouse);
+      if (domElement) {
+        var threeD = document.getElementById('r3d');
+        threeD.appendChild(domElement);
+      }
+    }
   }
 
   // this function is executed on each animation frame
@@ -104,6 +116,7 @@ function init() {
   mouse = new THREE.Vector2();
   renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
   renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
+  renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
 
   animate();
 }

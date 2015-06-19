@@ -13,3 +13,11 @@ var VJS = VJS || {};
  * @public
  */
 VJS.models = VJS.models || {};
+
+/**
+ * widgets namespace
+ * @namespace widgets
+ * @memberOf VJS
+ * @public
+ */
+VJS.widgets = VJS.widgets || {};

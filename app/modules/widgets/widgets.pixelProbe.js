@@ -1,13 +1,6 @@
 'use strict';
 
 var VJS = VJS || {};
-
-/**
- * widgets namespace
- * @namespace widgets
- * @memberOf VJS
- * @public
- */
 VJS.widgets = VJS.widgets || {};
 
 /**
@@ -164,16 +157,16 @@ VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
   var intersects = raycaster.intersectObjects(this.children);
   var worldCoordinates = null;
   // Look for a pixelProbeMark
-  for (var intersect in intersects) {
-    worldCoordinates = new THREE.Vector3().copy(intersects[intersect].point);
+  // for (var intersect in intersects) {
+  //   worldCoordinates = new THREE.Vector3().copy(intersects[intersect].point);
     
-    // if on a mark, do not do anything
-    if (intersects[intersect].object.name === 'pixelProbeMark') {
-      window.console.log('intersect pixelProbeMark!');
+  //   // if on a mark, do not do anything
+  //   if (intersects[intersect].object.name === 'pixelProbeMark') {
+  //     window.console.log('intersect pixelProbeMark!');
 
-      return null;
-    }
-  }
+  //     return null;
+  //   }
+  // }
 
   // Look for intersection against image
   window.console.log(this);
@@ -189,6 +182,15 @@ VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
       this._worldCoordinate = worldCoordinates;
       this.computeValues();
 
+      // make sure this IJK mark is not already shown...
+      for(var i=0; i<this.marks.length; i++){
+        if(this.marks[i].ijk.x === this._dataCoordinate.x &&
+          this.marks[i].ijk.y === this._dataCoordinate.y &&
+          this.marks[i].ijk.z === this._dataCoordinate.z){
+          return;
+        }
+      }
+
       // create the geometry for it!
       // var sphereGeometry = new THREE.SphereGeometry(1);
       // var material = new THREE.MeshBasicMaterial({
@@ -201,6 +203,14 @@ VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
       // sphere.applyMatrix(new THREE.Matrix4().makeTranslation(
       //   worldCoordinates.x, worldCoordinates.y, worldCoordinates.z));
       
+      // position against World Voxel Center! Not against the mouse!!
+      var dataToWorld = this.image._stack[0]._ijk2LPS;
+      var worldCenterCoordinate = new THREE.Vector3()
+      .copy(this._dataCoordinate)
+      .applyMatrix4(dataToWorld);
+
+      var voxDataCoord = this._dataCoordinate.clone();
+
       var voxelGeometry = new THREE.BoxGeometry(1, 1, 1);
       voxelGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
         this._dataCoordinate.x,
@@ -219,7 +229,7 @@ VJS.widgets.pixelProbe.prototype.mark = function(raycaster, mouse) {
       this.add(voxel);
 
       // store mark
-      var mark = {id: voxel.id, position: worldCoordinates};
+      var mark = {id: voxel.id, position: worldCenterCoordinate, ijk: voxDataCoord};
       this.marks.push(mark);
       window.console.log(this.marks);
 
@@ -264,8 +274,8 @@ VJS.widgets.pixelProbe.prototype.markDom = function(mark, mouse) {
   domElement.appendChild(valueContainer);
 
   domElement.style.display = 'block';
-  domElement.style.top = mouse.clientY + 20;
-  domElement.style.left = mouse.clientX + 20;
+  domElement.style.top = mouse.clientY + 10;
+  domElement.style.left = mouse.clientX + 10;
 
   return domElement;
 };
