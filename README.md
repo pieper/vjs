@@ -13,8 +13,8 @@ http://fnndsc.github.io/vjs
 ### Setup environment
 
 ```
-$> git clone
-$> cd VJS 
+$> git clone https://github.com/FNNDSC/vjs.git
+$> cd vjs 
 $> npm install
 $> bower install
 ```
