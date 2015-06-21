@@ -1,6 +1,6 @@
 A light-weight JS library for medical imaging with ThreeJS.
 
-2048 * 2048 * 4 pixels big object supported in the shader. Needs a good fall back solution for bigger volumes.
+We assume you graphic card can load up to 16 textures of 2048x2048.
 
 WebGL support: http://caniuse.com/#search=webgl
 
@@ -33,4 +33,6 @@ gulp serve
 gulp serve:dist
 ```
 
-### NEED SOME TESTINGS!
+### TODO
+* testings
+* glslify
