@@ -2,10 +2,8 @@
   "name": "vjs",
   "version": "0.0.0",
   "dependencies": {
-    "jpx": "OHIF/image-JPEG2000",
-    "fetch": "latest",
-    "es6-promise": "latest",
-    "dicomParser": "chafey/dicomParser#master",
-    "dcmjs.org" : "commontk/dcmjs.org#gh-pages"
+    "dcmjs.org" : "commontk/dcmjs.org#gh-pages",
+    "threejs": "r71",
+    "dat.gui": "dataarts/dat.gui#v0.5.1"
   }
 }

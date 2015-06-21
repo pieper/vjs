@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "dependencies": {},
   "devDependencies": {
+    "browser-sync": "2.7.12",
+    "gulp": "3.9.0",
+    "gulp-jshint": "1.6.3",
+    "gulp-load-plugins": "0.10.0",
     "connect-livereload": "~0.4.0",
     "connect-redirection": "0.0.1",
     "grunt": "~0.4.1",
