@@ -1,6 +1,6 @@
 {
-  "name": "fnndsc-babymri-org",
-  "version": "0.0.0",
+  "name": "vjs",
+  "version": "0.0.1",
   "dependencies": {},
   "devDependencies": {
     "browser-sync": "2.7.12",
