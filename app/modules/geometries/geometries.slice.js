@@ -54,71 +54,71 @@ VJS.geometries = VJS.geometries || {};
  */
 VJS.geometries.slice = function(halfDimensions, center, orientation, position, direction) {
 
-  //
-  // prepare data for the shape!
-  //
-  var obb = {
-    'halfDimensions': halfDimensions,
-    'center': center,
-    'orientation': orientation,
-    'toOBBSpace': new THREE.Matrix4(), // not necessary
-    'toOBBSpaceInvert': new THREE.Matrix4() // not necessary
-  };
+    //
+    // prepare data for the shape!
+    //
+    var obb = {
+        'halfDimensions': halfDimensions,
+        'center': center,
+        'orientation': orientation,
+        'toOBBSpace': new THREE.Matrix4(), // not necessary
+        'toOBBSpaceInvert': new THREE.Matrix4() // not necessary
+    };
 
-  var plane = {
-    'position': position,
-    'direction': direction
-  };
+    var plane = {
+        'position': position,
+        'direction': direction
+    };
 
-  // BOOM!
-  var intersections = VJS.intersections.obbPlane(obb, plane);
+    // BOOM!
+    var intersections = VJS.intersections.obbPlane(obb, plane);
 
-  if (intersections.length < 3) {
-    window.console.log('WARNING: Less than 3 intersections between OBB and Plane.');
-    window.console.log('OBB');
-    window.console.log(obb);
-    window.console.log('Plane');
-    window.console.log(plane);
-    window.console.log('exiting...');
-  }
+    if (intersections.length < 3) {
+        window.console.log('WARNING: Less than 3 intersections between OBB and Plane.');
+        window.console.log('OBB');
+        window.console.log(obb);
+        window.console.log('Plane');
+        window.console.log(plane);
+        window.console.log('exiting...');
+    }
 
-  var centerOfMass = this.centerOfMass(intersections);
-  var orderedIntersections = this.orderIntersections(intersections, centerOfMass, direction);
+    var centerOfMass = this.centerOfMass(intersections);
+    var orderedIntersections = this.orderIntersections(intersections, centerOfMass, direction);
 
-  // split for convenience
-  var formatIntersections = [];
-  var formatIntersectionsXY = [];
-  for (var k = 0; k < orderedIntersections.length; k++) {
-    formatIntersections.push(orderedIntersections[k].point);
-    formatIntersectionsXY.push(orderedIntersections[k].xy);
-  }
+    // split for convenience
+    var formatIntersections = [];
+    var formatIntersectionsXY = [];
+    for (var k = 0; k < orderedIntersections.length; k++) {
+        formatIntersections.push(orderedIntersections[k].point);
+        formatIntersectionsXY.push(orderedIntersections[k].xy);
+    }
 
-  //
-  // Create Shape
-  //
-  var sliceShape = new THREE.Shape();
-  // move to first point!
-  sliceShape.moveTo(formatIntersectionsXY[0].x, formatIntersectionsXY[0].y);
+    //
+    // Create Shape
+    //
+    var sliceShape = new THREE.Shape();
+    // move to first point!
+    sliceShape.moveTo(formatIntersectionsXY[0].x, formatIntersectionsXY[0].y);
 
-  // loop through all points!
-  for (var l = 1; l < formatIntersectionsXY.length; l++) {
-    // project each on plane!
-    sliceShape.lineTo(formatIntersectionsXY[l].x, formatIntersectionsXY[l].y);
-  }
+    // loop through all points!
+    for (var l = 1; l < formatIntersectionsXY.length; l++) {
+        // project each on plane!
+        sliceShape.lineTo(formatIntersectionsXY[l].x, formatIntersectionsXY[l].y);
+    }
 
-  // close the shape!
-  sliceShape.lineTo(formatIntersectionsXY[0].x, formatIntersectionsXY[0].y);
+    // close the shape!
+    sliceShape.lineTo(formatIntersectionsXY[0].x, formatIntersectionsXY[0].y);
 
-  //
-  // Generate Geometry from shape
-  // It does triangulation for us!
-  //
-  THREE.ShapeGeometry.call(this, sliceShape);
-  this.type = 'SliceGeometry';
+    //
+    // Generate Geometry from shape
+    // It does triangulation for us!
+    //
+    THREE.ShapeGeometry.call(this, sliceShape);
+    this.type = 'SliceGeometry';
 
-  // update real position of each vertex! (not in 2d)
-  this.vertices = formatIntersections;
-  this.verticesNeedUpdate = true;
+    // update real position of each vertex! (not in 2d)
+    this.vertices = formatIntersections;
+    this.verticesNeedUpdate = true;
 };
 
 VJS.geometries.slice.prototype = Object.create(THREE.ShapeGeometry.prototype);
@@ -135,15 +135,15 @@ VJS.geometries.slice.prototype.constructor = VJS.geometries.slice;
  * @returns {THREE.Vector3} Center of mass from given points.
  */
 VJS.geometries.slice.prototype.centerOfMass = function(points) {
-  var centerOfMass = new THREE.Vector3(0, 0, 0);
-  for (var i = 0; i < points.length; i++) {
-    centerOfMass.x += points[i].x;
-    centerOfMass.y += points[i].y;
-    centerOfMass.z += points[i].z;
-  }
-  centerOfMass.divideScalar(points.length);
+    var centerOfMass = new THREE.Vector3(0, 0, 0);
+    for (var i = 0; i < points.length; i++) {
+        centerOfMass.x += points[i].x;
+        centerOfMass.y += points[i].y;
+        centerOfMass.z += points[i].z;
+    }
+    centerOfMass.divideScalar(points.length);
 
-  return centerOfMass;
+    return centerOfMass;
 };
 
 /**
@@ -160,56 +160,56 @@ VJS.geometries.slice.prototype.centerOfMass = function(points) {
  */
 VJS.geometries.slice.prototype.orderIntersections = function(points, reference, direction) {
 
-  var a0 = points[0].x;
-  var b0 = points[0].y;
-  var c0 = points[0].z;
-  var x0 = points[0].x - reference.x;
-  var y0 = points[0].y - reference.y;
-  var z0 = points[0].z - reference.z;
-  var l0 = {
-    origin: new THREE.Vector3(a0, b0, c0),
-    direction: new THREE.Vector3(x0, y0, z0).normalize()
-  };
-
-  var base = new THREE.Vector3(0, 0, 0)
-      .crossVectors(l0.direction, direction)
-      .normalize();
-
-  var orderedpoints = [];
-
-  // other lines // if inter, return location + angle
-  for (var j = 0; j < points.length; j++) {
-
-    var a1 = points[j].x;
-    var b1 = points[j].y;
-    var c1 = points[j].z;
-    var x1 = points[j].x - reference.x;
-    var y1 = points[j].y - reference.y;
-    var z1 = points[j].z - reference.z;
-
-    var l1 = {
-      origin: new THREE.Vector3(a1, b1, c1),
-      direction: new THREE.Vector3(x1, y1, z1).normalize()
+    var a0 = points[0].x;
+    var b0 = points[0].y;
+    var c0 = points[0].z;
+    var x0 = points[0].x - reference.x;
+    var y0 = points[0].y - reference.y;
+    var z0 = points[0].z - reference.z;
+    var l0 = {
+        origin: new THREE.Vector3(a0, b0, c0),
+        direction: new THREE.Vector3(x0, y0, z0).normalize()
     };
 
-    var x = l0.direction.dot(l1.direction);
-    var y = base.dot(l1.direction);
+    var base = new THREE.Vector3(0, 0, 0)
+        .crossVectors(l0.direction, direction)
+        .normalize();
 
-    var thetaAngle = Math.atan2(y, x);
-    var theta = thetaAngle * (180 / Math.PI);
-    orderedpoints.push({
-      'angle': theta,
-      'point': l1.origin,
-      'xy': {
-        'x': x,
-        'y': y
-      }
+    var orderedpoints = [];
+
+    // other lines // if inter, return location + angle
+    for (var j = 0; j < points.length; j++) {
+
+        var a1 = points[j].x;
+        var b1 = points[j].y;
+        var c1 = points[j].z;
+        var x1 = points[j].x - reference.x;
+        var y1 = points[j].y - reference.y;
+        var z1 = points[j].z - reference.z;
+
+        var l1 = {
+            origin: new THREE.Vector3(a1, b1, c1),
+            direction: new THREE.Vector3(x1, y1, z1).normalize()
+        };
+
+        var x = l0.direction.dot(l1.direction);
+        var y = base.dot(l1.direction);
+
+        var thetaAngle = Math.atan2(y, x);
+        var theta = thetaAngle * (180 / Math.PI);
+        orderedpoints.push({
+            'angle': theta,
+            'point': l1.origin,
+            'xy': {
+                'x': x,
+                'y': y
+            }
+        });
+    }
+
+    orderedpoints.sort(function(a, b) {
+        return a.angle - b.angle;
     });
-  }
 
-  orderedpoints.sort(function(a, b) {
-    return a.angle - b.angle;
-  });
-
-  return orderedpoints;
+    return orderedpoints;
 };

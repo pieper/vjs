@@ -3,7 +3,7 @@
 <title>VJS Widget Probe</title>
 
 <!-- ThreeJS -->
-<script type="text/javascript" src="/bower_components/threejs/build/three.js"></script>
+<script type="text/javascript" src="/bower_components/threejs/build/three.min.js"></script>
 <script type="text/javascript" src="/bower_components/threejs/examples/js/libs/stats.min.js"></script>
 
 <!-- DCMJS -->
@@ -38,64 +38,7 @@
 <script type="text/javascript" src="../../modules/widgets/widgets.pixelProbe.js"></script>
 
 <script type="text/javascript" src="widget_pixelProbe.js"></script>\
-<style type="text/css">
-  
-      #stats {
-        position: absolute;
-        top:0;
-        left: 0;
-      }
-
-      #r3d {
-        background-color: #000;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        overflow:hidden;
-      }
-
-      #my-gui-container {
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        z-index:1;
-      }
-
-      #my-progress-container {
-        position: fixed;
-        bottom: 0px;
-        right: 20px;
-        z-index:1;
-      }
-
-      #VJSProbe {
-        position: absolute;
-        bottom:0;
-        left: 0;
-        width: 260px;
-        height: 45px;
-        font-family: monospace;
-        padding: 10px;
-        background-color: rgba(249, 249, 249, .7);
-      }
-
-      .mark {
-        position: absolute;
-        bottom:0;
-        left: 0;
-        width: 260px;
-        height: 45px;
-        font-family: monospace;
-        padding: 10px;
-        background-color: rgba(249, 249, 249, .7);
-        pointer-events: none;
-      }
-
-</style>
+<link rel="stylesheet" type="text/css" href="widget_pixelProbe.css">
 </head>
 
 <body>

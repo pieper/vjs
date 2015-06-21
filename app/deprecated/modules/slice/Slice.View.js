@@ -66,8 +66,8 @@ VJS.slice.view.prototype.RASSlice = function() {
     // create the border!
     var material = new THREE.LineBasicMaterial({
         color: 0x0000ff,
-polygonOffset: true,
-polygonOffsetFactor: -0.1
+        polygonOffset: true,
+        polygonOffsetFactor: -0.1
     });
     var geometry = new THREE.Geometry();
     for (var i = 0; i < this._sliceCore._intersections.length; i++) {
