@@ -24,6 +24,7 @@ VJS.models.image = function() {
     this._photometricInterpretation = '';
 
     this._numberOfFrames = 0;
+    this._instanceNumber = 0;
 
     this._stack = [];
 };
@@ -62,3 +63,6 @@ VJS.models.image.prototype.merge = function(image) {
 
     return sameSeriesUID;
 };
+
+// export the frame module
+module.exports = VJS.models.image;

@@ -745,3 +745,6 @@ THREE.OrbitControls2D = function(object, domElement) {
 
 THREE.OrbitControls2D.prototype = Object.create(THREE.EventDispatcher.prototype);
 THREE.OrbitControls2D.prototype.constructor = THREE.OrbitControls2D;
+
+// export the frame module
+module.exports = THREE.OrbitControls2D;

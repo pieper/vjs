@@ -327,3 +327,6 @@ VJS.intersections.rayPlane = function(ray, plane) {
     return null;
 
 };
+
+// export the frame module
+module.exports = VJS.intersections;

@@ -98,3 +98,6 @@ VJS.models.frame = function() {
 };
 
 VJS.models.frame.prototype.constructor = VJS.models.frame;
+
+// export the frame module
+module.exports = VJS.models.frame;

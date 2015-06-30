@@ -1,19 +1,21 @@
-'use strict';
-var VJS = VJS || {};
+var  vjsSliceGeometry = require('../../modules/geometries/geometries.slice');
+var  vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
 
-var Stats = Stats || {};
+/* globals Stats, dat*/
+
 // standard global variables
-var controls, renderer, stats, scene, camera, dat;
+var controls, renderer, scene, camera, statsyay;
 
 // FUNCTIONS
 function init() {
 
     // this function is executed on each animation frame
+    'use strict';
     function animate() {
         // render
         controls.update();
         renderer.render(scene, camera);
-        stats.update();
+        statsyay.update();
 
         // request new frame
         requestAnimationFrame(function() {
@@ -35,8 +37,8 @@ function init() {
     threeD.appendChild(renderer.domElement);
 
     // stats
-    stats = new Stats();
-    threeD.appendChild(stats.domElement);
+    statsyay = new Stats();
+    threeD.appendChild(statsyay.domElement);
 
     // scene
     scene = new THREE.Scene();
@@ -47,13 +49,13 @@ function init() {
     camera.position.z = 100;
     camera.lookAt(scene.position);
     // controls
-    controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+    controls = new vjsOrbitControl2D(camera, renderer.domElement);
 
     animate();
 }
 
 window.onload = function() {
-
+    'use strict';
     // init threeJS...
     init();
 
@@ -78,7 +80,7 @@ window.onload = function() {
     var position = center.clone();
     var direction = new THREE.Vector3(-0.2, 0.5, 0.3);
 
-    var sliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, position, direction);
+    var sliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, position, direction);
     var sliceMaterial = new THREE.MeshBasicMaterial({
         'side': THREE.DoubleSide,
         'transparency': true,
@@ -134,7 +136,7 @@ window.onload = function() {
         arrowHelper.setDirection(newDirection);
 
         // is memory leaking???
-        var newSliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, newPosition, newDirection);
+        var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
         slice.geometry = newSliceGeometry;
         slice.geometry.verticesNeedUpdate = true;
     });
@@ -147,7 +149,7 @@ window.onload = function() {
         arrowHelper.setDirection(newDirection);
 
         // is memory leaking???
-        var newSliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, newPosition, newDirection);
+        var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
         slice.geometry = newSliceGeometry;
         slice.geometry.verticesNeedUpdate = true;
     });
@@ -160,7 +162,7 @@ window.onload = function() {
         arrowHelper.setDirection(newDirection);
 
         // is memory leaking???
-        var newSliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, newPosition, newDirection);
+        var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
         slice.geometry = newSliceGeometry;
         slice.geometry.verticesNeedUpdate = true;
     });
@@ -175,7 +177,7 @@ window.onload = function() {
         scene.add(arrowHelper);
 
         // is memory leaking???
-        var newSliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, newPosition, newDirection);
+        var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
         slice.geometry = newSliceGeometry;
         slice.geometry.verticesNeedUpdate = true;
     });
@@ -190,7 +192,7 @@ window.onload = function() {
         scene.add(arrowHelper);
 
         // is memory leaking???
-        var newSliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, newPosition, newDirection);
+        var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
         slice.geometry = newSliceGeometry;
         slice.geometry.verticesNeedUpdate = true;
     });
@@ -205,7 +207,7 @@ window.onload = function() {
         scene.add(arrowHelper);
 
         // is memory leaking???
-        var newSliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, newPosition, newDirection);
+        var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
         slice.geometry = newSliceGeometry;
         slice.geometry.verticesNeedUpdate = true;
     });
