@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/FNNDSC/vjs.svg)](https://travis-ci.org/FNNDSC/vjs)
+
 A light-weight JS library for medical imaging with ThreeJS.
 
 We assume you graphic card can load up to 16 textures of 2048x2048.
