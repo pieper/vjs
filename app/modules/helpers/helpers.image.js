@@ -2,6 +2,7 @@
 
 var vjsSliceGeometries = require('../geometries/geometries.slice');
 var vjsShadersData = require('../shaders/shaders.data');
+var glslify = require('glslify');
 
 var VJS = VJS || {};
 
@@ -123,8 +124,8 @@ VJS.helpers.image.prototype.prepare = function() {
             'side': THREE.DoubleSide,
             'transparency': true,
             'uniforms': vjsShadersData.parameters.uniforms,
-            'vertexShader': vjsShadersData.parameters.vertexShader,
-            'fragmentShader': vjsShadersData.parameters.fragmentShader,
+            'vertexShader': glslify('../shaders/shaders.data.vert'), //vjsShadersData.parameters.vertexShader
+            'fragmentShader': glslify('../shaders/shaders.data.frag')//vjsShadersData.parameters.fragmentShader,
         });
 
         // important so uniforms are not overwritten!

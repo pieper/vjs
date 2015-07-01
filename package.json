@@ -20,6 +20,7 @@
     "gulp-minify-html": "1.0.2",
     "jshint-stylish": "2.0.0",
     "glslify": "v2.1.2",
+    "babelify": "6.1.2",
     "browserify": "10.2.4",
     "gulp-babel": "v5.1.0",
     "vinyl-source-stream": "1.1.0",

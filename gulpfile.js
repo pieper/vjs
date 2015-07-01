@@ -180,7 +180,7 @@ gulp.task('jshint', function() {
     .pipe($.jshint.reporter('jshint-stylish'));
 });
 
-gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript', 'test'], reload);
+gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
@@ -209,6 +209,7 @@ gulp.task('default', ['clean'], function(cb) {
     'copy',
     ['javascript', 'html', 'css'],
    'doc',
-   'test',
     cb);
 });
+
+// test stops sequences...
