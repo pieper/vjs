@@ -3,11 +3,11 @@
 var VJS = VJS || {};
 VJS.trk = VJS.trk || {};
 
-VJS.trk.loader = function() {};
+VJS.trk.loaders = function() {};
 
-VJS.trk.loader.prototype = {
+VJS.trk.loaders.prototype = {
 
-    constructor: VJS.trk.loader,
+    constructor: VJS.trk.loaders,
 
     load: function(url, onLoad, onProgress, onError) {
 
@@ -420,4 +420,4 @@ VJS.trk.loader.prototype = {
 
 };
 
-THREE.EventDispatcher.prototype.apply(VJS.trk.loader.prototype);
+THREE.EventDispatcher.prototype.apply(VJS.trk.loaders.prototype);

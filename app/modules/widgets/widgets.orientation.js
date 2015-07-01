@@ -1,7 +1,7 @@
 'use strict';
 
 var VJS = VJS || {};
-VJS.Widgets = VJS.Widget || {};
+VJS.widgets = VJS.widgets || {};
 
 VJS.widgets.orientation = function(parentID, targetCamera, targetControl) {
     this._ParentId = parentID;
@@ -68,6 +68,9 @@ VJS.widgets.orientation.prototype.update = function() {
 
     this._Renderer.render(this._Scene, this._Camera);
 };
+
+// export the probePixel widget module
+module.exports = VJS.widgets.orientation;
 
 // // create arrow helper scene
 //     // scene

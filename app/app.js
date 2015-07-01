@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @namespace
  */
@@ -21,3 +19,9 @@ VJS.models = VJS.models || {};
  * @public
  */
 VJS.widgets = VJS.widgets || {};
+
+// var glslify = require('glslify');
+
+// var src = glslify('./shader.glsl');
+
+// console.log(src);

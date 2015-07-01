@@ -151,8 +151,10 @@ VJS.shaders.data = {
             'vec3 color = vec3(0, 0, 0);',
             'vec4 dataValue = sampleAs3DTexture(uTextureContainer, textureCoordinate, uDataDimensions, uTextureSize);',
             'color.rgb = dataValue.rgb;',
-            'gl_FragColor = vec4(color, 1.0);',
-            //'gl_FragColor = vec4(dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, dataCoordinate[2]/60.0, 1.0);',
+            'vec4 data = vec4(color, 1.0);',
+            // 'vec4 test = vec4(.5, .5, dataCoordinate[2]/60.0, 1.0);',
+            'gl_FragColor = data;',
+            // 'gl_FragColor = mix(data, test, 0.5);',
             //'gl_FragColor = vec4(3.0 - dataCoordinate[2], 4.0 - dataCoordinate[2], 5.0 - dataCoordinate[2], 1.0);',
             //'gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);',
             '}',
@@ -160,7 +162,7 @@ VJS.shaders.data = {
             // should be able to choose what we want to do if not in range:
             // discard or specific color
             //'discard;',
-            'gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);',
+            'gl_FragColor = vec4(0.011, 0.662, 0.956, 1.0);',
 
             '}',
 
@@ -188,3 +190,5 @@ VJS.shaders.data = {
     }
 
 };
+
+module.exports = VJS.shaders.data;

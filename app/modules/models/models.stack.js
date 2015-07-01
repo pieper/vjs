@@ -399,6 +399,9 @@ VJS.models.stack.prototype.merge = function(stack) {
     return sameStackID;
 };
 
+// export the frame module
+module.exports = VJS.models.stack;
+
 // The Image Position (0020,0032) specifies the x, y, and z coordinates
 // of the upper left hand corner of the image; it is the center of the
 // first voxel transmitted. Image Orientation (0020,0037) specifies the
