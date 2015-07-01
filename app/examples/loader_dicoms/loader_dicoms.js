@@ -1,10 +1,10 @@
 /* globals Stats*/
 'use strict';
 
-var  vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
-var  vjsProbePixelWidget = require('../../modules/widgets/widgets.pixelProbe');
-var  vjsOrientationWidget = require('../../modules/widgets/widgets.orientation');
-var  vjsLoaderDicom = require('../../modules/loaders/loaders.dicom');
+var vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
+var vjsProbePixelWidget = require('../../modules/widgets/widgets.pixelProbe');
+var vjsOrientationWidget = require('../../modules/widgets/widgets.orientation');
+var vjsLoaderDicom = require('../../modules/loaders/loaders.dicom');
 
 var VJS = VJS || {};
 

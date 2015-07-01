@@ -1,9 +1,8 @@
+/* globals Stats, dat*/
 'use strict';
 
-var  vjsSliceGeometry = require('../../modules/geometries/geometries.slice');
-var  vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
-
-/* globals Stats, dat*/
+var vjsSliceGeometry = require('../../modules/geometries/geometries.slice');
+var vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
 
 // standard global variables
 var controls, renderer, scene, camera, statsyay;
