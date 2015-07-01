@@ -139,7 +139,6 @@ function runJSKarma(done) {
 // Run tests
 gulp.task('test', function(done) {
   // if we do not do it like that, a failing test crashes gulp...
-    // start server
   karma.server.start({configFile: __dirname + '/karma.conf.js', reporters: 'dots'});
   // run tests
   runJSKarma(done);
@@ -181,7 +180,7 @@ gulp.task('jshint', function() {
     .pipe($.jshint.reporter('jshint-stylish'));
 });
 
-gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript'], reload);
+gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript', 'test'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
@@ -210,5 +209,6 @@ gulp.task('default', ['clean'], function(cb) {
     'copy',
     ['javascript', 'html', 'css'],
    'doc',
+   'test',
     cb);
 });
