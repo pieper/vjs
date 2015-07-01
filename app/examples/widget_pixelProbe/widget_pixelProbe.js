@@ -1,10 +1,14 @@
+/* globals Stats*/
 'use strict';
+
+var  vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
+var  vjsProbePixelWidget = require('../../modules/widgets/widgets.pixelProbe');
+var  vjsLoaderDicom = require('../../modules/loaders/loaders.dicom');
 
 var VJS = VJS || {};
 
-var Stats = Stats || {};
 // standard global variables
-var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse, drag;
+var controls, renderer, stats, scene, camera, probe, raycaster, mouse, drag;
 
 // FUNCTIONS
 function onProgressCallback(evt, filename) {
@@ -26,7 +30,6 @@ function onProgressCallback(evt, filename) {
 }
 
 function init() {
-
   function onDocumentMouseMove(event) {
     event.preventDefault();
 
@@ -109,7 +112,7 @@ function init() {
   camera.position.z = 100;
   camera.lookAt(scene.position);
   // controls
-  controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+  controls = new vjsOrbitControl2D(camera, renderer.domElement);
 
   //
   // mouse callbacks
@@ -123,11 +126,8 @@ function init() {
 }
 
 window.onload = function() {
-
   // init threeJS...
   init();
-
-  window.console.log(dat);
 
   // create loader manager (to keep track of progress over N files...)
   // might not be useful with promises anymore.
@@ -144,11 +144,11 @@ window.onload = function() {
     }
   };
 
-  var file = '../../data/dcm/adi/36749894';
+  var file = '/data/dcm/adi/36749894';
   //var file = '../../data/dcm/fruit';
 
   // instantiate the loader
-  var loader = new VJS.loader.dicom(manager);
+  var loader = new vjsLoaderDicom(manager);
   loader.load(
       file,
       // on load
@@ -158,7 +158,7 @@ window.onload = function() {
           imageHelper.prepare();
           scene.add(imageHelper);
 
-          probe = new VJS.widgets.pixelProbe(imageHelper._image, imageHelper.children);
+          probe = new vjsProbePixelWidget(imageHelper._image, imageHelper.children);
           scene.add(probe);
 
           var threeD = document.getElementById('r3d');

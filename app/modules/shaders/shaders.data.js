@@ -190,3 +190,5 @@ VJS.shaders.data = {
     }
 
 };
+
+module.exports = VJS.shaders.data;

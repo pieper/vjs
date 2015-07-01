@@ -1,8 +1,13 @@
+/* globals Stats*/
 'use strict';
+
+var  vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
+var  vjsProbePixelWidget = require('../../modules/widgets/widgets.pixelProbe');
+var  vjsOrientationWidget = require('../../modules/widgets/widgets.orientation');
+var  vjsLoaderDicom = require('../../modules/loaders/loaders.dicom');
 
 var VJS = VJS || {};
 
-var Stats = Stats || {};
 // standard global variables
 var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse, orientation;
 
@@ -95,10 +100,10 @@ function init() {
     camera.position.z = 100;
     camera.lookAt(scene.position);
     // controls
-    controls = new THREE.OrbitControls2D(camera, renderer.domElement);
+    controls = new vjsOrbitControl2D(camera, renderer.domElement);
 
     // orientation widget
-    orientation = new VJS.widgets.orientation('r3d', camera, controls);
+    orientation = new vjsOrientationWidget('r3d', camera, controls);
 
     //
     // mouse callbacks
@@ -160,7 +165,7 @@ window.onload = function() {
             mergedHelpers[0].prepare();
             scene.add(mergedHelpers[0]);
 
-            probe = new VJS.widgets.pixelProbe(mergedHelpers[0]._image, mergedHelpers[0].children);
+            probe = new vjsProbePixelWidget(mergedHelpers[0]._image, mergedHelpers[0].children);
             scene.add(probe);
 
             var threeD = document.getElementById('r3d');
@@ -218,7 +223,7 @@ window.onload = function() {
     window.console.log(files);
 
     function loadClosure(filename) {
-        var loader = new VJS.loader.dicom(manager);
+        var loader = new vjsLoaderDicom(manager);
         loader.load(
             filename,
             // on load

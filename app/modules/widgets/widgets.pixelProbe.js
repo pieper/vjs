@@ -305,3 +305,6 @@ VJS.widgets.pixelProbe.prototype.updateMarkDom = function(raycaster, mouse, came
     }
 
 };
+
+// export the probePixel widget module
+module.exports = VJS.widgets.pixelProbe;

@@ -1,15 +1,18 @@
 'use strict';
 
+var vjsParsersDicom = require('../parsers/parsers.dicom');
+var vjsHelpersImage = require('../helpers/helpers.image');
+
 var VJS = VJS || {};
 
 /**
- * loader namespace
- * @namespace loader
+ * loaders namespace
+ * @namespace loaders
  * @memberOf VJS
  * @public
  */
 
-VJS.loader = VJS.loader || {};
+VJS.loaders = VJS.loaders || {};
 
 /**
  *
@@ -20,7 +23,7 @@ VJS.loader = VJS.loader || {};
  *
  * @constructor
  * @class
- * @memberOf VJS.loader
+ * @memberOf VJS.loaders
  * @public
  *
  * @param {THREE.DefaultLoadingManager=} manager - Manager for advanced users.
@@ -29,7 +32,7 @@ VJS.loader = VJS.loader || {};
  * var files = ['/data/dcm/fruit'];
  *
  * // Instantiate a dicom loader
- * var dicomLoader = new VJS.loader.dicom();
+ * var dicomLoader = new VJS.loaders.dicom();
  *
  * // load a resource
  * loader.load(
@@ -42,7 +45,7 @@ VJS.loader = VJS.loader || {};
  *   }
  * );
  */
-VJS.loader.dicom = function(manager) {
+VJS.loaders.dicom = function(manager) {
 
     this.manager =
         (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
@@ -52,7 +55,7 @@ VJS.loader.dicom = function(manager) {
     this._image = null;
 
 };
-VJS.loader.dicom.prototype.constructor = VJS.loader.dicom;
+VJS.loaders.dicom.prototype.constructor = VJS.loaders.dicom;
 
 /**
  *
@@ -62,14 +65,14 @@ VJS.loader.dicom.prototype.constructor = VJS.loader.dicom;
  * @public
  *
  * @param {string} url - Url of the file to be pulled.
- * @param {function} onLoad - On load callback, after response has been parsed by VJS.loader.dicom.parse.
+ * @param {function} onLoad - On load callback, after response has been parsed by VJS.loaders.dicom.parse.
  * @param {function} onProgress - On progress callback.
  * @param {function} onError - On error callback.
  *
  * @returns {Array<Promise>} Loading sequence for each file.
  *
  */
-VJS.loader.dicom.prototype.load = function(file, onLoad, onProgress, onError) {
+VJS.loaders.dicom.prototype.load = function(file, onLoad, onProgress, onError) {
     // no more promises...!
     //
 
@@ -148,14 +151,14 @@ VJS.loader.dicom.prototype.load = function(file, onLoad, onProgress, onError) {
  * @returns {VJS.Helper.Image}
  *
  */
-VJS.loader.dicom.prototype.parse = function(response) {
+VJS.loaders.dicom.prototype.parse = function(response) {
     window.console.log(response);
     window.console.log('file downloaded yay!');
 
-    var imageHelper = new VJS.helpers.image();
+    var imageHelper = new vjsHelpersImage();
 
     // parse DICOM
-    var dicomParser = new VJS.parsers.dicom(response, imageHelper.id);
+    var dicomParser = new vjsParsersDicom(response, imageHelper.id);
     var image = dicomParser.parse();
 
     // add image to image helper
@@ -228,3 +231,6 @@ VJS.loader.dicom.prototype.parse = function(response) {
     //});
 
 };
+
+// export the probePixel widget module
+module.exports = VJS.loaders.dicom;

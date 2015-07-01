@@ -1,5 +1,8 @@
 'use strict';
 
+var vjsSliceGeometries = require('../geometries/geometries.slice');
+var vjsShadersData = require('../shaders/shaders.data');
+
 var VJS = VJS || {};
 
 /**
@@ -99,7 +102,7 @@ VJS.helpers.image.prototype.prepare = function() {
 
         var direction = new THREE.Vector3(0, 0, 1);
 
-        var sliceGeometry = new VJS.geometries.slice(
+        var sliceGeometry = new vjsSliceGeometries(
             halfDimensions, center, orientation,
             position, direction);
         sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
@@ -119,9 +122,9 @@ VJS.helpers.image.prototype.prepare = function() {
             // 'wireframe': true,
             'side': THREE.DoubleSide,
             'transparency': true,
-            'uniforms': VJS.shaders.data.parameters.uniforms,
-            'vertexShader': VJS.shaders.data.parameters.vertexShader,
-            'fragmentShader': VJS.shaders.data.parameters.fragmentShader,
+            'uniforms': vjsShadersData.parameters.uniforms,
+            'vertexShader': vjsShadersData.parameters.vertexShader,
+            'fragmentShader': vjsShadersData.parameters.fragmentShader,
         });
 
         // important so uniforms are not overwritten!
@@ -159,3 +162,6 @@ VJS.helpers.image.prototype.prepare = function() {
         //this._image.merge(image);
     }
 };
+
+// export the slice geometry module
+module.exports = VJS.helpers.image;

@@ -2,6 +2,11 @@
 
 'use strict';
 
+// imports
+var vjsModelsImage = require('../models/models.image');
+var vjsModelsStack = require('../models/models.stack');
+var vjsModelsFrame = require('../models/models.frame');
+
 var VJS = VJS || {};
 
 /**
@@ -130,7 +135,7 @@ VJS.parsers.dicom.prototype.goNAMIC = function(imageUniqueName, arrayBuffer) {
 
 VJS.parsers.dicom.prototype.goNAMICFrameInformation = function($xml, frameIndex) {
   // create image!
-  var frameModel = new VJS.models.frame();
+  var frameModel = new vjsModelsFrame();
 
   // get frame functional groups if any
   var $perFrameFunctionalGroupsSequence = this.imagePerFrameFunctionalGroupSequence(frameIndex, $xml);
@@ -157,7 +162,7 @@ VJS.parsers.dicom.prototype.goNAMICFrameInformation = function($xml, frameIndex)
 
 VJS.parsers.dicom.prototype.goNAMICImageInformation = function($xml) {
   // create image!
-  var imageModel = new VJS.models.image();
+  var imageModel = new vjsModelsImage();
 
   // fill it!
   imageModel._concatenationUID = this.imageConcatenationUID($xml);
@@ -230,8 +235,8 @@ VJS.parsers.dicom.prototype.parse = function() {
   var imageNameFS = 'image_' + self._id;
   var frameNameFS = imageNameFS + '-raw.8b';
 
-  self.goNAMIC(imageNameFS, self._arrayBuffer);
-  return;
+  //self.goNAMIC(imageNameFS, self._arrayBuffer);
+  //return;
 
   // save on FS
   self.fileToFS(imageNameFS, self._arrayBuffer);
@@ -371,7 +376,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
   // Create the image
   // Get information that is image specific
   // http://medical.nema.org/medical/dicom/current/output/html/part03.html#sect_C.7.6.16
-  var imageModel = new VJS.models.image();
+  var imageModel = new vjsModelsImage();
   // why can't we use series UID? to concatenate?
   imageModel._concatenationUID = this.imageConcatenationUID($dom);
   imageModel._seriesUID = this.imageSeriesUID($dom);
@@ -407,7 +412,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
     // Create stack object and add it to image if necessary
     if (stackByID.length === 0) {
       //window.console.log('+++ stack');
-      var stackModel = new VJS.models.stack();
+      var stackModel = new vjsModelsStack();
       stackModel._stackID = stackID;
       imageModel._stack.push(stackModel);
       currentStack = stackModel;
@@ -432,7 +437,7 @@ VJS.parsers.dicom.prototype.domToImage = function(dom, filename) {
     // Create frame object and add it to image if necessary
     if (dimensionIndex.length === 0) {
       window.console.log('+++ frame');
-      var frameModel = new VJS.models.frame();
+      var frameModel = new vjsModelsFrame();
       frameModel._dimensionIndexValues = dimensionIndex;
       currentStack._frame.push(frameModel);
       currentFrame = frameModel;
@@ -968,3 +973,6 @@ VJS.parsers.dicom.prototype.getSpacingBetweenSlices = function(frameJqueryPreFra
 // image ...
 
 // merge!
+
+// export the probePixel widget module
+module.exports = VJS.parsers.dicom;

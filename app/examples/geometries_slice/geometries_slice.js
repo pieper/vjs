@@ -1,3 +1,5 @@
+'use strict';
+
 var  vjsSliceGeometry = require('../../modules/geometries/geometries.slice');
 var  vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
 
@@ -10,7 +12,6 @@ var controls, renderer, scene, camera, statsyay;
 function init() {
 
     // this function is executed on each animation frame
-    'use strict';
     function animate() {
         // render
         controls.update();
@@ -55,7 +56,6 @@ function init() {
 }
 
 window.onload = function() {
-    'use strict';
     // init threeJS...
     init();
 
