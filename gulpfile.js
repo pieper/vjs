@@ -131,17 +131,32 @@ function runJSKarma(done) {
     // ignore errors, we don't want to fail the build in the interactive (non-ci) mode
     // doc server will print all test failures
     //gutil.log(stdout);
-    // gutil.log(e);
     done();
   });
 }
 
+gulp.task('karmaServer', function(){
+  karma.server.start({configFile: __dirname + '/karma.conf.js', reporters: 'dots'});
+});
+
+gulp.task('karmaRun', function(done) {
+  // run the run command in a new process to avoid duplicate logging by both server and runner from
+  // a single process
+  runJSKarma(done);
+});
+
 // Run tests
 gulp.task('test', function(done) {
-  // if we do not do it like that, a failing test crashes gulp...
-  karma.server.start({configFile: __dirname + '/karma.conf.js', reporters: 'dots'});
-  // run tests
-  runJSKarma(done);
+  runSequence(
+    'karmaServer',
+    'karmaRun',
+    function(){
+      done();
+    });
+  // // if we do not do it like that, a failing test crashes gulp...
+  
+  // // run tests
+  // runJSKarma(done);
 });
 
 // Copy task
@@ -209,6 +224,7 @@ gulp.task('default', ['clean'], function(cb) {
     'copy',
     ['javascript', 'html', 'css'],
    'doc',
+   'test',
     cb);
 });
 
