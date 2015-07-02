@@ -9,7 +9,7 @@ var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var del = require('del');
 var runSequence = require('run-sequence');
-var merge = require('merge-stream');
+var es = require('event-stream');
 var browserify = require('browserify');
 var babel = require('gulp-babel');
 var source = require('vinyl-source-stream');
@@ -29,9 +29,6 @@ var knownOptions = {
 };
 var options = minimist(process.argv.slice(2), knownOptions);
 
-// test
-// karma with (jasmine)/mocha? with (travis)/testling?
-
 // Clean output directories
 gulp.task('clean', del.bind(null, ['dist', '.tmp']));
 
@@ -41,9 +38,7 @@ gulp.task('html', function() {
         'app/**/*.html',
         '!app/deprecated{,/**}'
     ])
-    // Replace path for vulcanized assets
     .pipe(gulpif(options.env === 'production', $.replace('bower_components', 'libs')))
-    // Output Files
     .pipe(gulp.dest('dist'))
     .pipe($.size({title: 'html'}));
 });
@@ -60,7 +55,6 @@ gulp.task('css', function() {
 
 // Javascript task browserify and babelify
 gulp.task('javascript', function(cb) {
-
   // process files of interest
   globby(['app/app.js', 'app/examples/**/*.js'], function(err, files) {
     if (err) {
@@ -72,9 +66,10 @@ gulp.task('javascript', function(cb) {
           var index = entry.indexOf('/');
           return browserify(
               {entries: [entry],
-                debug: true
+                debug: true,
+                // could add babelify there...
+                transform: [glslify]
               })
-            .transform(glslify)
             .bundle()
             .pipe(source(entry.substring(index + 1)))
             .pipe(buffer())
@@ -82,14 +77,12 @@ gulp.task('javascript', function(cb) {
                 .pipe(babel())
                 .pipe(gulpif(options.env === 'production', uglify()))
                 .on('error', gutil.log)
-            // rename them to have "bundle as postfix"
             .pipe(sourcemaps.write('./'))
             .pipe(gulp.dest('dist')); 
         });
 
     // create a merged stream
-    merge(tasks).pipe($.size({title: 'javascript'}));
-    cb();
+    es.merge(tasks).on('end', cb);
   });
 });
 
@@ -115,48 +108,18 @@ gulp.task('doc', function(done) {
   }
 });
 
-
-function runJSKarma(done) {
-  var cmd = '';
-  
-  if (process.platform === 'win32') {
-    cmd = 'node_modules\\.bin\\karma run ';
-  }else {
-    cmd = 'node_modules/.bin/karma run ';
-  }
-
-  cmd += __dirname +'/karma.conf.js';
-
-  exec(cmd, function(e, stdout) {
-    // ignore errors, we don't want to fail the build in the interactive (non-ci) mode
-    // doc server will print all test failures
-    //gutil.log(stdout);
-    done();
-  });
-}
-
-gulp.task('karmaServer', function(){
-  karma.server.start({configFile: __dirname + '/karma.conf.js', reporters: 'dots'});
-});
-
-gulp.task('karmaRun', function(done) {
-  // run the run command in a new process to avoid duplicate logging by both server and runner from
-  // a single process
-  runJSKarma(done);
-});
-
 // Run tests
-gulp.task('test', function(done) {
-  runSequence(
-    'karmaServer',
-    'karmaRun',
-    function(){
-      done();
-    });
-  // // if we do not do it like that, a failing test crashes gulp...
-  
-  // // run tests
-  // runJSKarma(done);
+gulp.task('test', function(cb) {
+  karma.server.start({
+    configFile: __dirname + '/karma.conf.js',
+    reporters: ['spec'],
+    singleRun: true
+  }, function(e, stdout) {
+    // ignore errors, we don't want to fail the build
+    // karma server will print all test failures
+    //gutil.log(stdout);
+    cb();
+  });
 });
 
 // Copy task
@@ -182,7 +145,7 @@ gulp.task('copy', function() {
     'bower_components/dicomParser/dist/dicomParser.min.js'
   ]).pipe(gulpif(options.env === 'production', gulp.dest('dist/libs/dicomParser/dist')));
 
-  return merge(threejs, stats, datgui, dcmjs, dicomParser)
+  return es.merge(threejs, stats, datgui, dcmjs, dicomParser)
     .pipe($.size({title: 'copy'}));
 });
 
@@ -195,7 +158,7 @@ gulp.task('jshint', function() {
     .pipe($.jshint.reporter('jshint-stylish'));
 });
 
-gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript'], reload);
+gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript', 'test'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
@@ -227,5 +190,3 @@ gulp.task('default', ['clean'], function(cb) {
    'test',
     cb);
 });
-
-// test stops sequences...

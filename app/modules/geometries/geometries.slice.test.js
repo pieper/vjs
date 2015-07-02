@@ -1,21 +1,21 @@
 /* globals describe, it, expect*/
 'use strict';
 
-var intersections = require('./intersections1.js');
+var intersections = require('../core/intersections1.js');
 
-describe('Core intersections', function() {
+describe('Geometries slice', function() {
   it('contains spec with an expectation', function() {
     expect(true).toBe(true);
   });
 });
 
-describe('Core intersections', function() {
+describe('Geometries slice', function() {
   it('contains spec with an expectation', function() {
     expect(false).toBe(false);
   });
 });
 
-describe('Core intersections', function() {
+describe('Geometries slice', function() {
   it('contains spec with an expectation', function() {
     expect(true).toBe(true);
   });
