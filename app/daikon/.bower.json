@@ -1,0 +1,13 @@
+{
+  "name": "daikon",
+  "homepage": "https://github.com/rii-mango/Daikon",
+  "_release": "v1.1",
+  "_resolution": {
+    "type": "tag",
+    "tag": "v1.1",
+    "commit": "2744dc72a2351847dbceddc55e62c6d3c2df318d"
+  },
+  "_source": "git://github.com/rii-mango/Daikon.git",
+  "_target": "v1.1",
+  "_originalSource": "rii-mango/Daikon"
+}

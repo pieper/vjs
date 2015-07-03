@@ -3,9 +3,16 @@
 'use strict';
 
 // imports
+
 var vjsModelsImage = require('../models/models.image');
 var vjsModelsStack = require('../models/models.stack');
 var vjsModelsFrame = require('../models/models.frame');
+
+var daikon = daikon || {};
+daikon.Series = daikon.Series || require('../../../bower_components/daikon/src/series');
+daikon.Parser = daikon.Parser || require('../../../bower_components/daikon/src/parser');
+// daikon.series = daikon.series || require('../../daikon/src/series');
+// window.console.log(daikon.series);
 
 var VJS = VJS || {};
 
@@ -64,7 +71,8 @@ VJS.parsers.dicom.prototype.goNAMIC = function(imageUniqueName, arrayBuffer) {
   console.time('goNAMICImageInformation');
   var imageModel = this.goNAMICImageInformation($xml);
   // do it in first dcm dump too...
-  imageModel._rawPixelData = this.goNAMICRawData(imageUniqueName);
+  imageModel._rawPixelData2 = this.goNAMICRawData(imageUniqueName);
+  window.console.log(imageModel._rawPixelData2);
   // in theory dicom support N pixel data seq.
   var stat = FS.stat(imageUniqueName + '.0.raw');
   var stream = FS.open(imageUniqueName + '.0.raw');
@@ -72,7 +80,25 @@ VJS.parsers.dicom.prototype.goNAMIC = function(imageUniqueName, arrayBuffer) {
   FS.read(stream, imageRawBuffer, 0, stat.size);
   FS.close(stream);
 
+  // var buf = FS.read(imageUniqueName);
+  // function toArrayBuffer(buffer) {
+  //   var ab, view, i;
+
+  //   ab = new ArrayBuffer(buffer.length);
+  //   view = new Uint8Array(ab);
+  //   for (i = 0; i < buffer.length; i += 1) {
+  //     view[i] = buffer[i];
+  //   }
+  //   return ab;
+  // }
+  var data = new DataView(arrayBuffer);
+  daikon.Parser.verbose = true;
+  var image = daikon.Series.parseImage(data);
+
+  window.console.log(image.getPixelSpacing());
+
   imageModel._rawPixelData = imageRawBuffer;
+  window.console.log(imageModel._rawPixelData);
 
   // +W might be the best...
   window.console.log(imageModel);
@@ -82,6 +108,7 @@ VJS.parsers.dicom.prototype.goNAMIC = function(imageUniqueName, arrayBuffer) {
   // process Image's rawPixelData
   // take photometric interpolation into account too....
   // get min/max values too...
+  window.console.log('encoding type: ', encodingType);
   switch (encodingType){
     case 'LittleEndianExplicit':
       // need array buffer
@@ -235,8 +262,8 @@ VJS.parsers.dicom.prototype.parse = function() {
   var imageNameFS = 'image_' + self._id;
   var frameNameFS = imageNameFS + '-raw.8b';
 
-  //self.goNAMIC(imageNameFS, self._arrayBuffer);
-  //return;
+  self.goNAMIC(imageNameFS, self._arrayBuffer);
+  return;
 
   // save on FS
   self.fileToFS(imageNameFS, self._arrayBuffer);
