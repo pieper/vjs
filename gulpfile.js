@@ -115,7 +115,8 @@ gulp.task('test', function(cb) {
   karma.server.start({
     configFile: __dirname + '/karma.conf.js',
     reporters: ['spec'],
-    singleRun: true
+    singleRun: true,
+    autoWatch: false
   }, function(e, stdout) {
     // ignore errors, we don't want to fail the build
     // karma server will print all test failures

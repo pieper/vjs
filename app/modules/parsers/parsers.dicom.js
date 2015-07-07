@@ -1,4 +1,4 @@
-/*global dcmjs, FS, $, Module*/
+/*global FS, module, dcmjs, $ */
 
 'use strict';
 
@@ -8,9 +8,11 @@ var vjsModelsImage = require('../models/models.image');
 var vjsModelsStack = require('../models/models.stack');
 var vjsModelsFrame = require('../models/models.frame');
 
-var daikon = daikon || {};
-daikon.Series = daikon.Series || require('../../../bower_components/daikon/src/series');
-daikon.Parser = daikon.Parser || require('../../../bower_components/daikon/src/parser');
+var dicomParser = require('dicom-parser');
+
+// var daikon = daikon || {};
+// daikon.Series = daikon.Series || require('../../../bower_components/daikon/src/series');
+// daikon.Parser = daikon.Parser || require('../../../bower_components/daikon/src/parser');
 // daikon.series = daikon.series || require('../../daikon/src/series');
 // window.console.log(daikon.series);
 
@@ -45,40 +47,97 @@ VJS.parsers.dicom = function(arrayBuffer, id) {
   this._arrayBuffer = arrayBuffer;
 };
 
+VJS.parsers.dicom.prototype.sopInstanceUID=  function(){
+  return this.dataSet.string('x0020000d');
+};
+
+VJS.parsers.dicom.prototype.photometricInterpretation=  function(){
+  return this.dataSet.string('x00280004');
+};
+
+VJS.parsers.dicom.prototype.samplesPerPixel=  function(){
+  return this.dataSet.string('x00280002');
+};
+
+VJS.parsers.dicom.prototype.numberOfFrames=  function(){
+  return this.dataSet.string('x00280008');
+};
+
+
+VJS.parsers.dicom.prototype.parseArrayBuffer = function(arrayBuffer){
+  var byteArray = new Uint8Array(arrayBuffer);
+  return dicomParser.parseDicom(byteArray);
+};
+
 VJS.parsers.dicom.prototype.goNAMIC = function(imageUniqueName, arrayBuffer) {
   console.time('goNAMIC');
 
+  // Parsing of DICOM FILE!
+  var byteArray = new Uint8Array(arrayBuffer);
+  window.console.log(byteArray.length);
+  this.dataSet = dicomParser.parseDicom(byteArray);
+
+  // File was parsed! Extract information of interest!
+  var imageType = 'MR';
+
+
+  //  Series specific specific information
+  var sopInstanceUid = this.sopInstanceUID();
+  window.console.log(sopInstanceUid);
+  var photometricInterpretation = this.photometricInterpretation();
+  window.console.log(photometricInterpretation);
+  var samplesPerPixel = this.samplesPerPixel();
+  window.console.log(samplesPerPixel);
+  var nbFrames = this.numberOfFrames();
+  window.console.log(nbFrames);
+
+  window.console.log(sopInstanceUid);
+  var pixelDataElement = dataSet.elements.x7fe00010;
+  window.console.log(pixelDataElement);
+
+  var pixelSpacing = dataSet.elements.x00280030;
+  window.console.log(pixelSpacing);
+
+  var sharedFunctionnalGroup = dataSet.elements.x52009229;
+  window.console.log(sharedFunctionnalGroup);
+
+  var perFrameFunctionnalGroup = dataSet.elements.x52009230;
+  window.console.log(perFrameFunctionnalGroup);
+
+  // get encoding type
+
+
   // store file on virtual FS in order to run DCMJS on it
-  console.time('goNAMICSaveOnFS');
-  this.fileToFS(imageUniqueName, arrayBuffer);
-  console.timeEnd('goNAMICSaveOnFS');
+  // console.time('goNAMICSaveOnFS');
+  // this.fileToFS(imageUniqueName, arrayBuffer);
+  // console.timeEnd('goNAMICSaveOnFS');
 
-  // get  encoding type!
-  console.time('goNAMICEncodingType');
-  var encodingType = this.goNAMICEncodingType(imageUniqueName);
-  window.console.log(encodingType);
-  console.timeEnd('goNAMICEncodingType');
+  // // get  encoding type!
+  // console.time('goNAMICEncodingType');
+  // var encodingType = this.goNAMICEncodingType(imageUniqueName);
+  // window.console.log(encodingType);
+  // console.timeEnd('goNAMICEncodingType');
 
-  // get xml dump of the header!
-  console.time('goNAMICXMLHeader');
-  var xml = this.goNAMICXMLHeader(imageUniqueName);
-  //window.console.log(xml);
-  var $xml = $($.parseXML(xml));
-  window.console.log($xml);
-  console.timeEnd('goNAMICXMLHeader');
+  // // get xml dump of the header!
+  // console.time('goNAMICXMLHeader');
+  // var xml = this.goNAMICXMLHeader(imageUniqueName);
+  // //window.console.log(xml);
+  // var $xml = $($.parseXML(xml));
+  // window.console.log($xml);
+  // console.timeEnd('goNAMICXMLHeader');
 
-  // get image information
-  console.time('goNAMICImageInformation');
-  var imageModel = this.goNAMICImageInformation($xml);
-  // do it in first dcm dump too...
-  imageModel._rawPixelData2 = this.goNAMICRawData(imageUniqueName);
-  window.console.log(imageModel._rawPixelData2);
-  // in theory dicom support N pixel data seq.
-  var stat = FS.stat(imageUniqueName + '.0.raw');
-  var stream = FS.open(imageUniqueName + '.0.raw');
-  var imageRawBuffer = new Uint8Array(stat.size);
-  FS.read(stream, imageRawBuffer, 0, stat.size);
-  FS.close(stream);
+  // // get image information
+  // console.time('goNAMICImageInformation');
+  // var imageModel = this.goNAMICImageInformation($xml);
+  // // do it in first dcm dump too...
+  // imageModel._rawPixelData2 = this.goNAMICRawData(imageUniqueName);
+  // window.console.log(imageModel._rawPixelData2);
+  // // in theory dicom support N pixel data seq.
+  // var stat = FS.stat(imageUniqueName + '.0.raw');
+  // var stream = FS.open(imageUniqueName + '.0.raw');
+  // var imageRawBuffer = new Uint8Array(stat.size);
+  // FS.read(stream, imageRawBuffer, 0, stat.size);
+  // FS.close(stream);
 
   // var buf = FS.read(imageUniqueName);
   // function toArrayBuffer(buffer) {
@@ -91,70 +150,72 @@ VJS.parsers.dicom.prototype.goNAMIC = function(imageUniqueName, arrayBuffer) {
   //   }
   //   return ab;
   // }
-  var data = new DataView(arrayBuffer);
-  daikon.Parser.verbose = true;
-  var image = daikon.Series.parseImage(data);
+  // var data = new DataView(arrayBuffer);
+  // // daikon.Parser.verbose = true;
+  // var image = daikon.Series.parseImage(data);
 
-  window.console.log(image.getPixelSpacing());
+  // window.console.log(image.getPixelSpacing());
 
-  imageModel._rawPixelData = imageRawBuffer;
-  window.console.log(imageModel._rawPixelData);
+  // imageModel._rawPixelData = imageRawBuffer;
+  // window.console.log(imageModel._rawPixelData);
 
-  // +W might be the best...
-  window.console.log(imageModel);
-  console.timeEnd('goNAMICImageInformation');
+  // // +W might be the best...
+  // window.console.log(imageModel);
+  // console.timeEnd('goNAMICImageInformation');
 
-  // depending on encoding, take action!
-  // process Image's rawPixelData
-  // take photometric interpolation into account too....
-  // get min/max values too...
-  window.console.log('encoding type: ', encodingType);
-  switch (encodingType){
-    case 'LittleEndianExplicit':
-      // need array buffer
-      // in theory should check endianness of this machine...
-      // assume little endian for now...
-      break;
-    case 'JPEG2000':
-      // need array buffer
-      // decode with JPX...
-      // returns arraybuffer
-      break;
-    case '':
-      // need dicom file
-      // overwrite with no compression
-      // extract rawData
-      // run dcmjs appropriate tool
-      break;
-    default:
-      window.console.log('Unkown encoding type: ' + encodingType);
-      break;
-  }
+  // // depending on encoding, take action!
+  // // process Image's rawPixelData
+  // // take photometric interpolation into account too....
+  // // get min/max values too...
+  // window.console.log('encoding type: ', encodingType);
+  // // get bits allocated
 
-  // order based on photometric interp.
+  // switch (encodingType){
+  //   case 'LittleEndianExplicit':
+  //     // need array buffer
+  //     // in theory should check endianness of this machine...
+  //     // assume little endian for now...
+  //     break;
+  //   case 'JPEG2000':
+  //     // need array buffer
+  //     // decode with JPX...
+  //     // returns arraybuffer
+  //     break;
+  //   case '':
+  //     // need dicom file
+  //     // overwrite with no compression
+  //     // extract rawData
+  //     // run dcmjs appropriate tool
+  //     break;
+  //   default:
+  //     window.console.log('Unkown encoding type: ' + encodingType);
+  //     break;
+  // }
 
-  // loop through frames
-  if (imageModel._numberOfFrames > 0) {
-    // dummy for loop for now...
-    console.time('goNAMICForLoopFrame');
-    for (var i = 0; i < imageModel._numberOfFrames; i++) {
-      console.time('goNAMICForLoopSingleFrame');
-      var frame = this.goNAMICFrameInformation($xml, i);
-      window.console.log(frame);
-      // var stackUID = 0;
-      // var stack = this.goNAMICStackInformation($xml, stackUID);
+  // // order based on photometric interp.
 
-      // merge frame in stack
+  // // loop through frames
+  // if (imageModel._numberOfFrames > 0) {
+  //   // dummy for loop for now...
+  //   console.time('goNAMICForLoopFrame');
+  //   for (var i = 0; i < imageModel._numberOfFrames; i++) {
+  //     console.time('goNAMICForLoopSingleFrame');
+  //     var frame = this.goNAMICFrameInformation($xml, i);
+  //     window.console.log(frame);
+  //     // var stackUID = 0;
+  //     // var stack = this.goNAMICStackInformation($xml, stackUID);
 
-      // merge stack in image
+  //     // merge frame in stack
 
-      console.timeEnd('goNAMICForLoopSingleFrame');
-    }
-    console.timeEnd('goNAMICForLoopFrame');
-  } else {
-    window.console.log('oooops... check the number of frames');
-    window.console.log(imageModel);
-  }
+  //     // merge stack in image
+
+  //     console.timeEnd('goNAMICForLoopSingleFrame');
+  //   }
+  //   console.timeEnd('goNAMICForLoopFrame');
+  // } else {
+  //   window.console.log('oooops... check the number of frames');
+  //   window.console.log(imageModel);
+  // }
 
   // YAY!
   console.timeEnd('goNAMIC');
