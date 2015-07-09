@@ -9,7 +9,7 @@ module.exports = function(karma) {
     // list of files / patterns to load in the browser
     files: [
       'app/**/*.test.js',
-      {pattern: 'app/data/**/*.dcm', included: false, watched: false, served: true}
+      {pattern: 'app/data/**/*.tar', included: false, watched: false, served: true}
     ],
 
     reporters: ['spec'],
@@ -20,13 +20,13 @@ module.exports = function(karma) {
       'app/**/*.test.js': ['browserify']
     },
 
-    browsers: ['PhantomJS', 'Chrome'],
+    browsers: ['PhantomJS'],
 
     // web server port
     // port: 9876,
     // colors: true,
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: 'LOG_WARN',
+    logLevel: karma.LOG_WARN,
 
     autoWatch: false,
     singleRun: true,
