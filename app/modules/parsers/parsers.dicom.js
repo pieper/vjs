@@ -1,11 +1,15 @@
-/*global dcmjs, FS, $, Module*/
+/*global FS, module, dcmjs, $ */
 
 'use strict';
 
 // imports
+
 var vjsModelsImage = require('../models/models.image');
 var vjsModelsStack = require('../models/models.stack');
 var vjsModelsFrame = require('../models/models.frame');
+
+var dicomParser = require('dicom-parser');
+var jpx = require('pdf.js/src/core/jpx.js');
 
 var VJS = VJS || {};
 
@@ -36,98 +40,488 @@ VJS.parsers.dicom = function(arrayBuffer, id) {
    */
   this._id = id;
   this._arrayBuffer = arrayBuffer;
+
+  var byteArray = new Uint8Array(arrayBuffer);
+  // window.console.log(byteArray.length);
+  this._dataSet = dicomParser.parseDicom(byteArray);
+
+  //window.console.log(dicomParser);
+  // window.console.log(this._dataSet);
+  // this.rescaleIntercept(0);
+};
+
+VJS.parsers.dicom.prototype.seriesInstanceUID =  function() {
+  return this._dataSet.string('x0020000e');
+};
+
+VJS.parsers.dicom.prototype.modality =  function() {
+  return this._dataSet.string('x00080060');
+};
+
+// image/frame specific
+VJS.parsers.dicom.prototype.sopInstanceUID =  function() {
+  return this._dataSet.string('x00200018');
+};
+
+VJS.parsers.dicom.prototype.transferSyntaxUID =  function() {
+  return this._dataSet.string('x00020010');
+};
+
+VJS.parsers.dicom.prototype.photometricInterpretation =  function() {
+  return this._dataSet.string('x00280004');
+};
+
+VJS.parsers.dicom.prototype.planarConfiguration =  function() {
+  return this._dataSet.uint16('x00280006');
+};
+
+VJS.parsers.dicom.prototype.samplesPerPixel =  function() {
+  return this._dataSet.uint16('x00280002');
+};
+
+VJS.parsers.dicom.prototype.numberOfFrames =  function() {
+  var numberOfFrames = this._dataSet.intString('x00280008');
+
+  // need something smarter!
+  if (typeof numberOfFrames === 'undefined') {
+    numberOfFrames = 1;
+  }
+
+  // make sure we return a number! (not a string!)
+  return numberOfFrames;
+};
+
+VJS.parsers.dicom.prototype.imageOrientation =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var imageOrientation = this._dataSet.string('x00200037');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof imageOrientation === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // plane orientation sequence for Nth element in the sequence
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00209116.items[0].dataSet;
+      imageOrientation = planeOrientationSequence.string('x00200037');
+    } else {
+      // default orientation
+      // should we default to undefined??
+      imageOrientation = '1\\0\\0\\0\\1\\0';
+    }
+  }
+
+  // format image orientation ('1\0\0\0\1\0') to array containing 6 numbers
+  imageOrientation = imageOrientation.split('\\').map(Number);
+  // make sure we return a number! (not a string!)
+  return imageOrientation;
+};
+
+VJS.parsers.dicom.prototype.imagePosition =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var imagePosition = this._dataSet.string('x00200032');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof imagePosition === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // plane orientation sequence for Nth element in the sequence
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00209113.items[0].dataSet;
+      imagePosition = planeOrientationSequence.string('x00200032');
+    } else {
+      // should we default to undefined??
+      // default orientation
+      imagePosition = '0.0\\0.0\\0.0';
+    }
+  }
+
+  // format image orientation ('1\0\0\0\1\0') to array containing 6 numbers
+  imagePosition = imagePosition.split('\\').map(Number);
+  // make sure we return a number! (not a string!)
+  return imagePosition;
+};
+
+VJS.parsers.dicom.prototype.pixelSpacing =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var pixelSpacing = this._dataSet.string('x00280030');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof pixelSpacing === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // plane orientation sequence for Nth element in the sequence
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289110.items[0].dataSet;
+      pixelSpacing = planeOrientationSequence.string('x00280030');
+    } else {
+      // default orientation
+      pixelSpacing = '1.0\\1.0';
+    }
+  }
+
+  // format image orientation ('1\0\0\0\1\0') to array containing 6 numbers
+  // should we default to undefined??
+  pixelSpacing = pixelSpacing.split('\\').map(Number);
+  // make sure we return a number! (not a string!)
+  return pixelSpacing;
+};
+
+VJS.parsers.dicom.prototype.sopInstanceUID =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var sopInstanceUID = this._dataSet.string('x00080018');
+  return sopInstanceUID;
+};
+
+VJS.parsers.dicom.prototype.sliceThickness =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var sliceThickness = this._dataSet.floatString('x00180050');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof sliceThickness === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // plane orientation sequence for Nth element in the sequence
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289110.items[0].dataSet;
+      sliceThickness = planeOrientationSequence.floatString('x00180050');
+    } else {
+      // default orientation
+      // should we default to undefined??
+      // print warning at least...
+      sliceThickness = 1;
+    }
+  }
+
+  return sliceThickness;
+};
+
+VJS.parsers.dicom.prototype.rows =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var rows = this._dataSet.uint16('x00280010');
+
+  if (typeof rows === 'undefined') {
+    rows = undefined;
+    // print warning at least...
+  }
+
+  return rows;
+};
+
+VJS.parsers.dicom.prototype.columns =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var columns = this._dataSet.uint16('x00280011');
+
+  if (typeof columns === 'undefined') {
+    columns = undefined;
+    // print warning at least...
+  }
+
+  return columns;
+};
+
+VJS.parsers.dicom.prototype.pixelRepresentation =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var pixelRepresentation = this._dataSet.uint16('x00280103');
+  return pixelRepresentation;
+};
+
+VJS.parsers.dicom.prototype.bitsAllocated =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var bitsAllocated = this._dataSet.uint16('x00280100');
+  return bitsAllocated;
+};
+
+VJS.parsers.dicom.prototype.highBit =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var highBit = this._dataSet.uint16('x00280102');
+  return highBit;
+};
+
+VJS.parsers.dicom.prototype.rescaleIntercept =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var rescaleIntercept = this._dataSet.floatString('x00281052');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof rescaleIntercept === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // NOT A PHILIPS TRICK!
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289145.items[0].dataSet;
+      rescaleIntercept = philipsPrivateSequence.floatString('x00281052');
+    } else {
+      // default rescaleIntercept
+      rescaleIntercept = 0;
+    }
+  }
+
+  return rescaleIntercept;
+};
+
+VJS.parsers.dicom.prototype.rescaleSlope =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var rescaleSlope = this._dataSet.floatString('x00281053');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof rescaleSlope === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // NOT A PHILIPS TRICK!
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289145.items[0].dataSet;
+      rescaleSlope = philipsPrivateSequence.floatString('x00281052');
+    } else {
+      // default rescaleSlope
+      rescaleSlope = 1;
+    }
+  }
+
+  return rescaleSlope;
+};
+
+VJS.parsers.dicom.prototype.windowCenter =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var windowCenter = this._dataSet.floatString('x00281050');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof windowCenter === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // NOT A PHILIPS TRICK!.
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289132.items[0].dataSet;
+      windowCenter = philipsPrivateSequence.floatString('x00281050');
+    } else {
+      // default windowCenter
+      // print warning at least...
+      windowCenter = undefined;
+    }
+  }
+
+  return windowCenter;
+};
+
+VJS.parsers.dicom.prototype.windowWidth =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var windowWidth = this._dataSet.floatString('x00281051');
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof windowWidth === 'undefined') {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+      // NOT A PHILIPS TRICK!
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289132.items[0].dataSet;
+      windowWidth = philipsPrivateSequence.floatString('x00281051');
+    } else {
+      // default windowWidth
+      // print warning at least...
+      windowWidth = undefined;
+    }
+  }
+  return windowWidth;
+};
+
+VJS.parsers.dicom.prototype.dPixelData =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var dPixelData = [];
+  // http://www.dicomlibrary.com/dicom/transfer-syntax/
+  var transferSyntaxUID = this.transferSyntaxUID();
+
+  // find compression scheme
+  if (transferSyntaxUID === "1.2.840.10008.1.2.4.90" ||  // JPEG 2000 lossless
+      transferSyntaxUID === "1.2.840.10008.1.2.4.91") {  // JPEG 2000 lossy
+    //window.console.log('JPG2000 in action!');
+    // window.console.log(this._dataSet);
+    //window.console.log(dicomParser);
+    //window.console.log(this._dataSet.elements);
+    var compressedPixelData = dicomParser.readEncapsulatedPixelData(this._dataSet, this._dataSet.elements.x7fe00010, frameIndex);
+    var jpxImage = new JpxImage();
+    jpxImage.parse(compressedPixelData);
+
+    var j2kWidth = jpxImage.width;
+    var j2kHeight = jpxImage.height;
+
+    //window.console.log(j2kWidth, j2kHeight);
+  }
+
+  return dPixelData;
+};
+
+VJS.parsers.dicom.prototype.parseArrayBuffer = function(arrayBuffer) {
+  var byteArray = new Uint8Array(arrayBuffer);
+  return dicomParser.parseDicom(byteArray);
 };
 
 VJS.parsers.dicom.prototype.goNAMIC = function(imageUniqueName, arrayBuffer) {
   console.time('goNAMIC');
 
+  // Parsing of DICOM FILE!
+  var byteArray = new Uint8Array(arrayBuffer);
+  window.console.log(byteArray.length);
+  this._dataSet = dicomParser.parseDicom(byteArray);
+
+  // File was parsed! Extract information of interest!
+  var imageType = 'MR';
+
+  //  Series specific specific information
+  var sopInstanceUid = this.sopInstanceUID();
+  window.console.log(sopInstanceUid);
+  var photometricInterpretation = this.photometricInterpretation();
+  window.console.log(photometricInterpretation);
+  var samplesPerPixel = this.samplesPerPixel();
+  window.console.log(samplesPerPixel);
+  var nbFrames = this.numberOfFrames();
+  window.console.log(nbFrames);
+
+  window.console.log(sopInstanceUid);
+  var pixelDataElement = dataSet.elements.x7fe00010;
+  window.console.log(pixelDataElement);
+
+  var pixelSpacing = dataSet.elements.x00280030;
+  window.console.log(pixelSpacing);
+
+  var sharedFunctionnalGroup = dataSet.elements.x52009229;
+  window.console.log(sharedFunctionnalGroup);
+
+  var perFrameFunctionnalGroup = dataSet.elements.x52009230;
+  window.console.log(perFrameFunctionnalGroup);
+
+  // get encoding type
+
   // store file on virtual FS in order to run DCMJS on it
-  console.time('goNAMICSaveOnFS');
-  this.fileToFS(imageUniqueName, arrayBuffer);
-  console.timeEnd('goNAMICSaveOnFS');
+  // console.time('goNAMICSaveOnFS');
+  // this.fileToFS(imageUniqueName, arrayBuffer);
+  // console.timeEnd('goNAMICSaveOnFS');
 
-  // get  encoding type!
-  console.time('goNAMICEncodingType');
-  var encodingType = this.goNAMICEncodingType(imageUniqueName);
-  window.console.log(encodingType);
-  console.timeEnd('goNAMICEncodingType');
+  // // get  encoding type!
+  // console.time('goNAMICEncodingType');
+  // var encodingType = this.goNAMICEncodingType(imageUniqueName);
+  // window.console.log(encodingType);
+  // console.timeEnd('goNAMICEncodingType');
 
-  // get xml dump of the header!
-  console.time('goNAMICXMLHeader');
-  var xml = this.goNAMICXMLHeader(imageUniqueName);
-  //window.console.log(xml);
-  var $xml = $($.parseXML(xml));
-  window.console.log($xml);
-  console.timeEnd('goNAMICXMLHeader');
+  // // get xml dump of the header!
+  // console.time('goNAMICXMLHeader');
+  // var xml = this.goNAMICXMLHeader(imageUniqueName);
+  // //window.console.log(xml);
+  // var $xml = $($.parseXML(xml));
+  // window.console.log($xml);
+  // console.timeEnd('goNAMICXMLHeader');
 
-  // get image information
-  console.time('goNAMICImageInformation');
-  var imageModel = this.goNAMICImageInformation($xml);
-  // do it in first dcm dump too...
-  imageModel._rawPixelData = this.goNAMICRawData(imageUniqueName);
-  // in theory dicom support N pixel data seq.
-  var stat = FS.stat(imageUniqueName + '.0.raw');
-  var stream = FS.open(imageUniqueName + '.0.raw');
-  var imageRawBuffer = new Uint8Array(stat.size);
-  FS.read(stream, imageRawBuffer, 0, stat.size);
-  FS.close(stream);
+  // // get image information
+  // console.time('goNAMICImageInformation');
+  // var imageModel = this.goNAMICImageInformation($xml);
+  // // do it in first dcm dump too...
+  // imageModel._rawPixelData2 = this.goNAMICRawData(imageUniqueName);
+  // window.console.log(imageModel._rawPixelData2);
+  // // in theory dicom support N pixel data seq.
+  // var stat = FS.stat(imageUniqueName + '.0.raw');
+  // var stream = FS.open(imageUniqueName + '.0.raw');
+  // var imageRawBuffer = new Uint8Array(stat.size);
+  // FS.read(stream, imageRawBuffer, 0, stat.size);
+  // FS.close(stream);
 
-  imageModel._rawPixelData = imageRawBuffer;
+  // var buf = FS.read(imageUniqueName);
+  // function toArrayBuffer(buffer) {
+  //   var ab, view, i;
 
-  // +W might be the best...
-  window.console.log(imageModel);
-  console.timeEnd('goNAMICImageInformation');
+  //   ab = new ArrayBuffer(buffer.length);
+  //   view = new Uint8Array(ab);
+  //   for (i = 0; i < buffer.length; i += 1) {
+  //     view[i] = buffer[i];
+  //   }
+  //   return ab;
+  // }
+  // var data = new DataView(arrayBuffer);
+  // // daikon.Parser.verbose = true;
+  // var image = daikon.Series.parseImage(data);
 
-  // depending on encoding, take action!
-  // process Image's rawPixelData
-  // take photometric interpolation into account too....
-  // get min/max values too...
-  switch (encodingType){
-    case 'LittleEndianExplicit':
-      // need array buffer
-      // in theory should check endianness of this machine...
-      // assume little endian for now...
-      break;
-    case 'JPEG2000':
-      // need array buffer
-      // decode with JPX...
-      // returns arraybuffer
-      break;
-    case '':
-      // need dicom file
-      // overwrite with no compression
-      // extract rawData
-      // run dcmjs appropriate tool
-      break;
-    default:
-      window.console.log('Unkown encoding type: ' + encodingType);
-      break;
-  }
+  // window.console.log(image.getPixelSpacing());
 
-  // order based on photometric interp.
+  // imageModel._rawPixelData = imageRawBuffer;
+  // window.console.log(imageModel._rawPixelData);
 
-  // loop through frames
-  if (imageModel._numberOfFrames > 0) {
-    // dummy for loop for now...
-    console.time('goNAMICForLoopFrame');
-    for (var i = 0; i < imageModel._numberOfFrames; i++) {
-      console.time('goNAMICForLoopSingleFrame');
-      var frame = this.goNAMICFrameInformation($xml, i);
-      window.console.log(frame);
-      // var stackUID = 0;
-      // var stack = this.goNAMICStackInformation($xml, stackUID);
+  // // +W might be the best...
+  // window.console.log(imageModel);
+  // console.timeEnd('goNAMICImageInformation');
 
-      // merge frame in stack
+  // // depending on encoding, take action!
+  // // process Image's rawPixelData
+  // // take photometric interpolation into account too....
+  // // get min/max values too...
+  // window.console.log('encoding type: ', encodingType);
+  // // get bits allocated
 
-      // merge stack in image
+  // switch (encodingType){
+  //   case 'LittleEndianExplicit':
+  //     // need array buffer
+  //     // in theory should check endianness of this machine...
+  //     // assume little endian for now...
+  //     break;
+  //   case 'JPEG2000':
+  //     // need array buffer
+  //     // decode with JPX...
+  //     // returns arraybuffer
+  //     break;
+  //   case '':
+  //     // need dicom file
+  //     // overwrite with no compression
+  //     // extract rawData
+  //     // run dcmjs appropriate tool
+  //     break;
+  //   default:
+  //     window.console.log('Unkown encoding type: ' + encodingType);
+  //     break;
+  // }
 
-      console.timeEnd('goNAMICForLoopSingleFrame');
-    }
-    console.timeEnd('goNAMICForLoopFrame');
-  } else {
-    window.console.log('oooops... check the number of frames');
-    window.console.log(imageModel);
-  }
+  // // order based on photometric interp.
+
+  // // loop through frames
+  // if (imageModel._numberOfFrames > 0) {
+  //   // dummy for loop for now...
+  //   console.time('goNAMICForLoopFrame');
+  //   for (var i = 0; i < imageModel._numberOfFrames; i++) {
+  //     console.time('goNAMICForLoopSingleFrame');
+  //     var frame = this.goNAMICFrameInformation($xml, i);
+  //     window.console.log(frame);
+  //     // var stackUID = 0;
+  //     // var stack = this.goNAMICStackInformation($xml, stackUID);
+
+  //     // merge frame in stack
+
+  //     // merge stack in image
+
+  //     console.timeEnd('goNAMICForLoopSingleFrame');
+  //   }
+  //   console.timeEnd('goNAMICForLoopFrame');
+  // } else {
+  //   window.console.log('oooops... check the number of frames');
+  //   window.console.log(imageModel);
+  // }
 
   // YAY!
   console.timeEnd('goNAMIC');
@@ -235,8 +629,8 @@ VJS.parsers.dicom.prototype.parse = function() {
   var imageNameFS = 'image_' + self._id;
   var frameNameFS = imageNameFS + '-raw.8b';
 
-  //self.goNAMIC(imageNameFS, self._arrayBuffer);
-  //return;
+  self.goNAMIC(imageNameFS, self._arrayBuffer);
+  return;
 
   // save on FS
   self.fileToFS(imageNameFS, self._arrayBuffer);

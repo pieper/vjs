@@ -36,7 +36,8 @@ gulp.task('clean', del.bind(null, ['dist', '.tmp']));
 gulp.task('html', function() {
   return gulp.src([
         'app/**/*.html',
-        '!app/deprecated{,/**}'
+        '!app/deprecated{,/**}',
+        '!app/daikon{,/**}'
     ])
     .pipe(gulpif(options.env === 'production', $.replace('bower_components', 'libs')))
     .pipe(gulp.dest('dist'))
@@ -47,7 +48,8 @@ gulp.task('html', function() {
 gulp.task('css', function() {
   return gulp.src([
         'app/**/*.css',
-        '!app/deprecated{,/**}'
+        '!app/deprecated{,/**}',
+        '!app/daikon{,/**}'
     ])
     .pipe(gulp.dest('dist'))
     .pipe($.size({title: 'css'}));
@@ -113,7 +115,8 @@ gulp.task('test', function(cb) {
   karma.server.start({
     configFile: __dirname + '/karma.conf.js',
     reporters: ['spec'],
-    singleRun: true
+    singleRun: true,
+    autoWatch: false
   }, function(e, stdout) {
     // ignore errors, we don't want to fail the build
     // karma server will print all test failures
@@ -152,7 +155,8 @@ gulp.task('copy', function() {
 // Lint JavaScript
 gulp.task('jshint', function() {
   return gulp.src([
-      'app/**/*.js'
+      'app/**/*.js',
+      '!app/daikon{,/**}'
     ])
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'));

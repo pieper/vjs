@@ -112,7 +112,7 @@ window.onload = function() {
   // init threeJS...
   init();
 
-  var file = ['../../data/dcm/fruit'];
+  var file = ['../../data/dcm/fruit.dcm'];
 
   // instantiate the loader
   var loader = new vjsLoaderDicom();
