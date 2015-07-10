@@ -12,6 +12,8 @@ var datasets = [];
 var data = {};
 
 // MR
+// frames not ordered
+// need to use indexDimensionValues to order properly!
 data = {
   name: 'Fruit and Veggies!',
   from: 'http://www.insight-journal.org/midas/collection/view/194',
@@ -44,7 +46,7 @@ data = {
   rescaleSlope: 0,
   windowCenter: 359,
   windowWidth: 623,
-  dimensionIndexValues: [0, 0],
+  dimensionIndexValues: [1, 1],
 
   // computed values
   minMax: [0, 437]
@@ -343,7 +345,7 @@ function PixelDataTestSequence(referenceDataset) {
         expect(true).toBe(true);
       });
 
-      it('Min\\Max pixel data: ' + referenceDataset.minMax[0] + '\\' + referenceDataset.minMax[1], function() {
+      it('Min,Max pixel data: ' + referenceDataset.minMax, function() {
         var frameIndex = 0;
         var pixelData = parser.extractPixelData(frameIndex);
         // hack for the compressed data, for now...

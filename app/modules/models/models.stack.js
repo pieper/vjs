@@ -256,6 +256,15 @@ VJS.models.stack.prototype.prepare = function() {
   // window.console.log(this._rows * this._columns);
   // window.console.log(this._textureSize);
 
+  // RGB or not?
+  // if RBG needs to be 8 bits for now, RBG as expected
+  // else
+  // if 8 bits
+  // all to R
+  // if 16 bits
+  // need to split higb bits/low bits into rbg values
+  // http://stackoverflow.com/questions/6413744/looking-to-access-16-bit-image-data-in-javascript-webgl
+
   // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
   //var prevFrame = -1;
   //var prevTexture = -1;

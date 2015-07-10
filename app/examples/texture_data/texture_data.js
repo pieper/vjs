@@ -150,6 +150,9 @@ window.onload = function() {
           // create 16 luminance textures!
           var textures = [];
           for (var m = 0; m < stack._nbTextures; m++) {
+            // always pass it as RGB
+            // in shaders handle it depending on how channels/bytes
+            //
             var tex = new THREE.DataTexture(stack._rawData[m], stack._textureSize, stack._textureSize, THREE.LuminanceFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
             tex.needsUpdate = true;
             textures.push(tex);

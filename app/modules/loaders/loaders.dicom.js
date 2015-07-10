@@ -193,7 +193,7 @@ VJS.loaders.dicom.prototype.parse = function(response) {
       frame._sliceThickness = dicomParser.sliceThickness(i);
       frame._imageOrientation = dicomParser.imageOrientation(i);
       frame._imagePosition = dicomParser.imagePosition(i);
-      //frame._dimensionIndexValues = dicomParser.dimensionIndexValues(i);
+      frame._dimensionIndexValues = dicomParser.dimensionIndexValues(i);
 
       stack._frame.push(frame);
     }

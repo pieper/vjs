@@ -347,55 +347,28 @@ VJS.parsers.dicom.prototype.windowWidth =  function(frameIndex) {
 };
 
 VJS.parsers.dicom.prototype.dimensionIndexValues =  function(frameIndex) {
-  // All string types - string()
-  // US - uint16()
-  // SS - int16()
-  // UL - uint32()
-  // SL - int32()
-  // FL - float()
-  // FD - double()
-  // DS - floatString()
-  // IS - intString()
-  // expect frame index to start at 0!
-  var dimensionIndexValues = this._dataSet.uint32('x00281051');
+  var dimensionIndexValues = [];
 
   // try to get it from enhanced MR images
-  // per-frame functionnal group
-  if (typeof dimensionIndexValues === 'undefined') {
-    // per frame functionnal group sequence
-    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+  // per-frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
 
-    if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
-      // NOT A PHILIPS TRICK!
-      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
-        .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
-      var element = philipsPrivateSequence.elements.x00209157;
-      dimensionIndexValues = philipsPrivateSequence.uint32('x00209157');
-    } else {
-      // default dimensionIndexValues?
-      // print warning at least...
-      dimensionIndexValues = '0';
+  if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+    // NOT A PHILIPS TRICK!
+    var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
+    var element = philipsPrivateSequence.elements.x00209157;
+    // /4 because UL
+    var nbValues = element.length / 4;
+    for (var i = 0; i < nbValues; i++) {
+      dimensionIndexValues.push(philipsPrivateSequence.uint32('x00209157', i));
     }
+  } else {
+    dimensionIndexValues.push(0);
   }
-
-  //dimensionIndexValues = dimensionIndexValues.split('\\').map(Number);
 
   return dimensionIndexValues;
 };
-
-// VJS.parsers.dicom.prototype.getFrameDimensionIndexValues = function(frameJqueryPreFrameDom, imageJqueryDom) {
-//   var $perFrameDimension = frameJqueryPreFrameDom.find('[tag="00209111"] [tag="00209157"]');
-//   var dimensionIndexValues = [];
-//   $perFrameDimension.children().each(this.fillDimensionIndexValues(dimensionIndexValues));
-
-//   // or look for it in the imageJqueryDom?
-//   if (!$perFrameDimension) {
-//     window.console.log('$perFrameDimension', $perFrameDimension);
-//     window.console.log('imageJqueryDom', imageJqueryDom);
-//   }
-
-//   return dimensionIndexValues;
-// };
 
 VJS.parsers.dicom.prototype.dPixelData =  function(frameIndex) {
   // expect frame index to start at 0!
