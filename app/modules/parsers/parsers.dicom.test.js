@@ -14,7 +14,7 @@ var data = {};
 // MR
 data = {
   name: 'Fruit and Veggies!',
-  from: 'fruit and veggies...?',
+  from: 'http://www.insight-journal.org/midas/collection/view/194',
   url: '/base/app/data/dcm/fruit.dcm.tar',
 
   // Series specific
@@ -43,7 +43,10 @@ data = {
   rescaleIntercept: 0.0,
   rescaleSlope: 0,
   windowCenter: 359,
-  windowWidth: 623
+  windowWidth: 623,
+
+  // computed values
+  minMax: [0,437]
 };
 datasets.push(data);
 
@@ -78,7 +81,10 @@ data = {
   rescaleIntercept: -1024,
   rescaleSlope: 1.0,
   windowCenter: 40,
-  windowWidth: 400
+  windowWidth: 400,
+
+  // computed values
+  minMax: [0,437]
 };
 datasets.push(data);
 
@@ -114,7 +120,10 @@ data = {
   rescaleIntercept: 0.0,
   rescaleSlope: 1.0,
   windowCenter: undefined,
-  windowWidth: undefined
+  windowWidth: undefined,
+
+  // computed values
+  minMax: [16,240]
 };
 datasets.push(data);
 
@@ -150,7 +159,10 @@ data = {
   rescaleIntercept: 0.0,
   rescaleSlope: 1.0,
   windowCenter: undefined,
-  windowWidth: undefined
+  windowWidth: undefined,
+
+    // computed values
+  minMax: [0,252]
 };
 datasets.push(data);
 
@@ -315,16 +327,19 @@ function PixelDataTestSequence(referenceDataset) {
     });
 
     describe('Parse pixel data', function() {
-      it('d(ecompress) pixel data', function() {
-        //var frameIndex = 0;
-        //parser.dPixelData(frameIndex);
-        //expect(true).toBe(true);
+      it('Extract pixel data', function() {
+        var frameIndex = 0;
+        var pixelData = parser.extractPixelData(frameIndex);
+        // check typeof and length...
+        expect(true).toBe(true);
       });
 
-      it('min max', function() {
-        //var frameIndex = 0;
-        //parser.dPixelData(frameIndex);
-        expect(true).toBe(true);
+      it('Min\\Max pixel data: ' + referenceDataset.minMax[0] + '\\' + referenceDataset.minMax[1], function() {
+        var frameIndex = 0;
+        var pixelData = parser.extractPixelData(frameIndex);
+
+        var minMax = parser.minMaxPixelData(pixelData);
+        expect(minMax).toEqual(referenceDataset.minMax);
       });
     });
   });

@@ -9,7 +9,7 @@ var vjsModelsStack = require('../models/models.stack');
 var vjsModelsFrame = require('../models/models.frame');
 
 var dicomParser = require('dicom-parser');
-var jpx = require('pdf.js/src/core/jpx.js');
+var jpx = require('./jpx.js');
 
 var VJS = VJS || {};
 
@@ -353,23 +353,85 @@ VJS.parsers.dicom.prototype.dPixelData =  function(frameIndex) {
   var transferSyntaxUID = this.transferSyntaxUID();
 
   // find compression scheme
-  if (transferSyntaxUID === "1.2.840.10008.1.2.4.90" ||  // JPEG 2000 lossless
-      transferSyntaxUID === "1.2.840.10008.1.2.4.91") {  // JPEG 2000 lossy
+  if (transferSyntaxUID === '1.2.840.10008.1.2.4.90' ||  // JPEG 2000 lossless
+      transferSyntaxUID === '1.2.840.10008.1.2.4.91') {  // JPEG 2000 lossy
     //window.console.log('JPG2000 in action!');
     // window.console.log(this._dataSet);
     //window.console.log(dicomParser);
     //window.console.log(this._dataSet.elements);
-    var compressedPixelData = dicomParser.readEncapsulatedPixelData(this._dataSet, this._dataSet.elements.x7fe00010, frameIndex);
-    var jpxImage = new JpxImage();
-    jpxImage.parse(compressedPixelData);
+    //var compressedPixelData = dicomParser.readEncapsulatedPixelData(this._dataSet, this._dataSet.elements.x7fe00010, frameIndex);
+    var pixelDataElement = this._dataSet.elements.x7fe00010;
+    var pixelData = new Uint8Array(this._dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
+    var jpxImage = new jpx();
+    jpxImage.parse(pixelData);
 
     var j2kWidth = jpxImage.width;
     var j2kHeight = jpxImage.height;
 
-    //window.console.log(j2kWidth, j2kHeight);
+    window.console.log(jpxImage);
   }
 
   return dPixelData;
+};
+
+VJS.parsers.dicom.prototype.extractPixelData =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var ePixelData = null;
+
+  // if compressed..?
+  var transferSyntaxUID = this.transferSyntaxUID();
+
+  // find compression scheme
+  if (transferSyntaxUID === '1.2.840.10008.1.2.4.90' ||  // JPEG 2000 lossless
+      transferSyntaxUID === '1.2.840.10008.1.2.4.91') {
+    return ePixelData;
+  }
+
+  // else
+  // ned to guess pixel format to know if uint8, unit16 or int16
+  // Note - we may want to sanity check the rows * columns * bitsAllocated * samplesPerPixel against the buffer size
+  var pixelRepresentation = this.pixelRepresentation(frameIndex);
+  var bitsAllocated = this.bitsAllocated(frameIndex);
+  var pixelDataElement = this._dataSet.elements.x7fe00010;
+  var pixelDataOffset = pixelDataElement.dataOffset;
+  var numPixels = this.rows(frameIndex) * this.columns(frameIndex);
+  var frameOffset = 0;
+  
+  if (pixelRepresentation === 0 && bitsAllocated === 8) {
+
+    // unsigned 8 bit
+    frameOffset = pixelDataOffset + frameIndex * numPixels;
+    ePixelData =  new Uint8Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+  } else if (pixelRepresentation === 0 && bitsAllocated === 16) {
+
+    // unsigned 16 bit
+    frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
+    ePixelData = new Uint16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+  } else if (pixelRepresentation === 1 && bitsAllocated === 16) {
+
+    // signed 16 bit
+    frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
+    ePixelData = new Int16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+  }
+
+  return ePixelData;
+};
+
+VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
+
+  var minMax = [65535, -32768];
+  var numPixels = pixelData.length;
+  for (var index = 0; index < numPixels; index++) {
+    var spv = pixelData[index];
+    // TODO: test to see if it is faster to use conditional here rather than calling min/max functions
+    minMax[0] = Math.min(minMax[0], spv);
+    minMax[1] = Math.max(minMax[1], spv);
+  }
+
+  return minMax;
 };
 
 VJS.parsers.dicom.prototype.parseArrayBuffer = function(arrayBuffer) {

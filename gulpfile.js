@@ -121,6 +121,7 @@ gulp.task('test', function(cb) {
     // ignore errors, we don't want to fail the build
     // karma server will print all test failures
     //gutil.log(stdout);
+    // crash might be good: got to fix it
     cb();
   });
 });
