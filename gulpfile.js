@@ -163,7 +163,8 @@ gulp.task('jshint', function() {
     .pipe($.jshint.reporter('jshint-stylish'));
 });
 
-gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript', 'test'], reload);
+// no test anymore... too slow...
+gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
@@ -192,6 +193,6 @@ gulp.task('default', ['clean'], function(cb) {
     'copy',
     ['javascript', 'html', 'css'],
    'doc',
-   'test',
+   // 'test',
     cb);
 });

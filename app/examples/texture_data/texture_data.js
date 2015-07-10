@@ -132,7 +132,7 @@ window.onload = function() {
 
           // those operations could be async too!
           // prepare the texture!
-          var stack = message._image._stack[0];
+          var stack = message._series._stack[0];
           window.console.log(stack);
           stack.prepare();
 

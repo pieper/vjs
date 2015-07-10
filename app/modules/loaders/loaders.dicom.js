@@ -1,9 +1,17 @@
 'use strict';
 
-var vjsParsersDicom = require('../parsers/parsers.dicom');
-var vjsHelpersImage = require('../helpers/helpers.image');
-
 var VJS = VJS || {};
+
+VJS.parsers = VJS.parsers || {};
+VJS.parsers.dicom = VJS.parsers.dicom || require('../parsers/parsers.dicom');
+
+VJS.models = VJS.models || {};
+VJS.models.series = VJS.models.series || require('../models/models.series');
+VJS.models.stack = VJS.models.stack || require('../models/models.stack');
+VJS.models.frame = VJS.models.frame || require('../models/models.frame');
+
+VJS.helpers = VJS.helpers || {};
+VJS.helpers.series = VJS.helpers.series || require('../helpers/helpers.series');
 
 /**
  * loaders namespace
@@ -155,16 +163,47 @@ VJS.loaders.dicom.prototype.parse = function(response) {
     window.console.log(response);
     window.console.log('file downloaded yay!');
 
-    var imageHelper = new vjsHelpersImage();
+    // series helper with lot of goodies
+    var seriesHelper = new VJS.helpers.series();
 
     // parse DICOM
-    var dicomParser = new vjsParsersDicom(response, imageHelper.id);
-    var image = dicomParser.parse();
+    var dicomParser = new VJS.parsers.dicom(response, seriesHelper.id);
+    
+    // create a series
+    var series = new VJS.models.series();
+    series._seriesInstanceUID = dicomParser.seriesInstanceUID();
+    series._numberOfFrames = dicomParser.numberOfFrames();
+    series._numberOfChannels = dicomParser.numberOfFrames();
+
+    // just create 1 dummy stack for now
+    var stack = new VJS.models.stack();
+
+    series._stack.push(stack);
+
+    // loop through all the frames!
+    for(var i = 0; i<series._numberOfFrames; i++){
+      // shoud check for target stack
+      // should check if frame was already added in stack
+      // etc.
+      var frame = new VJS.models.frame();
+      frame._rows = dicomParser.rows(i);
+      frame._columns = dicomParser.columns(i);
+      frame._pixelData = dicomParser.extractPixelData(i);
+      frame._pixelSpacing = dicomParser.pixelSpacing(i);
+      frame._sliceThickness = dicomParser.sliceThickness(i);
+      frame._imageOrientation = dicomParser.imageOrientation(i);
+      frame._imagePosition = dicomParser.imagePosition(i);
+      //frame._dimensionIndexValues = dicomParser.dimensionIndexValues(i);
+
+      stack._frame.push(frame);
+    }
+
+    // var image = dicomParser.parse();
 
     // add image to image helper
     // image helper is a 3D object image wherease image is a general JS Object
-    imageHelper.addImage(image);
-    return imageHelper;
+    seriesHelper.addSeries(series);
+    return seriesHelper;
     //var self = this;
 
     //return new Promise(function(resolve) {
