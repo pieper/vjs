@@ -17,7 +17,7 @@ vec4 sampleAs3DTexture(sampler2D textureContainer[16], vec3 textureCoordinate, v
   uv.x = slicePixelSize * 0.5 + colIndex * slicePixelSize;
   uv.y = 1.0 - (slicePixelSize * 0.5 + rowIndex * slicePixelSize);
 
-  vec4 dataValue = vec4(0, 0, 0, 0);
+  vec4 dataValue = vec4(0, 0, 0, 1);
   if(textureIndex == 0.0){
     dataValue = texture2D(textureContainer[0], uv);
   }
@@ -78,6 +78,8 @@ uniform float uWindowLevel[ 2 ];
 uniform sampler2D uTextureContainer[16];
 uniform vec3 uDataDimensions;
 uniform mat4 uWorldToData;
+uniform int uNumberOfChannels;
+uniform int uBitsAllocated;
 
 varying vec4 vPos;
 
@@ -102,33 +104,19 @@ void main(void) {
   ){
     vec3 textureCoordinate = dataCoordinate/uDataDimensions;
     vec4 dataValue = sampleAs3DTexture(uTextureContainer, textureCoordinate, uDataDimensions, uTextureSize);
-    // color.rgb = dataValue.rgb;
+    
 
-    // combine it as needed....
-    // use window level to display properly the image!
-    //float colorsixteenbits = (256.0 * dataValue.r + dataValue.b*255.0)/400.0;
-    float rawValue = dataValue.r * 255.0 * 256.0 + dataValue.g * 256.0;
-    float windowMin = uWindowLevel[0] - uWindowLevel[1]/2.0;
-    float windowMax = uWindowLevel[0] + uWindowLevel[1]/2.0;
-    float combined = ( rawValue - windowMin ) / uWindowLevel[1];
+    if(uNumberOfChannels == 1){
+      // reconstruct 16bits data if any
+      float rawValue = dataValue.r * 255.0 * 256.0 + dataValue.g * 255.0;
+      float windowMin = uWindowLevel[0] - uWindowLevel[1]/2.0;
+      float windowMax = uWindowLevel[0] + uWindowLevel[1]/2.0;
+      float combined = ( rawValue - windowMin ) / uWindowLevel[1];
 
-    // what is combined < 0?
-    // if(combined <= 0.0){
-    //   combined = 0.0;
-    // }
-    // else if( combined >= 1.0 ){
-    //   combined = 1.0;
-    // }
+      dataValue.r = dataValue.g = dataValue.b = combined;
+    }
 
-    // apply thresholding???
-    // vec3 processedColor = vec3();
-
-    vec4 data = vec4(combined, combined, combined, 1.0);
-    // vec4 test = vec4(.5, .5, dataCoordinate[2]/60.0, 1.0);
-    gl_FragColor = data;
-    // gl_FragColor = mix(data, test, 0.5);
-    //gl_FragColor = vec4(3.0 - dataCoordinate[2], 4.0 - dataCoordinate[2], 5.0 - dataCoordinate[2], 1.0);
-    //gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+    gl_FragColor = dataValue;
   }
   else{
     // should be able to choose what we want to do if not in range:

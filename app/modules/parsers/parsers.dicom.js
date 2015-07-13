@@ -91,6 +91,24 @@ VJS.parsers.dicom.prototype.numberOfFrames =  function() {
   return numberOfFrames;
 };
 
+VJS.parsers.dicom.prototype.numberOfChannels =  function() {
+  var numberOfChannels = 1;
+  var photometricInterpretation = this.photometricInterpretation();
+
+  if (photometricInterpretation === 'RGB' ||
+            photometricInterpretation === 'PALETTE COLOR' ||
+            photometricInterpretation === 'YBR_FULL' ||
+            photometricInterpretation === 'YBR_FULL_422' ||
+            photometricInterpretation === 'YBR_PARTIAL_422' ||
+            photometricInterpretation === 'YBR_PARTIAL_420' ||
+            photometricInterpretation === 'YBR_RCT') {
+    numberOfChannels = 3;
+  }
+
+  // make sure we return a number! (not a string!)
+  return numberOfChannels;
+};
+
 VJS.parsers.dicom.prototype.imageOrientation =  function(frameIndex) {
   // expect frame index to start at 0!
   var imageOrientation = this._dataSet.string('x00200037');
@@ -418,26 +436,61 @@ VJS.parsers.dicom.prototype.extractPixelData =  function(frameIndex) {
   var bitsAllocated = this.bitsAllocated(frameIndex);
   var pixelDataElement = this._dataSet.elements.x7fe00010;
   var pixelDataOffset = pixelDataElement.dataOffset;
-  var numPixels = this.rows(frameIndex) * this.columns(frameIndex);
+  var numberOfChannels  = this.numberOfChannels();
+  var numPixels = this.rows(frameIndex) * this.columns(frameIndex) * numberOfChannels;
   var frameOffset = 0;
-  
-  if (pixelRepresentation === 0 && bitsAllocated === 8) {
 
-    // unsigned 8 bit
+  if (numberOfChannels === 1) {
+    if (pixelRepresentation === 0 && bitsAllocated === 8) {
+
+      // unsigned 8 bit
+      frameOffset = pixelDataOffset + frameIndex * numPixels;
+      ePixelData =  new Uint8Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+    } else if (pixelRepresentation === 0 && bitsAllocated === 16) {
+
+      // unsigned 16 bit
+      frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
+      ePixelData = new Uint16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+    } else if (pixelRepresentation === 1 && bitsAllocated === 16) {
+
+      // signed 16 bit
+      frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
+      ePixelData = new Int16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+    }
+  } else {
+    // ASSUME RGB 8 BITS SIGNED!
     frameOffset = pixelDataOffset + frameIndex * numPixels;
-    ePixelData =  new Uint8Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+    var encodedPixelData = new Uint8Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+    var photometricInterpretation = this.photometricInterpretation();
+    window.console.log(photometricInterpretation);
 
-  } else if (pixelRepresentation === 0 && bitsAllocated === 16) {
+    if(photometricInterpretation === 'RGB'){
+      // ALL GOOD, ALREADY ORDERED
+      ePixelData = encodedPixelData;
 
-    // unsigned 16 bit
-    frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
-    ePixelData = new Uint16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
-
-  } else if (pixelRepresentation === 1 && bitsAllocated === 16) {
-
-    // signed 16 bit
-    frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
-    ePixelData = new Int16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+    }
+    else if(photometricInterpretation === 'YBR_FULL'){
+      ePixelData = new Uint8Array(numPixels);
+      // https://github.com/chafey/cornerstoneWADOImageLoader/blob/master/src/decodeYBRFull.js
+      var nPixels = numPixels / 3;
+      var ybrIndex = 0;
+      var rgbaIndex = 0;
+      for(var i= 0; i < nPixels; i++) {
+        var y = encodedPixelData[ybrIndex++];
+        var cb = encodedPixelData[ybrIndex++];
+        var cr = encodedPixelData[ybrIndex++];
+        ePixelData[rgbaIndex++] = y + 1.40200 * (cr - 128);// red
+        ePixelData[rgbaIndex++] = y - 0.34414 * (cb -128) - 0.71414 * (cr- 128); // green
+        ePixelData[rgbaIndex++] = y + 1.77200 * (cb - 128); // blue
+        ePixelData[rgbaIndex++] = 255; //alpha
+      }
+    }
+    else{
+      window.console.log('photometric interpolation not supported: ' + photometricInterpretation);
+    }
 
   }
 

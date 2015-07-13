@@ -165,11 +165,13 @@ window.onload = function() {
           // array of 16 textures
           uniforms.uTextureContainer.value = textures;
           // texture dimensions
-          uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._nbFrames); //[stack._columns, stack._rows, stack._nbFrames];
+          uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._numberOfFrames); //[stack._columns, stack._rows, stack._numberOfFrames];
           // world to model
           uniforms.uWorldToData.value = stack._lps2IJK; //new THREE.Matrix4().makeTranslation(448, 448, 30); //new THREE.Matrix4(); //stack._lps2IJK;
           // window level
           uniforms.uWindowLevel.value = stack._windowLevel;
+          uniforms.uNumberOfChannels.value = stack._numberOfChannels;
+          uniforms.uBitsAllocated.value = stack._bitsAllocated;
 
           var sliceMaterial = new THREE.ShaderMaterial({
             // 'wireframe': true,

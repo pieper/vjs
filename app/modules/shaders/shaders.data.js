@@ -40,6 +40,14 @@ VJS.shaders.data = {
             'uWindowLevel': {
                 type: 'fv1',
                 value: [0.0,0.0]
+            },
+            'uNumberOfChannels': {
+                type: 'i',
+                value: 1
+            },
+            'uBitsAllocated': {
+                type: 'i',
+                value: 8
             }
         },
 

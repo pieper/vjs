@@ -46,7 +46,7 @@ VJS.models.stack = function() {
    * @member
    * @type {number}
    */
-  this._nbFrames = 0;
+  this._numberOfFrames = 0;
   /**
    * @member
    * @type {Object}
@@ -107,10 +107,10 @@ VJS.models.stack.prototype.prepare = function() {
   // if no instance nuber, order by position?
 
   // dimensions of the stack
-  this._nbFrames = this._frame.length;
+  this._numberOfFrames = this._frame.length;
   this._rows = this._frame[0]._rows;
   this._columns = this._frame[0]._columns;
-  this._dimensions = new THREE.Vector3(this._columns, this._rows, this._nbFrames);
+  this._dimensions = new THREE.Vector3(this._columns, this._rows, this._numberOfFrames);
 
   // extra
   this._pixelSpacing.row = this._frame[0]._pixelSpacing[0];
@@ -204,7 +204,7 @@ VJS.models.stack.prototype.prepare = function() {
   // Spacing
   // can not be 0 if not matrix can not be inverted.
   var zSpacing = 1;
-  if (this._nbFrames > 1) {
+  if (this._numberOfFrames > 1) {
     if (this._spacingBetweenSlices) {
       zSpacing = this._spacingBetweenSlices;
     } else {
@@ -256,21 +256,10 @@ VJS.models.stack.prototype.prepare = function() {
   window.console.log(this._dimensions);
 
   // create 16 rgb textures
-  var nbChannels = 3;
   for (var ii = 0; ii < this._nbTextures; ii++) {
-    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * nbChannels));
+    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * this._numberOfChannels));
   }
 
-  // if required pixels > this._textureSize * this._textureSize * nbChannels ?
-  // window.console.log(nbVoxels);
-
-  // RGB or not?
-  // if RBG needs to be 8 bits for now, RBG as expected
-  // else
-  // if 8 bits
-  // all to R
-  // if 16 bits
-  // need to split higb bits/low bits into rbg values
   // http://stackoverflow.com/questions/6413744/looking-to-access-16-bit-image-data-in-javascript-webgl
 
   // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
@@ -289,24 +278,33 @@ VJS.models.stack.prototype.prepare = function() {
 
     var textureIndex = Math.floor(jj / textureDimension);
     var inTextureIndex = jj % (textureDimension);
-    var rawValue = this._frame[frameIndex]._pixelData[inFrameIndex];
+    if (this._numberOfChannels === 3) {
 
-    // get most significant (msb) and less significant (lsb) bytes
-    // deal with sign?
-    // deal with number of channels
-    // deal with image type (single/multi channel)
-    // >> or >>> ?
-    // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift
-    var lsb = rawValue & 0xFF;
-    var msb = (rawValue >> 8) & 0xFF;
+      this._rawData[textureIndex][3 * inTextureIndex] = this._frame[frameIndex]._pixelData[3 * inFrameIndex];
+      this._rawData[textureIndex][3 * inTextureIndex + 1] = this._frame[frameIndex]._pixelData[3 * inFrameIndex + 1];
+      this._rawData[textureIndex][3 * inTextureIndex + 2] = this._frame[frameIndex]._pixelData[3 * inFrameIndex + 2];
 
-    this._rawData[textureIndex][3 * inTextureIndex] = msb;
-    this._rawData[textureIndex][3 * inTextureIndex + 1] = lsb;
-    this._rawData[textureIndex][3 * inTextureIndex + 2] = frameIndex;
+    } else {
+      // should work with 8 and 16 bits data
+
+      var rawValue = this._frame[frameIndex]._pixelData[inFrameIndex];
+
+      // get most significant (msb) and less significant (lsb) bytes
+      // deal with sign?
+      // deal with number of channels
+      // deal with image type (single/multi channel)
+      // >> or >>> ?
+      // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift
+      var lsb = rawValue & 0xFF;
+      var msb = (rawValue >> 8) & 0xFF;
+
+      this._rawData[textureIndex][3 * inTextureIndex] = msb;
+      this._rawData[textureIndex][3 * inTextureIndex + 1] = lsb;
+      this._rawData[textureIndex][3 * inTextureIndex + 2] = frameIndex;
+
+    }
 
   }
-
-  console.timeEnd('arrangeDataForWebgl');
 
   // default window level based on min/max for now...
   var width = this._minMax[1] - this._minMax[0];
@@ -317,9 +315,7 @@ VJS.models.stack.prototype.prepare = function() {
   this._windowLevel = [center, width];
 
   // need to pass min/max
-  // need to max nbChannels
-  // need to pass nbBits
-  // need to pass signed or not
+  this._bitsAllocated = this._frame[0]._bitsAllocated;
 
   window.console.log('window level: ', this._windowLevel);
 };

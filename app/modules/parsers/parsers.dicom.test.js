@@ -143,7 +143,7 @@ data = {
   seriesInstanceUID: '999.999.2.19960619.163000.1',
   transferSyntaxUID: '1.2.840.10008.1.2.1', // Implicit VR Endian
   numberOfFrames: 16,
-  numberOfChannels: 3,
+  numberOfChannels: 1,
 
   // Stack specific
 
@@ -213,6 +213,10 @@ function DICOMTestSequence(referenceDataset) {
 
       it('Number of frames: ' + referenceDataset.numberOfFrames, function() {
         expect(parser.numberOfFrames()).toBe(referenceDataset.numberOfFrames);
+      });
+
+      it('Number of channels: ' + referenceDataset.numberOfChannels, function() {
+        expect(parser.numberOfChannels()).toBe(referenceDataset.numberOfChannels);
       });
     });
 
@@ -352,7 +356,7 @@ function PixelDataTestSequence(referenceDataset) {
         if (pixelData) {
           var minMax = parser.minMaxPixelData(pixelData);
           expect(minMax).toEqual(referenceDataset.minMax);
-        };
+        }
       });
     });
   });
