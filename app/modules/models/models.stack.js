@@ -78,6 +78,7 @@ VJS.models.stack = function() {
   this._windowCenter = 0;
   this._windowWidth = 0;
   this._minMax = [65535, -32768];
+  this._invert = 0;
 
   this._ijk2LPS = null;
   this._lps2IJK = null;
@@ -257,7 +258,8 @@ VJS.models.stack.prototype.prepare = function() {
 
   // create 16 rgb textures
   for (var ii = 0; ii < this._nbTextures; ii++) {
-    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * this._numberOfChannels));
+    // *3 because always create RGB
+    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * 3));
   }
 
   // http://stackoverflow.com/questions/6413744/looking-to-access-16-bit-image-data-in-javascript-webgl
@@ -285,7 +287,7 @@ VJS.models.stack.prototype.prepare = function() {
       this._rawData[textureIndex][3 * inTextureIndex + 2] = this._frame[frameIndex]._pixelData[3 * inFrameIndex + 2];
 
     } else {
-      // should work with 8 and 16 bits data
+      //
 
       var rawValue = this._frame[frameIndex]._pixelData[inFrameIndex];
 

@@ -172,6 +172,7 @@ window.onload = function() {
           uniforms.uWindowLevel.value = stack._windowLevel;
           uniforms.uNumberOfChannels.value = stack._numberOfChannels;
           uniforms.uBitsAllocated.value = stack._bitsAllocated;
+          uniforms.uInvert.value = stack._invert;
 
           var sliceMaterial = new THREE.ShaderMaterial({
             // 'wireframe': true,
@@ -210,12 +211,19 @@ window.onload = function() {
           var stackFolder = gui.addFolder('Stack');
           var windowWidthUpdate = stackFolder.add(stack, '_windowWidth', 1, stack._minMax[1]).step(1);
           windowWidthUpdate.onChange(function(value){
-            stack._windowLevel[1] = value;
+            uniforms.uWindowLevel.value[1] = value;
           });
           var windowCenterUpdate = stackFolder.add(stack, '_windowCenter', stack._minMax[0], stack._minMax[1]).step(1);
           windowCenterUpdate.onChange(function(value){
-            stack._windowLevel[0] = value;
+            uniforms.uWindowLevel.value[0] = value;
           });
+
+          var invertUpdate = stackFolder.add(stack, '_invert', 0, 1).step(1);
+          invertUpdate.onChange(function(value){
+            window.console.log(value);
+            uniforms.uInvert.value = value;
+          });
+
           stackFolder.open();
 
           var ballsFolder = gui.addFolder('Spheres');

@@ -80,6 +80,7 @@ uniform vec3 uDataDimensions;
 uniform mat4 uWorldToData;
 uniform int uNumberOfChannels;
 uniform int uBitsAllocated;
+uniform int uInvert;
 
 varying vec4 vPos;
 
@@ -114,6 +115,11 @@ void main(void) {
       float combined = ( rawValue - windowMin ) / uWindowLevel[1];
 
       dataValue.r = dataValue.g = dataValue.b = combined;
+    }
+
+    if(uInvert == 1){
+      dataValue = vec4(1, 1, 1, 1) - dataValue;
+      dataValue.a = 1.0;
     }
 
     gl_FragColor = dataValue;
