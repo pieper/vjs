@@ -72,6 +72,12 @@ VJS.models.stack = function() {
   this._textureSize = 2048;
   this._nbTextures = 16; // HIGH RES..
   this._rawData = [];
+  // this._windowCenter = 0;
+  // this._windowWidth = 0;
+  this._windowLevel = [0, 0];
+  this._windowCenter = 0;
+  this._windowWidth = 0;
+  this._minMax = [65535, -32768];
 
   this._ijk2LPS = null;
   this._lps2IJK = null;
@@ -157,6 +163,10 @@ VJS.models.stack.prototype.prepare = function() {
       window.console.log('First frame had: ', this._sliceThickness, ' sliceThickness.');
       window.console.log('Frame index: ', i, ' has: ', this._frame[i]._sliceThickness, ' sliceThickness.');
     }
+
+    // get min/max
+    this._minMax[0] = Math.min(this._minMax[0], this._frame[i]._minMax[0]);
+    this._minMax[1] = Math.max(this._minMax[1], this._frame[i]._minMax[1]);
   }
 
   // Origin
@@ -242,19 +252,17 @@ VJS.models.stack.prototype.prepare = function() {
   window.console.log(this._lps2IJK, this._ijk2LPS, this._direction);
 
   // only works with 1 channel for now...
-  var requiredPixels = this._dimensions.x * this._dimensions.y * this._dimensions.z;
+  var nbVoxels = this._dimensions.x * this._dimensions.y * this._dimensions.z;
+  window.console.log(this._dimensions);
 
-  var nbChannels = 1;
+  // create 16 rgb textures
+  var nbChannels = 3;
   for (var ii = 0; ii < this._nbTextures; ii++) {
     this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * nbChannels));
   }
 
   // if required pixels > this._textureSize * this._textureSize * nbChannels ?
-  // window.console.log(requiredPixels);
-  // window.console.log(this._rows);
-  // window.console.log(this._columns);
-  // window.console.log(this._rows * this._columns);
-  // window.console.log(this._textureSize);
+  // window.console.log(nbVoxels);
 
   // RGB or not?
   // if RBG needs to be 8 bits for now, RBG as expected
@@ -268,67 +276,52 @@ VJS.models.stack.prototype.prepare = function() {
   // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
   //var prevFrame = -1;
   //var prevTexture = -1;
+
   var frameDimension = this._dimensions.x * this._dimensions.y;
   var textureDimension = this._textureSize * this._textureSize;
-  for (var jj = 0; jj < requiredPixels; jj++) {
+
+  console.time('arrangeDataForWebgl');
+
+  for (var jj = 0; jj < nbVoxels; jj++) {
 
     var frameIndex = Math.floor(jj / frameDimension);
     var inFrameIndex = jj % (frameDimension);
+
     var textureIndex = Math.floor(jj / textureDimension);
     var inTextureIndex = jj % (textureDimension);
+    var rawValue = this._frame[frameIndex]._pixelData[inFrameIndex];
 
-    // window.console.log(textureIndex, inTextureIndex);
-    // different ways to itereate if 1 or N channels!!
-    // just 1 for now!
-    // NORMAALIZE IN THE SHADERS!
-    // could track min/max here...?
+    // get most significant (msb) and less significant (lsb) bytes
+    // deal with sign?
+    // deal with number of channels
+    // deal with image type (single/multi channel)
+    // >> or >>> ?
+    // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift
+    var lsb = rawValue & 0xFF;
+    var msb = (rawValue >> 8) & 0xFF;
 
-    //window.console.log(textureIndex,frameIndex);
+    this._rawData[textureIndex][3 * inTextureIndex] = msb;
+    this._rawData[textureIndex][3 * inTextureIndex + 1] = lsb;
+    this._rawData[textureIndex][3 * inTextureIndex + 2] = frameIndex;
 
-    // if(prevFrame !== frameIndex){
-    //   window.console.log('frameIndex', frameIndex);
-    //   prevFrame = frameIndex;
-    // }
-    // if(prevTexture !== textureIndex){
-    //   window.console.log('textureIndex', textureIndex);
-    //   prevTexture = textureIndex;
-    // }
-
-    // if(frameIndex < 100 && frameIndex > 58){
-    this._rawData[textureIndex][inTextureIndex] = this._frame[frameIndex]._pixelData[inFrameIndex]; //Math.floor( Math.random() * 255 );
-
-    // }
-
-    // // normalize value
-    // var normalizedValue = 255 * ((this._data[j] - this._min) / (this._max - this._min));
-
-    // // RGB
-    // rawData[textureIndex][4 * inTextureIndex] = normalizedValue;
-
-    // if (inTextureIndex >= requiredPixels) {
-    //     break;
-    // }
   }
 
-  // LPS to World.
-  // and inverse.
+  console.timeEnd('arrangeDataForWebgl');
 
-  // all IJK coords + transform for origin and normal to be in same space!
+  // default window level based on min/max for now...
+  var width = this._minMax[1] - this._minMax[0];
+  var center = this._minMax[0] + width / 2;
 
-  //     var obb = {
-  //     'halfDimensions': this._volumeCore._halfDimensions,
-  //     'orientation': this._volumeCore._orientation,
-  //     'center': this._volumeCore._halfDimensions, //this._volumeCore._RAS.center,
-  //     'toOBBSpace': this._volumeCore._transforms.ras2ijk,
-  //     'toOBBSpaceInvert': this._volumeCore._transforms.ijk2ras,
-  // };
+  this._windowWidth = width;
+  this._windowCenter = center;
+  this._windowLevel = [center, width];
 
-  // var plane = {
-  //     'origin': this._origin,
-  //     'normal': this._normal
-  // };
+  // need to pass min/max
+  // need to max nbChannels
+  // need to pass nbBits
+  // need to pass signed or not
 
-  // SWITCH TO DECIDE WHAT WE CAN VIEW OR NOT FROM HERE!
+  window.console.log('window level: ', this._windowLevel);
 };
 
 /**

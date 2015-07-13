@@ -36,6 +36,10 @@ VJS.shaders.data = {
             'uWorldToData': {
                 type: 'm4',
                 value: new THREE.Matrix4()
+            },
+            'uWindowLevel': {
+                type: 'fv1',
+                value: [0.0,0.0]
             }
         },
 

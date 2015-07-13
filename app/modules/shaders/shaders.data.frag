@@ -74,6 +74,7 @@ vec4 sampleAs3DTexture(sampler2D textureContainer[16], vec3 textureCoordinate, v
 }
 
 uniform float uTextureSize;
+uniform float uWindowLevel[ 2 ];
 uniform sampler2D uTextureContainer[16];
 uniform vec3 uDataDimensions;
 uniform mat4 uWorldToData;
@@ -89,20 +90,40 @@ void main(void) {
   vec4 dataCoordinateRaw = uWorldToData * vPos;
   dataCoordinateRaw += 0.5;
   vec3 dataCoordinate = vec3(floor(dataCoordinateRaw.x), floor(dataCoordinateRaw.y), floor(dataCoordinateRaw.z));
-  vec3 textureCoordinate = dataCoordinate/uDataDimensions;
+
 
   // if data in range, look it up in the texture!
-  if(textureCoordinate.x >= 0.0
-  && textureCoordinate.y >= 0.0
-  && textureCoordinate.z >= 0.0
-  && textureCoordinate.x <= 1.0
-  && textureCoordinate.y <= 1.0
-  && textureCoordinate.z <= 1.0
+  if(dataCoordinate.x >= 0.0
+  && dataCoordinate.y >= 0.0
+  && dataCoordinate.z >= 0.0
+  && dataCoordinate.x < uDataDimensions.x
+  && dataCoordinate.y < uDataDimensions.y
+  && dataCoordinate.z < uDataDimensions.z
   ){
-    vec3 color = vec3(0, 0, 0);
+    vec3 textureCoordinate = dataCoordinate/uDataDimensions;
     vec4 dataValue = sampleAs3DTexture(uTextureContainer, textureCoordinate, uDataDimensions, uTextureSize);
-    color.rgb = dataValue.rgb;
-    vec4 data = vec4(color, 1.0);
+    // color.rgb = dataValue.rgb;
+
+    // combine it as needed....
+    // use window level to display properly the image!
+    //float colorsixteenbits = (256.0 * dataValue.r + dataValue.b*255.0)/400.0;
+    float rawValue = dataValue.r * 255.0 * 256.0 + dataValue.g * 256.0;
+    float windowMin = uWindowLevel[0] - uWindowLevel[1]/2.0;
+    float windowMax = uWindowLevel[0] + uWindowLevel[1]/2.0;
+    float combined = ( rawValue - windowMin ) / uWindowLevel[1];
+
+    // what is combined < 0?
+    // if(combined <= 0.0){
+    //   combined = 0.0;
+    // }
+    // else if( combined >= 1.0 ){
+    //   combined = 1.0;
+    // }
+
+    // apply thresholding???
+    // vec3 processedColor = vec3();
+
+    vec4 data = vec4(combined, combined, combined, 1.0);
     // vec4 test = vec4(.5, .5, dataCoordinate[2]/60.0, 1.0);
     gl_FragColor = data;
     // gl_FragColor = mix(data, test, 0.5);

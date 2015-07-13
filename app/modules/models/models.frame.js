@@ -95,6 +95,8 @@ VJS.models.frame = function() {
     this._pixelData = null;
 
     this._instanceNumber = -1;
+
+    this.__minMax = null;
 };
 
 VJS.models.frame.prototype.constructor = VJS.models.frame;

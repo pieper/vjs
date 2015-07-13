@@ -194,6 +194,8 @@ VJS.loaders.dicom.prototype.parse = function(response) {
       frame._imageOrientation = dicomParser.imageOrientation(i);
       frame._imagePosition = dicomParser.imagePosition(i);
       frame._dimensionIndexValues = dicomParser.dimensionIndexValues(i);
+      // should pass frame index for consistency...
+      frame._minMax = dicomParser.minMaxPixelData(frame._pixelData);
 
       stack._frame.push(frame);
     }

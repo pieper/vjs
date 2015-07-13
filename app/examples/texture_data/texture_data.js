@@ -4,6 +4,8 @@
 var vjsOrbitControl2D = require('../../modules/controls/OrbitControls2D');
 var vjsLoaderDicom = require('../../modules/loaders/loaders.dicom');
 var vjsShadersData = require('../../modules/shaders/shaders.data');
+var glslify = require('glslify');
+
 var VJS = VJS || {};
 
 // standard global variables
@@ -153,7 +155,7 @@ window.onload = function() {
             // always pass it as RGB
             // in shaders handle it depending on how channels/bytes
             //
-            var tex = new THREE.DataTexture(stack._rawData[m], stack._textureSize, stack._textureSize, THREE.LuminanceFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+            var tex = new THREE.DataTexture(stack._rawData[m], stack._textureSize, stack._textureSize, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
             tex.needsUpdate = true;
             textures.push(tex);
           }
@@ -166,14 +168,16 @@ window.onload = function() {
           uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._nbFrames); //[stack._columns, stack._rows, stack._nbFrames];
           // world to model
           uniforms.uWorldToData.value = stack._lps2IJK; //new THREE.Matrix4().makeTranslation(448, 448, 30); //new THREE.Matrix4(); //stack._lps2IJK;
+          // window level
+          uniforms.uWindowLevel.value = stack._windowLevel;
 
           var sliceMaterial = new THREE.ShaderMaterial({
             // 'wireframe': true,
             'side': THREE.DoubleSide,
             'transparency': true,
             'uniforms': uniforms,
-            'vertexShader': vjsShadersData.parameters.vertexShader,
-            'fragmentShader': vjsShadersData.parameters.fragmentShader,
+            'vertexShader': glslify('../../modules/shaders/shaders.data.vert'),
+            'fragmentShader': glslify('../../modules/shaders/shaders.data.frag')
           });
 
           bboxMax = new THREE.Vector3(896, 896, 60).applyMatrix4(stack._ijk2LPS);
@@ -200,6 +204,17 @@ window.onload = function() {
 
           var customContainer = document.getElementById('my-gui-container');
           customContainer.appendChild(gui.domElement);
+
+          var stackFolder = gui.addFolder('Stack');
+          var windowWidthUpdate = stackFolder.add(stack, '_windowWidth', 1, stack._minMax[1]).step(1);
+          windowWidthUpdate.onChange(function(value){
+            stack._windowLevel[1] = value;
+          });
+          var windowCenterUpdate = stackFolder.add(stack, '_windowCenter', stack._minMax[0], stack._minMax[1]).step(1);
+          windowCenterUpdate.onChange(function(value){
+            stack._windowLevel[0] = value;
+          });
+          stackFolder.open();
 
           var ballsFolder = gui.addFolder('Spheres');
           var numberOfSpheresUpdate = ballsFolder.add(testSpheres, 'nbSpheres', 1, 100).step(1);
