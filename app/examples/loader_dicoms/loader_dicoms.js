@@ -135,7 +135,7 @@ window.onload = function() {
     // might not be useful with promises anymore.
 
     // can not promise do it for us??
-    var imageHelpers = [];
+    var seriesHelper = [];
     var manager = new THREE.LoadingManager();
     manager.onProgress = function(item, loaded, total) {
         window.console.log('manager progress ----');
@@ -146,18 +146,19 @@ window.onload = function() {
         }
 
         if (loaded === total) {
-            var mergedHelpers = [imageHelpers[0]];
+            window.console.log(seriesHelper);
+            var mergedHelpers = [seriesHelper[0]];
             // if all files loaded
-            for (var i = 0; i < imageHelpers.length; i++) {
+            for (var i = 0; i < seriesHelper.length; i++) {
                 // test image against existing imagess
                 for (var j = 0; j < mergedHelpers.length; j++) {
-                    if (mergedHelpers[j].merge(imageHelpers[i])) {
+                    if (mergedHelpers[j].merge(seriesHelper[i])) {
                         // merged successfully
                         break;
                     } else if (j === mergedHelpers.length - 1) {
                         // last merge was not successful
                         // this is a new image
-                        mergedHelpers.push(imageHelpers[i]);
+                        mergedHelpers.push(seriesHelper[i]);
                     }
                 }
             }
@@ -165,7 +166,7 @@ window.onload = function() {
             mergedHelpers[0].prepare();
             scene.add(mergedHelpers[0]);
 
-            probe = new vjsProbePixelWidget(mergedHelpers[0]._image, mergedHelpers[0].children);
+            probe = new vjsProbePixelWidget(mergedHelpers[0]._series, mergedHelpers[0].children);
             scene.add(probe);
 
             var threeD = document.getElementById('r3d');
@@ -212,7 +213,7 @@ window.onload = function() {
         // '36749558', '36749572', '36749586', '36749600', '36749614', '36749628',
         // '36749642', '36749656', '36749670', '36749684', '36749698', '36749712',
         // '36749726', '36749740', '36749754', '36749768', '36749782', '36749796',
-        // '36749810', '36749824', '36749838', '36749852', '36749866', '36749880',
+        '36749810', '36749824', '36749838', '36749852', '36749866', '36749880',
         '36749894', '36749908', '36749922', '36749936', '36749950', '36749964'
     ];
 
@@ -230,7 +231,7 @@ window.onload = function() {
             function(imageHelper) {
                 // should it just return an image model?
                 // add image helper to scene
-                imageHelpers.push(imageHelper);
+                seriesHelper.push(imageHelper);
             },
             // progress
             function() {

@@ -97,18 +97,14 @@ VJS.models.stack = function() {
  * @public
  */
 VJS.models.stack.prototype.prepare = function() {
-  // order the frames based on theirs dimension indices
-  // first index is the most important.
-  // 1,1,1,1 willl be first
-  // 1,1,2,1 will be next
-  // 1,1,2,3 will be next
-  // 1,1,3,1 wil be next
-  this._frame.sort(VJS.models.stack.prototype.orderFrameOnDimensionIndices);
-  // if no dimension, order by instaceNumber
-  // if no instance nuber, order by position?
 
   // dimensions of the stack
   this._numberOfFrames = this._frame.length;
+
+  window.console.log(this);
+  this.orderFrames();
+  var zSpacing = this.zSpacing();
+
   this._rows = this._frame[0]._rows;
   this._columns = this._frame[0]._columns;
   this._dimensions = new THREE.Vector3(this._columns, this._rows, this._numberOfFrames);
@@ -201,24 +197,6 @@ VJS.models.stack.prototype.prepare = function() {
       0, 0, 0, 1);
 
   window.console.log(this._direction);
-
-  // Spacing
-  // can not be 0 if not matrix can not be inverted.
-  var zSpacing = 1;
-  if (this._numberOfFrames > 1) {
-    if (this._spacingBetweenSlices) {
-      zSpacing = this._spacingBetweenSlices;
-    } else {
-      // we got to compute it...!
-      window.console.log('NEED TO COMPUTE SPACING BETWEEN THE FRAMES!');
-      // It is always better to compute the distance between a pair of
-      // slices along a normal to the plane of the image specified by
-      // the Image Orientation (Patient) attribute, by projecting the
-      // top left hand corner position specified by the Image Position
-      // (Patient) attribute onto that normal. These attributes are
-      // always sent and much more often "right" than is (0018,0088).
-    }
-  }
 
   this._spacing = new THREE.Vector3(
       this._pixelSpacing.row,
@@ -349,6 +327,96 @@ VJS.models.stack.prototype.orderFrameOnDimensionIndices = function(a, b) {
   return 0;
 };
 
+VJS.models.stack.prototype.orderFrames = function() {
+  // order the frames based on theirs dimension indices
+  // first index is the most important.
+  // 1,1,1,1 willl be first
+  // 1,1,2,1 will be next
+  // 1,1,2,3 will be next
+  // 1,1,3,1 wil be next
+  if (this._frame[0]._dimensionIndexValues) {
+    this._frame.sort(VJS.models.stack.prototype.orderFrameOnDimensionIndices);
+  } else if (this._frame[0]._imagePosition) {
+    // ORDERING BASED ON IMAGE POSITION
+    var xCosine = new THREE.Vector3(
+      this._frame[0]._imageOrientation[0],
+      this._frame[0]._imageOrientation[1],
+      this._frame[0]._imageOrientation[2]
+      );
+
+    var yCosine = new THREE.Vector3(
+      this._frame[0]._imageOrientation[3],
+      this._frame[0]._imageOrientation[4],
+      this._frame[0]._imageOrientation[5]
+    );
+
+    var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
+
+    function computeDistance(normal, frame) {
+      frame._dist = frame._imagePosition[0] * normal.x +
+        frame._imagePosition[1] * normal.y +
+        frame._imagePosition[2] * normal.z;
+      return frame;
+    }
+
+    // // compute dist in this series
+    this._frame.map(computeDistance.bind(null, zCosine));
+    window.console.log(this._frame);
+    // // order by dist
+    this._frame.sort(function(a, b) {return a._dist - b._dist});
+    window.console.log(this._frame);
+
+  } else {
+    // else slice location
+    // image number
+    // ORDERING BASED ON instance number
+    // _ordering = 'instance_number';
+    // first_image.sort(function(a,b){return a["instance_number"]-b["instance_number"]});
+  }
+};
+
+VJS.models.stack.prototype.zSpacing = function() {
+  // Spacing
+  // can not be 0 if not matrix can not be inverted.
+  var zSpacing = 1;
+  if (this._numberOfFrames > 1) {
+    if (this._spacingBetweenSlices) {
+      zSpacing = this._spacingBetweenSlices;
+    } else {
+      var xCosine = new THREE.Vector3(
+        this._frame[0]._imageOrientation[0],
+        this._frame[0]._imageOrientation[1],
+        this._frame[0]._imageOrientation[2]
+      );
+
+      var yCosine = new THREE.Vector3(
+        this._frame[0]._imageOrientation[3],
+        this._frame[0]._imageOrientation[4],
+        this._frame[0]._imageOrientation[5]
+      );
+
+      var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
+
+      function computeDistance(normal, frame) {
+      frame._dist = frame._imagePosition[0] * normal.x +
+        frame._imagePosition[1] * normal.y +
+        frame._imagePosition[2] * normal.z;
+      return frame;
+    }
+
+      // // compute dist in this series
+      this._frame.map(computeDistance.bind(null, zCosine));
+      window.console.log(this._frame);
+      // // order by dist
+      this._frame.sort(function(a, b) {return a._dist - b._dist});
+
+      zSpacing = this._frame[1]._dist - this._frame[0]._dist;
+    }
+  }
+
+  return zSpacing;
+};
+
 VJS.models.stack.prototype.merge = function(stack) {
   // try to merge imageHelper with current image.
   // same image if same Series UID?
@@ -366,41 +434,47 @@ VJS.models.stack.prototype.merge = function(stack) {
       // test stack against existing stack
       for (var j = 0; j < this._frame.length; j++) {
         // test dimension
-        if (this._frame[j]._dimensionIndexValues.length > 0) {
-          if (this._frame[j]._dimensionIndexValues.join() === frame[i]._dimensionIndexValues.join()) {
-            // frame alread there!
-            break;
-          } else if (j === this._frame.length - 1) {
-            this._frame.push(frame[i]);
-          }
-        }
-        // test instance number
-        else if (this._frame[j]._instanceNumber >= 0) {
-          if (this._frame[j]._instanceNumber === frame[i]._instanceNumber) {
-            // frame already there!
-            break;
-          } else if (j === this._frame.length - 1) {
-            this._frame.push(frame[i]);
-          }
-        }
-        // test image position patient
-        // else if(){
+        // dimension index value not defined!
+        if (
+          
+          // dimension index is unique
+          (this._frame[j]._dimensionIndexValues &&
+            frame[i]._dimensionIndexValues &&
+            this._frame[j]._dimensionIndexValues.join() === frame[i]._dimensionIndexValues.join()) ||
+          
+          // instance number is unique?
+          (this._frame[j]._instanceNumber &&
+            frame[i]._instanceNumber &&
+            this._frame[j]._instanceNumber === frame[i]._instanceNumber) ||
+          
+          // imagePosition + imageOrientation is unique
+          (this._frame[j]._imagePosition &&
+            frame[i]._imagePosition &&
+            this._frame[j]._imagePosition.join() === frame[i]._imagePosition.join() &&
+            this._frame[j]._imageOrientation &&
+            frame[i]._imageOrientation &&
+            this._frame[j]._imageOrientation.join() === frame[i]._imageOrientation.join())
 
-        // }
-        // do not know how to merge stacks
-        else if (j === this._frame.length - 1) {
-          window.console.log('stacks could not be merged');
-          window.console.log(this._frame);
-          window.console.log(stack._frame);
+          ) {
+
+          window.console.log('BREAKING!');
+          window.console.log(frame[i], this._frame[j]);
+          break;
+
+        } else if (j === this._frame.length - 1) {
+
+          window.console.log('PUSHING FRAME TO STACK!');
+          this._frame.push(frame[i]);
+          break;
+
         }
 
-        // else, test instance number?
-
-        // else, test image position patient?
       }
 
     }
   }
+
+  window.console.log(this);
 
   return sameStackID;
 };

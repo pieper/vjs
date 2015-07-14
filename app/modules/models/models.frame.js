@@ -87,16 +87,16 @@ VJS.models.frame = function() {
         'row': 1,
         'column': 1
     };
-    this._spacingBetweenSlices = 0;
+    this._spacingBetweenSlices = null;
     /**
      * @member
      * @type {Array}
      */
     this._pixelData = null;
 
-    this._instanceNumber = -1;
+    this._instanceNumber = null;
 
-    this.__minMax = null;
+    this._minMax = null;
 };
 
 VJS.models.frame.prototype.constructor = VJS.models.frame;

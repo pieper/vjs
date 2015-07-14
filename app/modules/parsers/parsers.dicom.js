@@ -127,7 +127,7 @@ VJS.parsers.dicom.prototype.imageOrientation =  function(frameIndex) {
     } else {
       // default orientation
       // should we default to undefined??
-      imageOrientation = '1\\0\\0\\0\\1\\0';
+      imageOrientation = null;
     }
   }
 
@@ -155,7 +155,7 @@ VJS.parsers.dicom.prototype.imagePosition =  function(frameIndex) {
     } else {
       // should we default to undefined??
       // default orientation
-      imagePosition = '0.0\\0.0\\0.0';
+      imagePosition = null;
     }
   }
 
@@ -182,7 +182,7 @@ VJS.parsers.dicom.prototype.pixelSpacing =  function(frameIndex) {
       pixelSpacing = planeOrientationSequence.string('x00280030');
     } else {
       // default orientation
-      pixelSpacing = '1.0\\1.0';
+      pixelSpacing = null;
     }
   }
 
@@ -218,7 +218,7 @@ VJS.parsers.dicom.prototype.sliceThickness =  function(frameIndex) {
       // default orientation
       // should we default to undefined??
       // print warning at least...
-      sliceThickness = 1;
+      sliceThickness = null;
     }
   }
 
@@ -230,7 +230,7 @@ VJS.parsers.dicom.prototype.rows =  function(frameIndex) {
   var rows = this._dataSet.uint16('x00280010');
 
   if (typeof rows === 'undefined') {
-    rows = undefined;
+    rows = null;
     // print warning at least...
   }
 
@@ -242,7 +242,7 @@ VJS.parsers.dicom.prototype.columns =  function(frameIndex) {
   var columns = this._dataSet.uint16('x00280011');
 
   if (typeof columns === 'undefined') {
-    columns = undefined;
+    columns = null;
     // print warning at least...
   }
 
@@ -284,7 +284,7 @@ VJS.parsers.dicom.prototype.rescaleIntercept =  function(frameIndex) {
       rescaleIntercept = philipsPrivateSequence.floatString('x00281052');
     } else {
       // default rescaleIntercept
-      rescaleIntercept = 0;
+      rescaleIntercept = null;
     }
   }
 
@@ -308,7 +308,7 @@ VJS.parsers.dicom.prototype.rescaleSlope =  function(frameIndex) {
       rescaleSlope = philipsPrivateSequence.floatString('x00281052');
     } else {
       // default rescaleSlope
-      rescaleSlope = 1;
+      rescaleSlope = null;
     }
   }
 
@@ -333,7 +333,7 @@ VJS.parsers.dicom.prototype.windowCenter =  function(frameIndex) {
     } else {
       // default windowCenter
       // print warning at least...
-      windowCenter = undefined;
+      windowCenter = null;
     }
   }
 
@@ -358,7 +358,7 @@ VJS.parsers.dicom.prototype.windowWidth =  function(frameIndex) {
     } else {
       // default windowWidth
       // print warning at least...
-      windowWidth = undefined;
+      windowWidth = null;
     }
   }
   return windowWidth;
@@ -382,7 +382,7 @@ VJS.parsers.dicom.prototype.dimensionIndexValues =  function(frameIndex) {
       dimensionIndexValues.push(philipsPrivateSequence.uint32('x00209157', i));
     }
   } else {
-    dimensionIndexValues.push(0);
+    dimensionIndexValues = null;
   }
 
   return dimensionIndexValues;

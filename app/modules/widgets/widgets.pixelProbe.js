@@ -80,16 +80,16 @@ VJS.widgets.pixelProbe.prototype.computeValues = function() {
         if (dataCoordinate.x >= 0 &&
             dataCoordinate.y >= 0 &&
             dataCoordinate.z >= 0) {
-            var textureSize = this.image._stack[0]._textureSize;
+            // var textureSize = this.image._stack[0]._textureSize;
             var rows = this.image._stack[0]._rows;
             var columns = this.image._stack[0]._columns;
 
-            var index = this._dataCoordinate.x + columns * this._dataCoordinate.y + rows * columns * this._dataCoordinate.z;
+            // var index = this._dataCoordinate.x + columns * this._dataCoordinate.y + rows * columns * this._dataCoordinate.z;
 
-            var textureIndex = Math.floor(index / (textureSize * textureSize));
-            var inTextureIndex = index % (textureSize * textureSize);
+            // var textureIndex = Math.floor(index / (textureSize * textureSize));
+            // var inTextureIndex = index % (textureSize * textureSize);
 
-            this._dataValue = this.image._stack[0]._rawData[textureIndex][inTextureIndex];
+            this._dataValue = this.image._stack[0]._frame[this._dataCoordinate.z]._pixelData[this._dataCoordinate.x + columns * this._dataCoordinate.y];
         } else {
             window.console.log('something funny happening in compute value');
             window.console.log(dataCoordinate);

@@ -220,7 +220,6 @@ window.onload = function() {
 
           var invertUpdate = stackFolder.add(stack, '_invert', 0, 1).step(1);
           invertUpdate.onChange(function(value){
-            window.console.log(value);
             uniforms.uInvert.value = value;
           });
 

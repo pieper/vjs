@@ -48,6 +48,7 @@ VJS.models.series.prototype.merge = function(series) {
         for (var i = 0; i < stack.length; i++) {
             // test stack against existing stack
             for (var j = 0; j < this._stack.length; j++) {
+                window.console.log(this._stack[j], stack[i]);
                 if (this._stack[j].merge(stack[i])) {
                     // merged successfully
                     window.console.log('stacks merged successfully!');
