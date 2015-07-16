@@ -480,12 +480,12 @@ VJS.models.stack.prototype.merge = function(stack) {
             this._frame[j]._imagePosition.join() === frame[i]._imagePosition.join() &&
             this._frame[j]._imageOrientation &&
             frame[i]._imageOrientation &&
-            this._frame[j]._imageOrientation.join() === frame[i]._imageOrientation.join()) ||
+            this._frame[j]._imageOrientation.join() === frame[i]._imageOrientation.join()) //||
 
           // _pixelData length is unique...? imageSOP?
-          (this._frame[j]._pixelData &&
-            frame[i]._pixelData &&
-            this._frame[j]._pixelData.length === frame[i]._pixelData.length)
+          // (this._frame[j]._pixelData &&
+          //   frame[i]._pixelData &&
+          //   this._frame[j]._pixelData.length === frame[i]._pixelData.length)
 
           ) {
 

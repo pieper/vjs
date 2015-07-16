@@ -1,5 +1,8 @@
 /*global module*/
 
+
+//ftp://medical.nema.org/MEDICAL/Dicom/2014c/output/chtml/part05/sect_6.2.html/
+
 'use strict';
 
 // imports
@@ -449,6 +452,45 @@ VJS.parsers.dicom.prototype.dimensionIndexValues =  function(frameIndex) {
   }
 
   return dimensionIndexValues;
+};
+
+VJS.parsers.dicom.prototype.inStackPositionNumber =  function(frameIndex) {
+  var inStackPositionNumber = null;
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+  if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+    // NOT A PHILIPS TRICK!
+    var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
+      inStackPositionNumber = philipsPrivateSequence.uint32('x00209057');
+  } else {
+    inStackPositionNumber = null;
+  }
+
+  return inStackPositionNumber;
+};
+
+
+VJS.parsers.dicom.prototype.stackID =  function(frameIndex) {
+  var stackID = null;
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+  if (typeof perFrameFunctionnalGroupSequence !== 'undefined') {
+    // NOT A PHILIPS TRICK!
+    var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
+      stackID = philipsPrivateSequence.intString('x00209056');
+  } else {
+    stackID = null;
+  }
+
+  return stackID;
 };
 
 VJS.parsers.dicom.prototype.dPixelData =  function(frameIndex) {

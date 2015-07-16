@@ -49,8 +49,8 @@ data = {
   dimensionIndexValues: [1, 1],
   instanceNumber: 1,
   pixelAspectRatio: null,
-  // inStackPositionNumber
-  // stackID
+  inStackPositionNumber: 1,
+  stackID: 1,
 
   // computed values
   minMax: [0, 437]
@@ -92,6 +92,8 @@ data = {
   dimensionIndexValues: null,
   instanceNumber: 516,
   pixelAspectRatio: null,
+  inStackPositionNumber: null,
+  stackID: null,
 
   // computed values
   minMax: [0, 437]
@@ -133,7 +135,9 @@ data = {
   windowWidth: null,
   dimensionIndexValues: null,
   instanceNumber: 107,
-  pixelAspectRatio: [4,3],
+  pixelAspectRatio: [4, 3],
+  inStackPositionNumber: null,
+  stackID: null,
 
   // computed values
   minMax: [16, 248]
@@ -176,6 +180,8 @@ data = {
   dimensionIndexValues: null,
   instanceNumber: 103,
   pixelAspectRatio: null,
+  inStackPositionNumber: null,
+  stackID: null,
 
   // computed values
   minMax: [0, 252]
@@ -327,6 +333,16 @@ function DICOMTestSequence(referenceDataset) {
       it('Pixel aspect ratio: ' + referenceDataset.pixelAspectRatio, function() {
         var frameIndex = 0;
         expect(parser.pixelAspectRatio(frameIndex)).toEqual(referenceDataset.pixelAspectRatio);
+      });
+
+      it('In stack position number: ' + referenceDataset.inStackPositionNumber, function() {
+        var frameIndex = 0;
+        expect(parser.inStackPositionNumber(frameIndex)).toEqual(referenceDataset.inStackPositionNumber);
+      });
+
+      it('Stack id: ' + referenceDataset.stackID, function() {
+        var frameIndex = 0;
+        expect(parser.stackID(frameIndex)).toEqual(referenceDataset.stackID);
       });
     });
   });
