@@ -105,13 +105,31 @@ VJS.models.stack.prototype.prepare = function() {
   this.orderFrames();
   var zSpacing = this.zSpacing();
 
+    // prepare the frame
+  if (this._frame[0]._pixelSpacing) {
+    this._pixelSpacing.row = this._frame[0]._pixelSpacing[0];
+    this._pixelSpacing.column = this._frame[0]._pixelSpacing[1];
+  } else if (this._frame[0]._pixelAspectRatio) {
+    this._pixelSpacing.row = 1.0;
+    this._pixelSpacing.column = 1.0 * this._frame[0]._pixelAspectRatio[1] / this._frame[0]._pixelAspectRatio[0];
+  } else {
+    this._pixelSpacing.row = 1.0;
+    this._pixelSpacing.column = 1.0;
+  }
+
+  if (!this._frame[0]._imagePosition) {
+    this._frame[0]._imagePosition = [0, 0, 0];
+  }
+
+  if (!this._frame[0]._imageOrientation) {
+    this._frame[0]._imageOrientation = [1, 0, 0, 0, 1, 0];
+  }
+
+
   this._rows = this._frame[0]._rows;
   this._columns = this._frame[0]._columns;
   this._dimensions = new THREE.Vector3(this._columns, this._rows, this._numberOfFrames);
 
-  // extra
-  this._pixelSpacing.row = this._frame[0]._pixelSpacing[0];
-  this._pixelSpacing.column = this._frame[0]._pixelSpacing[1];
   this._spacingBetweenSlices = this._frame[0]._spacingBetweenSlices;
   this._sliceThickness = this._frame[0]._sliceThickness;
 
@@ -135,31 +153,31 @@ VJS.models.stack.prototype.prepare = function() {
       window.console.log('Frame index: ', i, ' has: ', this.frame[i]._columns, ' columns.');
     }
 
-    // check for spacing consistency
-    if (this._pixelSpacing.row !== this._frame[i]._pixelSpacing[0] || this._pixelSpacing.column !== this._frame[i]._pixelSpacing[1]) {
-      // send an error message...
-      window.console.log('Spacing in stack\'s frames is not consistent.');
-      window.console.log(this);
-      window.console.log('First frame had : ', this._pixelSpacing.row, ' x ', this._pixelSpacing.column, ' spacing.');
-      window.console.log('Frame index : ', i, ' has: ', this._frame[i]._pixelSpacing[0], ' x ', this._frame[i]._pixelSpacing[1], ' spacing.');
-    }
+    // // check for spacing consistency
+    // if (this._pixelSpacing.row !== this._frame[i]._pixelSpacing[0] || this._pixelSpacing.column !== this._frame[i]._pixelSpacing[1]) {
+    //   // send an error message...
+    //   window.console.log('Spacing in stack\'s frames is not consistent.');
+    //   window.console.log(this);
+    //   window.console.log('First frame had : ', this._pixelSpacing.row, ' x ', this._pixelSpacing.column, ' spacing.');
+    //   window.console.log('Frame index : ', i, ' has: ', this._frame[i]._pixelSpacing[0], ' x ', this._frame[i]._pixelSpacing[1], ' spacing.');
+    // }
 
-    // check slice spacing consitency
-    if (this._spacingBetweenSlices !== this._frame[i]._spacingBetweenSlices) {
-      // send an error message...
-      window.console.log('Spacing betwen slices in stack\'s frames is not consistent.');
-      window.console.log(this);
-      window.console.log('First frame had: ', this._spacingBetweenSlices, ' spacing betwen slices.');
-      window.console.log('Frame index: ', i, ' has: ', this.frame[i]._spacingBetweenSlices, ' spacing betwen slices.');
-    }
+    // // check slice spacing consitency
+    // if (this._spacingBetweenSlices !== this._frame[i]._spacingBetweenSlices) {
+    //   // send an error message...
+    //   window.console.log('Spacing betwen slices in stack\'s frames is not consistent.');
+    //   window.console.log(this);
+    //   window.console.log('First frame had: ', this._spacingBetweenSlices, ' spacing betwen slices.');
+    //   window.console.log('Frame index: ', i, ' has: ', this.frame[i]._spacingBetweenSlices, ' spacing betwen slices.');
+    // }
 
-    // check for slice thickness consistency
-    if (this._sliceThickness !== this._frame[i]._sliceThickness) {
-      window.console.log('Slice thickness in stack\'s frames is not consistent.');
-      window.console.log(this);
-      window.console.log('First frame had: ', this._sliceThickness, ' sliceThickness.');
-      window.console.log('Frame index: ', i, ' has: ', this._frame[i]._sliceThickness, ' sliceThickness.');
-    }
+    // // check for slice thickness consistency
+    // if (this._sliceThickness !== this._frame[i]._sliceThickness) {
+    //   window.console.log('Slice thickness in stack\'s frames is not consistent.');
+    //   window.console.log(this);
+    //   window.console.log('First frame had: ', this._sliceThickness, ' sliceThickness.');
+    //   window.console.log('Frame index: ', i, ' has: ', this._frame[i]._sliceThickness, ' sliceThickness.');
+    // }
 
     // get min/max
     this._minMax[0] = Math.min(this._minMax[0], this._frame[i]._minMax[0]);
@@ -334,9 +352,10 @@ VJS.models.stack.prototype.orderFrames = function() {
   // 1,1,2,1 will be next
   // 1,1,2,3 will be next
   // 1,1,3,1 wil be next
+  window.console.log(this);
   if (this._frame[0]._dimensionIndexValues) {
     this._frame.sort(VJS.models.stack.prototype.orderFrameOnDimensionIndices);
-  } else if (this._frame[0]._imagePosition) {
+  } else if (this._frame[0]._imagePosition && this._frame[0]._imageOrientation) {
     // ORDERING BASED ON IMAGE POSITION
     var xCosine = new THREE.Vector3(
       this._frame[0]._imageOrientation[0],
@@ -379,9 +398,13 @@ VJS.models.stack.prototype.zSpacing = function() {
   // Spacing
   // can not be 0 if not matrix can not be inverted.
   var zSpacing = 1;
+  window.console.log(this._frame[0]);
+
   if (this._numberOfFrames > 1) {
     if (this._spacingBetweenSlices) {
       zSpacing = this._spacingBetweenSlices;
+    } else if (this._frame[0]._sliceThickness) {
+      zSpacing = this._frame[0]._sliceThickness;
     } else {
       var xCosine = new THREE.Vector3(
         this._frame[0]._imageOrientation[0],
@@ -412,6 +435,10 @@ VJS.models.stack.prototype.zSpacing = function() {
 
       zSpacing = this._frame[1]._dist - this._frame[0]._dist;
     }
+  }
+
+  if (zSpacing === 0) {
+    zSpacing = 1;
   }
 
   return zSpacing;
@@ -453,14 +480,19 @@ VJS.models.stack.prototype.merge = function(stack) {
             this._frame[j]._imagePosition.join() === frame[i]._imagePosition.join() &&
             this._frame[j]._imageOrientation &&
             frame[i]._imageOrientation &&
-            this._frame[j]._imageOrientation.join() === frame[i]._imageOrientation.join())
+            this._frame[j]._imageOrientation.join() === frame[i]._imageOrientation.join()) ||
+
+          // _pixelData length is unique...? imageSOP?
+          (this._frame[j]._pixelData &&
+            frame[i]._pixelData &&
+            this._frame[j]._pixelData.length === frame[i]._pixelData.length)
 
           ) {
 
           window.console.log('BREAKING!');
           window.console.log(frame[i], this._frame[j]);
           break;
-
+         
         } else if (j === this._frame.length - 1) {
 
           window.console.log('PUSHING FRAME TO STACK!');

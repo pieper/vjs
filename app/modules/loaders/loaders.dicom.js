@@ -172,6 +172,9 @@ VJS.loaders.dicom.prototype.parse = function(response) {
   var series = new VJS.models.series();
   series._seriesInstanceUID = dicomParser.seriesInstanceUID();
   series._numberOfFrames = dicomParser.numberOfFrames();
+  if(!series._numberOfFrames){
+    series._numberOfFrames = 1;
+  }
   series._numberOfChannels = dicomParser.numberOfChannels();
 
   // just create 1 dummy stack for now
@@ -195,6 +198,7 @@ VJS.loaders.dicom.prototype.parse = function(response) {
     frame._imagePosition = dicomParser.imagePosition(i);
     frame._dimensionIndexValues = dicomParser.dimensionIndexValues(i);
     frame._bitsAllocated = dicomParser.bitsAllocated(i);
+    frame._instanceNumber = dicomParser.instanceNumber(i);
     // should pass frame index for consistency...
     frame._minMax = dicomParser.minMaxPixelData(frame._pixelData);
 
@@ -271,6 +275,41 @@ VJS.loaders.dicom.prototype.parse = function(response) {
 
   //resolve(imageHelper);
   //});
+
+// VJS.parsers.dicom.prototype.parsePromise = function() {
+//   var self = this;
+//   console.time('Parsing Dicom');
+//   var imageNameFS = 'image_' + self._id;
+//   var frameNameFS = imageNameFS + '-raw.8b';
+//   //
+//   // Promises in action!
+//   //
+//   var sequence = Promise.resolve();
+//   return sequence
+//         .then(function() {
+//           // same image to Virtual FS
+//           return self.fileToFS(imageNameFS, self._arrayBuffer);
+//         })
+//         .then(function() {
+//           // extract frames from image and save it on Vistual FS
+//           return self.framesToFS(imageNameFS, frameNameFS);
+//         })
+//         .then(function() {
+//           // extract dicom header from image and convert it to XML
+//           return self.dumpToXML(imageNameFS);
+//         })
+//         .then(function(xml) {
+//           // parse XML Header and build VJS objects
+//           var $dicomDom = $.parseXML(xml);
+//           //window.console.log($dicomDom);
+//           var image = self.domToImage($dicomDom, frameNameFS);
+//           //resolve(self.domToImage($dicomDom, frameNameFS));
+
+//           // Dom to image it!
+//           return image;
+//         });
+// };
+
 
 };
 

@@ -89,24 +89,17 @@ VJS.helpers.series.prototype.prepare = function() {
         new THREE.Vector3(0, 1, 0),
         new THREE.Vector3(0, 0, 1));
 
-    this._position = new THREE.Vector3(0, 0, 0);
-    // we want to center the slice on a voxel (not at the limit between 2 voxels)
-    // precision issue if at limit (pixels intensity flickers between voxels)
-    if (dimensions.x % 2 === 0) {
-      this._position.x = -0.5;
-    }
-    if (dimensions.y % 2 === 0) {
-      this._position.y = -0.5;
-    }
-    if (dimensions.z % 2 === 0) {
-      this._position.z = -0.5;
-    }
+    var position = new THREE.Vector3(
+      Math.floor(stack._halfDimensions.x),
+      Math.floor(stack._halfDimensions.y),
+      Math.floor(stack._halfDimensions.z) + 0.5 - stack._halfDimensions.z
+    );
 
     var direction = new THREE.Vector3(0, 0, 1);
 
     var sliceGeometry = new vjsSliceGeometries(
         halfDimensions, center, orientation,
-        this._position, direction);
+        position, direction);
     sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
         halfDimensions.x + offset.x, halfDimensions.y + offset.y, halfDimensions.z + offset.z));
     sliceGeometry.applyMatrix(stack._ijk2LPS);
@@ -174,7 +167,6 @@ VJS.helpers.series.prototype.prepare = function() {
 
 VJS.helpers.series.prototype.updateSliceGeometry = function() {
   var stack = this._series._stack[0];
-  var dimensions = stack._dimensions;
   var halfDimensions = stack._halfDimensions;
   // voxel offset
   var offset = new THREE.Vector3(-0.5, -0.5, -0.5);
@@ -185,29 +177,21 @@ VJS.helpers.series.prototype.updateSliceGeometry = function() {
       new THREE.Vector3(0, 1, 0),
       new THREE.Vector3(0, 0, 1));
 
-  this._position = new THREE.Vector3(0, 0, 0);
-  // we want to center the slice on a voxel (not at the limit between 2 voxels)
-  // precision issue if at limit (pixels intensity flickers between voxels)
-  if (dimensions.x % 2 === 0) {
-    this._position.x = -0.5;
-  }
-  if (dimensions.y % 2 === 0) {
-    this._position.y = -0.5;
-  }
-  if (dimensions.z % 2 === 0) {
-    this._position.z = -0.5;
-  }
-
-  this._position.z += this._frameIndex + 1 - stack._halfDimensions.z;
+  var position = new THREE.Vector3(
+    0,
+    0,
+    this._frameIndex + 0.5 - stack._halfDimensions.z
+    );
 
   var direction = new THREE.Vector3(0, 0, 1);
 
   var sliceGeometry = new vjsSliceGeometries(
       halfDimensions, center, orientation,
-      this._position, direction);
+      position, direction);
   sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
       halfDimensions.x + offset.x, halfDimensions.y + offset.y, halfDimensions.z + offset.z));
   sliceGeometry.applyMatrix(stack._ijk2LPS);
+
   // helper - update Geometry
   //is memory leaking???
 

@@ -30,7 +30,7 @@ data = {
 
   // Frame specific
   photometricInterpretation: 'MONOCHROME2',
-  planarConfiguration: undefined,
+  planarConfiguration: null,
   samplesPerPixel: 1,
   imageOrientation: [1, 0, 0, 0, 1, 0],
   imagePosition: [-74.26927947998, -96.01170349121, -56.623718261718],
@@ -47,6 +47,10 @@ data = {
   windowCenter: 359,
   windowWidth: 623,
   dimensionIndexValues: [1, 1],
+  instanceNumber: 1,
+  pixelAspectRatio: null,
+  // inStackPositionNumber
+  // stackID
 
   // computed values
   minMax: [0, 437]
@@ -62,14 +66,14 @@ data = {
   modality: 'CT',
   seriesInstanceUID: '1.3.12.2.1107.5.1.4.48545.30000006091907514717100002940',
   transferSyntaxUID: '1.2.840.10008.1.2.4.91', // JPEG 2000 Image Compression
-  numberOfFrames: 1,
+  numberOfFrames: null,
   numberOfChannels: 1,
 
   // Stack specific
 
   // Frame specific
   photometricInterpretation: 'MONOCHROME2',
-  planarConfiguration: undefined,
+  planarConfiguration: null,
   samplesPerPixel: 1,
   imageOrientation: [1, 0, 0, 0, 1, 0],
   imagePosition: [-249.51171875, -366.51171875, -801.6],
@@ -85,7 +89,9 @@ data = {
   rescaleSlope: 1.0,
   windowCenter: 40,
   windowWidth: 400,
-  dimensionIndexValues: [0],
+  dimensionIndexValues: null,
+  instanceNumber: 516,
+  pixelAspectRatio: null,
 
   // computed values
   minMax: [0, 437]
@@ -102,7 +108,7 @@ data = {
   modality: 'US',
   seriesInstanceUID: '999.999.2.19941105.112000.2',
   transferSyntaxUID: '1.2.840.10008.1.2.1', // Implicit VR Endian
-  numberOfFrames: 1,
+  numberOfFrames: null,
   numberOfChannels: 3,
 
   // Stack specific
@@ -111,24 +117,26 @@ data = {
   photometricInterpretation: 'RGB',
   planarConfiguration: 0,
   samplesPerPixel: 3,
-  imageOrientation: [1, 0, 0, 0, 1, 0],
-  imagePosition: [0.0, 0.0, 0.0],
-  pixelSpacing: [1, 1],
+  imageOrientation: null,
+  imagePosition: null,
+  pixelSpacing: null,
   sopInstanceUID: '999.999.2.19941105.112000.2.107',
-  sliceThickness: 1,
+  sliceThickness: null,
   rows: 120,
   columns: 256,
   pixelRepresentation: 0,
   bitsAllocated: 8,
   highBit: 7,
-  rescaleIntercept: 0.0,
-  rescaleSlope: 1.0,
-  windowCenter: undefined,
-  windowWidth: undefined,
-  dimensionIndexValues: [0],
+  rescaleIntercept: null,
+  rescaleSlope: null,
+  windowCenter: null,
+  windowWidth: null,
+  dimensionIndexValues: null,
+  instanceNumber: 107,
+  pixelAspectRatio: [4,3],
 
   // computed values
-  minMax: [16, 240]
+  minMax: [16, 248]
 };
 datasets.push(data);
 
@@ -149,11 +157,11 @@ data = {
 
   // Frame specific
   photometricInterpretation: 'MONOCHROME2',
-  planarConfiguration: undefined,
+  planarConfiguration: null,
   samplesPerPixel: 1,
-  imageOrientation: [1, 0, 0, 0, 1, 0],
-  imagePosition: [0.0, 0.0, 0.0],
-  pixelSpacing: [1, 1],
+  imageOrientation: null,
+  imagePosition: null,
+  pixelSpacing: null,
   sopInstanceUID: '999.999.2.19960619.163000.1.103',
   sliceThickness: 10,
   rows: 256,
@@ -161,11 +169,13 @@ data = {
   pixelRepresentation: 0,
   bitsAllocated: 8,
   highBit: 7,
-  rescaleIntercept: 0.0,
-  rescaleSlope: 1.0,
-  windowCenter: undefined,
-  windowWidth: undefined,
-  dimensionIndexValues: [0],
+  rescaleIntercept: null,
+  rescaleSlope: null,
+  windowCenter: null,
+  windowWidth: null,
+  dimensionIndexValues: null,
+  instanceNumber: 103,
+  pixelAspectRatio: null,
 
   // computed values
   minMax: [0, 252]
@@ -307,6 +317,16 @@ function DICOMTestSequence(referenceDataset) {
       it('Dimension index values: ' + referenceDataset.dimensionIndexValues, function() {
         var frameIndex = 0;
         expect(parser.dimensionIndexValues(frameIndex)).toEqual(referenceDataset.dimensionIndexValues);
+      });
+
+      it('Instance number: ' + referenceDataset.instanceNumber, function() {
+        var frameIndex = 0;
+        expect(parser.instanceNumber(frameIndex)).toEqual(referenceDataset.instanceNumber);
+      });
+
+      it('Pixel aspect ratio: ' + referenceDataset.pixelAspectRatio, function() {
+        var frameIndex = 0;
+        expect(parser.pixelAspectRatio(frameIndex)).toEqual(referenceDataset.pixelAspectRatio);
       });
     });
   });

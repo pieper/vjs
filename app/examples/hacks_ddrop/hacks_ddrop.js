@@ -97,6 +97,8 @@ window.onload = function() {
       window.console.log(seriesHelper);
       var mergedHelpers = [seriesHelper[0]];
       // if all files loaded
+      window.console.log('merged:', mergedHelpers.length);
+      window.console.log('series:', seriesHelper.length);
       for (var i = 0; i < seriesHelper.length; i++) {
         // test image against existing imagess
         for (var j = 0; j < mergedHelpers.length; j++) {
@@ -108,8 +110,14 @@ window.onload = function() {
             // this is a new image
             mergedHelpers.push(seriesHelper[i]);
           }
+
+                window.console.log('merged:', mergedHelpers.length);
+          window.console.log('series:', seriesHelper.length);
         }
       }
+
+            window.console.log('merged:', mergedHelpers.length, mergedHelpers);
+      window.console.log('series:', seriesHelper.length, seriesHelper);
 
       mergedHelpers[0].prepare();
       scene.add(mergedHelpers[0]);
@@ -196,11 +204,15 @@ window.onload = function() {
       // '36749894', '36749908', '36749922', '36749936', '36749950', '36749964'
   ];
 
-  var files = filenames.map(function(v) {
-    return '../../data/dcm/adi/' + v;
-  });
+  // var files = filenames.map(function(v) {
+  //   return '../../data/dcm/adi/' + v;
+  // });
 
-  // var files = ['../../data/dcm/fruit.dcm'];
+  var files = ['../../data/dcm/daikon_enhanced.dcm.tar'];
+    // var files = ['../../data/dcm/fruit.dcm'];
+      // var files = ['../../data/dcm/US-RGB-8-esopecho.dcm.tar'];
+// var files = ['../../data/dcm/MR-MONO2-8-16x-heart.dcm.tar'];
+
 
   // window.console.log(files);
 
