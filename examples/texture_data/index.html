@@ -3,66 +3,14 @@
 <title>VJS Texture Data</title>
 
 <!-- External tools -->
-<script type="text/javascript" src="https://rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
+<script type="text/javascript" src="/libs/dat.gui/build/dat.gui.min.js"></script>
 
 <!-- ThreeJS -->
-<script type="text/javascript" src="http://threejs.org/build/three.js"></script>
-<script type="text/javascript" src="http://threejs.org/examples/js/libs/stats.min.js"></script>
+<script type="text/javascript" src="/libs/threejs/build/three.min.js"></script>
+<script type="text/javascript" src="/libs/threejs/examples/js/libs/stats.min.js"></script>
 
-<!-- Load core elements -->
-<script type="text/javascript" src="../../modules/core/Intersections.js"></script>
-
-<!-- Load objects we want to use (needed by loaders) -->
-<script type="text/javascript" src="../../modules/objects/objects.image.js"></script>
-<script type="text/javascript" src="../../modules/objects/objects.stack.js"></script>
-<script type="text/javascript" src="../../modules/objects/objects.frame.js"></script>
-
-<!-- Load the helpers -->
-<script type="text/javascript" src="../../modules/helpers/helpers.image.js"></script>
-
-<!-- Textures -->
-<script type="text/javascript" src="../../modules/shaders/shaders.data.js"></script>
-
-<!-- Load the loaders -->
-<script type="text/javascript" src="../../libs/jquery-1.11.0.min.js"></script>
-<script type="text/javascript" src="../../libs/pace.js"></script>
-<script type="text/javascript" src="../../libs/dcmjs.js"></script>
-<script type="text/javascript" src="../../libs/utils.js"></script>
-
-<script type="text/javascript" src="../../modules/loaders/loader.dicom.js"></script>
-<script type="text/javascript" src="../../modules/parsers/parsers.dicom.js"></script>
-
-<!-- Load controls we want to use -->
-<script type="text/javascript" src="../../modules/controls/OrbitControls2D.js"></script>
-
-<script type="text/javascript" type="text/javascript" src="texture_data.js"></script>\
-<style type="text/css">
-  
-      #stats {
-        position: absolute;
-        top:0;
-        left: 0;
-      }
-
-      #r3d {
-        background-color: #000;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        position: absolute;
-        width: 100%;
-        height: 100%;
-      }
-
-      #my-gui-container {
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        z-index:1;
-      }
-
-</style>
+<script type="text/javascript" type="text/javascript" src="texture_data.js"></script>
+<link rel="stylesheet" type="text/css" href="texture_data.css">
 </head>
 
 <body>

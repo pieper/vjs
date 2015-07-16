@@ -1,0 +1,72 @@
+#stats {
+  position: absolute;
+  top:0;
+  left: 0;
+}
+
+#r3d {
+  background-color: #000;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow:hidden;
+}
+
+#my-gui-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index:1;
+}
+
+#my-progress-container {
+  background-color: rgba(249, 249, 249, .7);
+  position: fixed;
+  max-height: 100px;
+  width:300px;
+  border: 1px solid #212121;
+  color: #FFF;
+  background-color: rgba(33, 33, 33, .7);
+  overflow-y: auto;
+  top: 0px;
+  right: 0px;
+  z-index:1;
+}
+
+#VJSOrientation{
+  background-color: rgba(249, 249, 249, .7);
+  border: 1px solid #212121;
+  margin: 0px;
+  padding: 0px;
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  z-index: 100;
+}
+
+#VJSProbe {
+  position: absolute;
+  bottom:0;
+  left: 0;
+  width: 260px;
+  height: 45px;
+  font-family: monospace;
+  padding: 10px;
+  background-color: rgba(249, 249, 249, .7);
+}
+
+.mark {
+  position: absolute;
+  bottom:0;
+  left: 0;
+  width: 260px;
+  height: 45px;
+  font-family: monospace;
+  padding: 10px;
+  background-color: rgba(249, 249, 249, .7);
+  pointer-events: none;
+}

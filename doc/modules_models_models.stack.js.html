@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Source: modules/models/models.stack.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -77,7 +77,7 @@ VJS.models.stack = function() {
    * @member
    * @type {number}
    */
-  this._nbFrames = 0;
+  this._numberOfFrames = 0;
   /**
    * @member
    * @type {Object}
@@ -103,6 +103,13 @@ VJS.models.stack = function() {
   this._textureSize = 2048;
   this._nbTextures = 16; // HIGH RES..
   this._rawData = [];
+  // this._windowCenter = 0;
+  // this._windowWidth = 0;
+  this._windowLevel = [0, 0];
+  this._windowCenter = 0;
+  this._windowWidth = 0;
+  this._minMax = [65535, -32768];
+  this._invert = 0;
 
   this._ijk2LPS = null;
   this._lps2IJK = null;
@@ -121,25 +128,39 @@ VJS.models.stack = function() {
  * @public
  */
 VJS.models.stack.prototype.prepare = function() {
-  // order the frames based on theirs dimension indices
-  // first index is the most important.
-  // 1,1,1,1 willl be first
-  // 1,1,2,1 will be next
-  // 1,1,2,3 will be next
-  // 1,1,3,1 wil be next
-  this._frame.sort(VJS.models.stack.prototype.orderFrameOnDimensionIndices);
-  // if no dimension, order by instaceNumber
-  // if no instance nuber, order by position?
 
   // dimensions of the stack
-  this._nbFrames = this._frame.length;
+  this._numberOfFrames = this._frame.length;
+
+  window.console.log(this);
+  this.orderFrames();
+  var zSpacing = this.zSpacing();
+
+    // prepare the frame
+  if (this._frame[0]._pixelSpacing) {
+    this._pixelSpacing.row = this._frame[0]._pixelSpacing[0];
+    this._pixelSpacing.column = this._frame[0]._pixelSpacing[1];
+  } else if (this._frame[0]._pixelAspectRatio) {
+    this._pixelSpacing.row = 1.0;
+    this._pixelSpacing.column = 1.0 * this._frame[0]._pixelAspectRatio[1] / this._frame[0]._pixelAspectRatio[0];
+  } else {
+    this._pixelSpacing.row = 1.0;
+    this._pixelSpacing.column = 1.0;
+  }
+
+  if (!this._frame[0]._imagePosition) {
+    this._frame[0]._imagePosition = [0, 0, 0];
+  }
+
+  if (!this._frame[0]._imageOrientation) {
+    this._frame[0]._imageOrientation = [1, 0, 0, 0, 1, 0];
+  }
+
+
   this._rows = this._frame[0]._rows;
   this._columns = this._frame[0]._columns;
-  this._dimensions = new THREE.Vector3(this._columns, this._rows, this._nbFrames);
+  this._dimensions = new THREE.Vector3(this._columns, this._rows, this._numberOfFrames);
 
-  // extra
-  this._pixelSpacing.row = this._frame[0]._pixelSpacing.row;
-  this._pixelSpacing.column = this._frame[0]._pixelSpacing.column;
   this._spacingBetweenSlices = this._frame[0]._spacingBetweenSlices;
   this._sliceThickness = this._frame[0]._sliceThickness;
 
@@ -163,50 +184,58 @@ VJS.models.stack.prototype.prepare = function() {
       window.console.log(&#x27;Frame index: &#x27;, i, &#x27; has: &#x27;, this.frame[i]._columns, &#x27; columns.&#x27;);
     }
 
-    // check for spacing consistency
-    if (this._pixelSpacing.row !== this._frame[i]._pixelSpacing.row || this._pixelSpacing.column !== this._frame[i]._pixelSpacing.column) {
-      // send an error message...
-      window.console.log(&#x27;Spacing in stack\&#x27;s frames is not consistent.&#x27;);
-      window.console.log(this);
-      window.console.log(&#x27;First frame had : &#x27;, this._pixelSpacing.row, &#x27; x &#x27;, this._pixelSpacing.column, &#x27; spacing.&#x27;);
-      window.console.log(&#x27;Frame index : &#x27;, i, &#x27; has: &#x27;, this._frame[i]._pixelSpacing.row, &#x27; x &#x27;, this._frame[i]._pixelSpacing.column, &#x27; spacing.&#x27;);
-    }
+    // // check for spacing consistency
+    // if (this._pixelSpacing.row !== this._frame[i]._pixelSpacing[0] || this._pixelSpacing.column !== this._frame[i]._pixelSpacing[1]) {
+    //   // send an error message...
+    //   window.console.log(&#x27;Spacing in stack\&#x27;s frames is not consistent.&#x27;);
+    //   window.console.log(this);
+    //   window.console.log(&#x27;First frame had : &#x27;, this._pixelSpacing.row, &#x27; x &#x27;, this._pixelSpacing.column, &#x27; spacing.&#x27;);
+    //   window.console.log(&#x27;Frame index : &#x27;, i, &#x27; has: &#x27;, this._frame[i]._pixelSpacing[0], &#x27; x &#x27;, this._frame[i]._pixelSpacing[1], &#x27; spacing.&#x27;);
+    // }
 
-    // check slice spacing consitency
-    if (this._spacingBetweenSlices !== this._frame[i]._spacingBetweenSlices) {
-      // send an error message...
-      window.console.log(&#x27;Spacing betwen slices in stack\&#x27;s frames is not consistent.&#x27;);
-      window.console.log(this);
-      window.console.log(&#x27;First frame had: &#x27;, this._spacingBetweenSlices, &#x27; spacing betwen slices.&#x27;);
-      window.console.log(&#x27;Frame index: &#x27;, i, &#x27; has: &#x27;, this.frame[i]._spacingBetweenSlices, &#x27; spacing betwen slices.&#x27;);
-    }
+    // // check slice spacing consitency
+    // if (this._spacingBetweenSlices !== this._frame[i]._spacingBetweenSlices) {
+    //   // send an error message...
+    //   window.console.log(&#x27;Spacing betwen slices in stack\&#x27;s frames is not consistent.&#x27;);
+    //   window.console.log(this);
+    //   window.console.log(&#x27;First frame had: &#x27;, this._spacingBetweenSlices, &#x27; spacing betwen slices.&#x27;);
+    //   window.console.log(&#x27;Frame index: &#x27;, i, &#x27; has: &#x27;, this.frame[i]._spacingBetweenSlices, &#x27; spacing betwen slices.&#x27;);
+    // }
 
-    // check for slice thickness consistency
-    if (this._sliceThickness !== this._frame[i]._sliceThickness) {
-      window.console.log(&#x27;Slice thickness in stack\&#x27;s frames is not consistent.&#x27;);
-      window.console.log(this);
-      window.console.log(&#x27;First frame had: &#x27;, this._sliceThickness, &#x27; sliceThickness.&#x27;);
-      window.console.log(&#x27;Frame index: &#x27;, i, &#x27; has: &#x27;, this._frame[i]._sliceThickness, &#x27; sliceThickness.&#x27;);
-    }
+    // // check for slice thickness consistency
+    // if (this._sliceThickness !== this._frame[i]._sliceThickness) {
+    //   window.console.log(&#x27;Slice thickness in stack\&#x27;s frames is not consistent.&#x27;);
+    //   window.console.log(this);
+    //   window.console.log(&#x27;First frame had: &#x27;, this._sliceThickness, &#x27; sliceThickness.&#x27;);
+    //   window.console.log(&#x27;Frame index: &#x27;, i, &#x27; has: &#x27;, this._frame[i]._sliceThickness, &#x27; sliceThickness.&#x27;);
+    // }
+
+    // get min/max
+    this._minMax[0] = Math.min(this._minMax[0], this._frame[i]._minMax[0]);
+    this._minMax[1] = Math.max(this._minMax[1], this._frame[i]._minMax[1]);
   }
 
   // Origin
-  this._origin = this._frame[0]._imagePositionPatient;
+  this._origin = new THREE.Vector3(
+      this._frame[0]._imagePosition[0],
+      this._frame[0]._imagePosition[1],
+      this._frame[0]._imagePosition[2]
+      );
 
   // Direction
-    window.console.log(&#x27;first frame value!&#x27;);
-  window.console.log(this._frame[0]._imageOrientationPatient.row.x);
+  window.console.log(&#x27;first frame value!&#x27;);
+  window.console.log(this._frame[0]._imageOrientation[0]);
   var xCosine = new THREE.Vector3(
-      this._frame[0]._imageOrientationPatient.row.x,
-      this._frame[0]._imageOrientationPatient.row.y,
-      this._frame[0]._imageOrientationPatient.row.z
+      this._frame[0]._imageOrientation[0],
+      this._frame[0]._imageOrientation[1],
+      this._frame[0]._imageOrientation[2]
   );
   window.console.log(xCosine);
 
   var yCosine = new THREE.Vector3(
-      this._frame[0]._imageOrientationPatient.column.x,
-      this._frame[0]._imageOrientationPatient.column.y,
-      this._frame[0]._imageOrientationPatient.column.z
+      this._frame[0]._imageOrientation[3],
+      this._frame[0]._imageOrientation[4],
+      this._frame[0]._imageOrientation[5]
   );
   var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
   this._direction = new THREE.Matrix4();
@@ -218,32 +247,16 @@ VJS.models.stack.prototype.prepare = function() {
 
   window.console.log(this._direction);
 
-  // Spacing
-  // can not be 0 if not matrix can not be inverted.
-  var zSpacing = 1;
-  if (this._nbFrames &gt; 1) {
-    if (this._spacingBetweenSlices) {
-      zSpacing = this._spacingBetweenSlices;
-    } else {
-      // we got to compute it...!
-      window.console.log(&#x27;NEED TO COMPUTE SPACING BETWEEN THE FRAMES!&#x27;);
-      // It is always better to compute the distance between a pair of
-      // slices along a normal to the plane of the image specified by
-      // the Image Orientation (Patient) attribute, by projecting the
-      // top left hand corner position specified by the Image Position
-      // (Patient) attribute onto that normal. These attributes are
-      // always sent and much more often &quot;right&quot; than is (0018,0088).
-    }
-  }
-
   this._spacing = new THREE.Vector3(
       this._pixelSpacing.row,
       this._pixelSpacing.column,
       zSpacing);
 
+  window.console.log(this._spacing);
+
   // half dimensions are useful for faster computations of intersection.
   this._halfDimensions = new THREE.Vector3(
-    this._dimensions.x / 2, this._dimensions.y / 2, this._dimensions.z / 2);
+      this._dimensions.x / 2, this._dimensions.y / 2, this._dimensions.z / 2);
 
   // orientation needed to compute stack BBox interection against slice.
   // always same, might want to remove it.
@@ -267,84 +280,73 @@ VJS.models.stack.prototype.prepare = function() {
   window.console.log(this._lps2IJK, this._ijk2LPS, this._direction);
 
   // only works with 1 channel for now...
-  var requiredPixels = this._dimensions.x * this._dimensions.y * this._dimensions.z;
+  var nbVoxels = this._dimensions.x * this._dimensions.y * this._dimensions.z;
+  window.console.log(this._dimensions);
 
-  var nbChannels = 1;
+  // create 16 rgb textures
   for (var ii = 0; ii &amp;lt; this._nbTextures; ii++) {
-    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * nbChannels));
+    // *3 because always create RGB
+    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * 3));
   }
 
-  // if required pixels &gt; this._textureSize * this._textureSize * nbChannels ?
-  // window.console.log(requiredPixels);
-  // window.console.log(this._rows);
-  // window.console.log(this._columns);
-  // window.console.log(this._rows * this._columns);
-  // window.console.log(this._textureSize);
+  // http://stackoverflow.com/questions/6413744/looking-to-access-16-bit-image-data-in-javascript-webgl
 
   // Can not just use subarray because we have to normalize the values (Uint* 0&amp;lt;x&amp;lt;255)
   //var prevFrame = -1;
   //var prevTexture = -1;
+
   var frameDimension = this._dimensions.x * this._dimensions.y;
   var textureDimension = this._textureSize * this._textureSize;
-  for (var jj = 0; jj &amp;lt; requiredPixels; jj++) {
+
+  console.time(&#x27;arrangeDataForWebgl&#x27;);
+
+  for (var jj = 0; jj &amp;lt; nbVoxels; jj++) {
 
     var frameIndex = Math.floor(jj / frameDimension);
     var inFrameIndex = jj % (frameDimension);
+
     var textureIndex = Math.floor(jj / textureDimension);
     var inTextureIndex = jj % (textureDimension);
+    if (this._numberOfChannels === 3) {
 
-    // window.console.log(textureIndex, inTextureIndex);
-    // different ways to itereate if 1 or N channels!!
-    // just 1 for now!
-    // NORMAALIZE IN THE SHADERS!
-    // could track min/max here...?
+      this._rawData[textureIndex][3 * inTextureIndex] = this._frame[frameIndex]._pixelData[3 * inFrameIndex];
+      this._rawData[textureIndex][3 * inTextureIndex + 1] = this._frame[frameIndex]._pixelData[3 * inFrameIndex + 1];
+      this._rawData[textureIndex][3 * inTextureIndex + 2] = this._frame[frameIndex]._pixelData[3 * inFrameIndex + 2];
 
-    //window.console.log(textureIndex,frameIndex);
+    } else {
+      //
 
-    // if(prevFrame !== frameIndex){
-    //   window.console.log(&#x27;frameIndex&#x27;, frameIndex);
-    //   prevFrame = frameIndex;
-    // }
-    // if(prevTexture !== textureIndex){
-    //   window.console.log(&#x27;textureIndex&#x27;, textureIndex);
-    //   prevTexture = textureIndex;
-    // }
+      var rawValue = this._frame[frameIndex]._pixelData[inFrameIndex];
 
-    // if(frameIndex &amp;lt; 100 &amp;amp;&amp;amp; frameIndex &gt; 58){
-    this._rawData[textureIndex][inTextureIndex] = this._frame[frameIndex]._pixelData[inFrameIndex]; //Math.floor( Math.random() * 255 );
+      // get most significant (msb) and less significant (lsb) bytes
+      // deal with sign?
+      // deal with number of channels
+      // deal with image type (single/multi channel)
+      // &gt;&gt; or &gt;&gt;&gt; ?
+      // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift
+      var lsb = rawValue &amp;amp; 0xFF;
+      var msb = (rawValue &gt;&gt; 8) &amp;amp; 0xFF;
 
-    // }
+      this._rawData[textureIndex][3 * inTextureIndex] = msb;
+      this._rawData[textureIndex][3 * inTextureIndex + 1] = lsb;
+      this._rawData[textureIndex][3 * inTextureIndex + 2] = frameIndex;
 
-    // // normalize value
-    // var normalizedValue = 255 * ((this._data[j] - this._min) / (this._max - this._min));
+    }
 
-    // // RGB
-    // rawData[textureIndex][4 * inTextureIndex] = normalizedValue;
-
-    // if (inTextureIndex &gt;= requiredPixels) {
-    //     break;
-    // }
   }
 
-  // LPS to World.
-  // and inverse.
+  // default window level based on min/max for now...
+  var width = this._minMax[1] - this._minMax[0];
+  var center = this._minMax[0] + width / 2;
 
-  // all IJK coords + transform for origin and normal to be in same space!
+  this._windowWidth = width;
+  this._windowCenter = center;
+  this._windowLevel = [center, width];
 
-  //     var obb = {
-  //     &#x27;halfDimensions&#x27;: this._volumeCore._halfDimensions,
-  //     &#x27;orientation&#x27;: this._volumeCore._orientation,
-  //     &#x27;center&#x27;: this._volumeCore._halfDimensions, //this._volumeCore._RAS.center,
-  //     &#x27;toOBBSpace&#x27;: this._volumeCore._transforms.ras2ijk,
-  //     &#x27;toOBBSpaceInvert&#x27;: this._volumeCore._transforms.ijk2ras,
-  // };
+  // need to pass min/max
+  this._bitsAllocated = this._frame[0]._bitsAllocated;
 
-  // var plane = {
-  //     &#x27;origin&#x27;: this._origin,
-  //     &#x27;normal&#x27;: this._normal
-  // };
-
-  // SWITCH TO DECIDE WHAT WE CAN VIEW OR NOT FROM HERE!
+  window.console.log(&#x27;window level: &#x27;, this._windowLevel);
 };
 
 /**
@@ -374,6 +376,105 @@ VJS.models.stack.prototype.orderFrameOnDimensionIndices = function(a, b) {
   return 0;
 };
 
+VJS.models.stack.prototype.orderFrames = function() {
+  // order the frames based on theirs dimension indices
+  // first index is the most important.
+  // 1,1,1,1 willl be first
+  // 1,1,2,1 will be next
+  // 1,1,2,3 will be next
+  // 1,1,3,1 wil be next
+  window.console.log(this);
+  if (this._frame[0]._dimensionIndexValues) {
+    this._frame.sort(VJS.models.stack.prototype.orderFrameOnDimensionIndices);
+  } else if (this._frame[0]._imagePosition &amp;amp;&amp;amp; this._frame[0]._imageOrientation) {
+    // ORDERING BASED ON IMAGE POSITION
+    var xCosine = new THREE.Vector3(
+      this._frame[0]._imageOrientation[0],
+      this._frame[0]._imageOrientation[1],
+      this._frame[0]._imageOrientation[2]
+      );
+
+    var yCosine = new THREE.Vector3(
+      this._frame[0]._imageOrientation[3],
+      this._frame[0]._imageOrientation[4],
+      this._frame[0]._imageOrientation[5]
+    );
+
+    var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
+
+    function computeDistance(normal, frame) {
+      frame._dist = frame._imagePosition[0] * normal.x +
+        frame._imagePosition[1] * normal.y +
+        frame._imagePosition[2] * normal.z;
+      return frame;
+    }
+
+    // // compute dist in this series
+    this._frame.map(computeDistance.bind(null, zCosine));
+    window.console.log(this._frame);
+    // // order by dist
+    this._frame.sort(function(a, b) {return a._dist - b._dist});
+    window.console.log(this._frame);
+
+  } else {
+    // else slice location
+    // image number
+    // ORDERING BASED ON instance number
+    // _ordering = &#x27;instance_number&#x27;;
+    // first_image.sort(function(a,b){return a[&quot;instance_number&quot;]-b[&quot;instance_number&quot;]});
+  }
+};
+
+VJS.models.stack.prototype.zSpacing = function() {
+  // Spacing
+  // can not be 0 if not matrix can not be inverted.
+  var zSpacing = 1;
+  window.console.log(this._frame[0]);
+
+  if (this._numberOfFrames &gt; 1) {
+    if (this._spacingBetweenSlices) {
+      zSpacing = this._spacingBetweenSlices;
+    } else if (this._frame[0]._sliceThickness) {
+      zSpacing = this._frame[0]._sliceThickness;
+    } else {
+      var xCosine = new THREE.Vector3(
+        this._frame[0]._imageOrientation[0],
+        this._frame[0]._imageOrientation[1],
+        this._frame[0]._imageOrientation[2]
+      );
+
+      var yCosine = new THREE.Vector3(
+        this._frame[0]._imageOrientation[3],
+        this._frame[0]._imageOrientation[4],
+        this._frame[0]._imageOrientation[5]
+      );
+
+      var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
+
+      function computeDistance(normal, frame) {
+      frame._dist = frame._imagePosition[0] * normal.x +
+        frame._imagePosition[1] * normal.y +
+        frame._imagePosition[2] * normal.z;
+      return frame;
+    }
+
+      // // compute dist in this series
+      this._frame.map(computeDistance.bind(null, zCosine));
+      window.console.log(this._frame);
+      // // order by dist
+      this._frame.sort(function(a, b) {return a._dist - b._dist});
+
+      zSpacing = this._frame[1]._dist - this._frame[0]._dist;
+    }
+  }
+
+  if (zSpacing === 0) {
+    zSpacing = 1;
+  }
+
+  return zSpacing;
+};
+
 VJS.models.stack.prototype.merge = function(stack) {
   // try to merge imageHelper with current image.
   // same image if same Series UID?
@@ -391,44 +492,58 @@ VJS.models.stack.prototype.merge = function(stack) {
       // test stack against existing stack
       for (var j = 0; j &amp;lt; this._frame.length; j++) {
         // test dimension
-        if (this._frame[j]._dimensionIndexValues.length &gt; 0) {
-          if (this._frame[j]._dimensionIndexValues.join() === frame[i]._dimensionIndexValues.join()) {
-            // frame alread there!
-            break;
-          } else if (j === this._frame.length - 1) {
-            this._frame.push(frame[i]);
-          }
-        }
-        // test instance number
-        else if (this._frame[j]._instanceNumber &gt;= 0) {
-          if (this._frame[j]._instanceNumber === frame[i]._instanceNumber) {
-            // frame already there!
-            break;
-          } else if (j === this._frame.length - 1) {
-            this._frame.push(frame[i]);
-          }
-        }
-        // test image position patient
-        // else if(){
+        // dimension index value not defined!
+        if (
+          
+          // dimension index is unique
+          (this._frame[j]._dimensionIndexValues &amp;amp;&amp;amp;
+            frame[i]._dimensionIndexValues &amp;amp;&amp;amp;
+            this._frame[j]._dimensionIndexValues.join() === frame[i]._dimensionIndexValues.join()) ||
+          
+          // instance number is unique?
+          (this._frame[j]._instanceNumber &amp;amp;&amp;amp;
+            frame[i]._instanceNumber &amp;amp;&amp;amp;
+            this._frame[j]._instanceNumber === frame[i]._instanceNumber) ||
+          
+          // imagePosition + imageOrientation is unique
+          (this._frame[j]._imagePosition &amp;amp;&amp;amp;
+            frame[i]._imagePosition &amp;amp;&amp;amp;
+            this._frame[j]._imagePosition.join() === frame[i]._imagePosition.join() &amp;amp;&amp;amp;
+            this._frame[j]._imageOrientation &amp;amp;&amp;amp;
+            frame[i]._imageOrientation &amp;amp;&amp;amp;
+            this._frame[j]._imageOrientation.join() === frame[i]._imageOrientation.join()) //||
 
-        // }
-        // do not know how to merge stacks
-        else if (j === this._frame.length - 1) {
-          window.console.log(&#x27;stacks could not be merged&#x27;);
-          window.console.log(this._frame);
-          window.console.log(stack._frame);
+          // _pixelData length is unique...? imageSOP?
+          // (this._frame[j]._pixelData &amp;amp;&amp;amp;
+          //   frame[i]._pixelData &amp;amp;&amp;amp;
+          //   this._frame[j]._pixelData.length === frame[i]._pixelData.length)
+
+          ) {
+
+          window.console.log(&#x27;BREAKING!&#x27;);
+          window.console.log(frame[i], this._frame[j]);
+          break;
+         
+        } else if (j === this._frame.length - 1) {
+
+          window.console.log(&#x27;PUSHING FRAME TO STACK!&#x27;);
+          this._frame.push(frame[i]);
+          break;
+
         }
 
-        // else, test instance number?
-
-        // else, test image position patient?
       }
-       
+
     }
   }
-  
+
+  window.console.log(this);
+
   return sameStackID;
 };
+
+// export the frame module
+module.exports = VJS.models.stack;
 
 // The Image Position (0020,0032) specifies the x, y, and z coordinates
 // of the upper left hand corner of the image; it is the center of the
@@ -532,7 +647,7 @@ VJS.models.stack.prototype.merge = function(stack) {
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0 on June 19, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 16, 2015.
       </p>
     </div>
   </footer>

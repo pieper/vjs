@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: slice</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,32 +25,11 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-public">public</span>&nbsp;<span class="label label-static">static</span></div><small><a href="VJS.html">VJS</a>.<wbr>geometries.<wbr></small><span class="symbol-name">slice</span></h1>
-            <p class="source-link">Source: <a href="modules_geometries_geometries.slice.js.html#source-line-55">modules/<wbr>geometries/<wbr>geometries.<wbr>slice.<wbr>js:55</a></p>
+            <p class="source-link">Source: <a href="modules_geometries_geometries.slice.js.html#source-line-57">modules/<wbr>geometries/<wbr>geometries.<wbr>slice.<wbr>js:57</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
-            <div class="summary-callout">
-              <h2 class="summary-callout-heading">Methods</h2>
-              <div class="summary-content">
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="VJS.geometries.slice.html#centerOfMass">centerOfMass(points)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="VJS.geometries.slice.html#orderIntersections">orderIntersections(points, reference, direction)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                </div>
-              </div>
-            </div>
           </section>
           <section>
             <h2 id="slice">new&nbsp;<span class="symbol-name">slice</span><span class="signature"><span class="signature-params">(halfDimensions, center, orientation, position, direction)</span></span></h2>
@@ -175,111 +154,6 @@ var sliceMaterial = new THREE.MeshBasicMaterial({
             </dl>
           </section>
           <section>
-            <h2>Methods</h2>
-            <section>
-              <h3 id="centerOfMass"><div class="symbol-detail-labels"><span class="label label-private">private</span></div><span class="symbol-name">centerOfMass</span><span class="signature"><span class="signature-params">(points)</span>&nbsp;&rarr; <span class="signature-returns"> THREE.Vector3</span></span></h3>
-              <p>Convenience function to extract center of mass from list of points.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>points</p>
-                      </td>
-                      <td>
-                        <p>Array of THREE.Vector3</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Set of points from which we want to extract the center of mass.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>THREE.Vector3</code>&nbsp;Center of mass from given points.</p>
-                </dd>
-              </dl>
-              <h3 id="orderIntersections"><div class="symbol-detail-labels"><span class="label label-private">private</span></div><span class="symbol-name">orderIntersections</span><span class="signature"><span class="signature-params">(points, reference, direction)</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
-              <p>Order 3D planar points around a refence point.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>points</p>
-                      </td>
-                      <td>
-                        <p>Array of THREE.Vector3</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Set of planar 3D points to be ordered.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>reference</p>
-                      </td>
-                      <td>
-                        <p>THREE.Vector3</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Reference point for ordering.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>direction</p>
-                      </td>
-                      <td>
-                        <p>THREE.Vector3</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Direction of the plane in which points and reference are sitting.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>Array of Object</code>&nbsp;Set of object representing the ordered points.</p>
-                </dd>
-              </dl>
-            </section>
           </section>
         </div>
       </div>
@@ -289,7 +163,7 @@ var sliceMaterial = new THREE.MeshBasicMaterial({
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0 on June 19, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 16, 2015.
       </p>
     </div>
   </footer>
