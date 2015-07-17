@@ -73,14 +73,22 @@ vec4 sampleAs3DTexture(sampler2D textureContainer[16], vec3 textureCoordinate, v
   return dataValue;
 }
 
-uniform float uTextureSize;
-uniform float uWindowLevel[ 2 ];
+uniform lowp float uTextureSize;
+uniform lowp float uWindowLevel[2];
 uniform sampler2D uTextureContainer[16];
 uniform vec3 uDataDimensions;
 uniform mat4 uWorldToData;
 uniform int uNumberOfChannels;
 uniform int uBitsAllocated;
 uniform int uInvert;
+
+// hack because can not pass arrays if too big
+// best would be to pass texture but have to deal with 16bits
+uniform int uLut;
+uniform lowp float uLutI[16]; // 16 * 4 (intesity - r- g - b)
+uniform lowp float uLutR[16];
+uniform lowp float uLutG[16];
+uniform lowp float uLutB[16];
 
 varying vec4 vPos;
 
@@ -107,6 +115,8 @@ void main(void) {
     vec4 dataValue = sampleAs3DTexture(uTextureContainer, textureCoordinate, uDataDimensions, uTextureSize);
     
 
+    // Threshold? to copr intensities out?
+
     if(uNumberOfChannels == 1){
       // reconstruct 16bits data if any
       float rawValue = dataValue.r * 255.0 * 256.0 + dataValue.g * 255.0;
@@ -116,6 +126,61 @@ void main(void) {
 
       dataValue.r = dataValue.g = dataValue.b = combined;
     }
+
+    // Apply LUT table...
+    // will pass it through a texture...
+
+    if(uLut == 1){
+    float lut[12];
+    // float[12](0.0, 1.0, 0.0, 0.0, 0.5, 1.0. 1.0. 0.0, 1.0, 1.0, 1.0, 1.0);
+    lut[0] = 0.0;
+    lut[1] = 1.0;
+    lut[2] = 0.0;
+    lut[3] = 0.0;
+
+    lut[4] = 0.5;
+    lut[5] = 1.0;
+    lut[6] = 1.0;
+    lut[7] = 0.0;
+
+    lut[8] = 1.0;
+    lut[9] = 1.0;
+    lut[10] = 1.0;
+    lut[11] = 1.0;
+    // if uApplyLUT
+    // if LUT Gradation? Interpolation
+    // get LUT from texture
+    for(int i=0; i<16; i++){
+      if(dataValue.r < uLutI[i]){
+        // i and i-1
+        float dataValuePosition = dataValue.r - uLutI[i-1];
+        float lutRange = uLutI[i] - uLutI[i-1];
+        float lutWeight = dataValuePosition/lutRange;
+        // use gradation or not??
+        // color distance
+        float colorDistanceR = uLutR[i] - uLutR[i-1];
+        float colorDistanceG = uLutG[i] - uLutG[i-1];
+        float colorDistanceB = uLutB[i] - uLutB[i-1];
+
+        // by weight
+        float colorIncrementR = lutWeight * colorDistanceR;
+        float colorIncrementG = lutWeight * colorDistanceG;
+        float colorIncrementB = lutWeight * colorDistanceB;
+
+        // add it
+        dataValue.r = uLutR[i-1] + colorIncrementR;
+        dataValue.g = uLutG[i-1] + colorIncrementG;
+        dataValue.b = uLutB[i-1] + colorIncrementB;
+        // dataValue.r += colorIncrementR;
+        // dataValue.g += colorIncrementG;
+        // dataValue.b += colorIncrementB;
+       break;
+     }
+    }
+    }
+
+    // Apply label map...?
+    // target specific intensity
 
     if(uInvert == 1){
       dataValue = vec4(1, 1, 1, 1) - dataValue;

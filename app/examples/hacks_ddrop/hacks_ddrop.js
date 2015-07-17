@@ -101,6 +101,40 @@ window.onload = function() {
           scene.add(mergedHelpers[0]);
           var stack = mergedHelpers[0]._series._stack[0];
 
+          var luts = {
+            lut: 'none',
+            luts: ['none', 'spectrum', 'hotandcold', 'gold', 'red', 'green', 'blue', 'grayscale'],
+            // good for testing, display should match when none is selected
+            grayscale: {
+              label: 'Gray Scale',
+              data: [[0, 0, 0, 0], [1, 1, 1, 1]]
+            },
+            spectrum: {
+              label: 'Spectrum',
+              data: [[0, 0, 0, 0], [0.1, 0, 0, 1], [0.33, 0, 1, 1], [0.5, 0, 1, 0], [0.66, 1, 1, 0], [0.9, 1, 0, 0], [1, 1, 1, 1]]
+            },
+            hotandcold:{
+              label: 'Hot and cold',
+              data: [[0, 0, 0, 1], [0.15, 0, 1, 1], [0.3, 0, 1, 0], [0.45, 0, 0, 0], [0.5, 0, 0, 0], [0.55, 0, 0, 0], [0.7, 1, 1, 0], [0.85, 1, 0, 0], [1, 1, 1, 1]]
+            },
+            gold : {
+              label: 'Gold',
+              data: [[0, 0, 0, 0], [0.13, 0.19, 0.03, 0], [0.25, 0.39, 0.12, 0], [0.38, 0.59, 0.26, 0], [0.50, 0.80, 0.46, 0.08], [0.63, 0.99, 0.71, 0.21], [0.75, 0.99, 0.88, 0.34], [0.88, 0.99, 0.99, 0.48], [1, 0.90, 0.95, 0.61]]
+            },
+            red : {
+              label: 'Red Overlay',
+              data: [[0, 0.75, 0, 0], [0.5, 1, 0.5, 0], [0.95, 1, 1, 0], [1, 1, 1, 1]]
+            },
+            green : {
+              label: 'Green Overlay',
+              data: [[0, 0, 0.75, 0], [0.5, 0.5, 1, 0], [0.95, 1, 1, 0], [1, 1, 1, 1]]
+            },
+            blue : {
+              label: 'Blue Overlay',
+              data: [[0, 0, 0, 1], [0.5, 0, 0.5, 1], [0.95, 0, 1, 1], [1, 1, 1, 1]]
+            }
+          };
+
           var gui = new dat.GUI({
             autoPlace: false
           });
@@ -125,6 +159,32 @@ window.onload = function() {
           var invertUpdate = stackFolder.add(stack, '_invert', 0, 1).step(1);
           invertUpdate.onChange(function(value) {
             mergedHelpers[0]._uniforms.uInvert.value = value;
+          });
+
+          var lutUpdate = stackFolder.add(luts, 'lut', luts.luts);
+          lutUpdate.onChange(function(value) {
+
+            if (value === 'none') {
+              mergedHelpers[0]._uniforms.uLut.value = 0;
+            } else {
+              // format LUT (max size 16)
+              var i = new Array(16);
+              var r = new Array(16);
+              var g = new Array(16);
+              var b = new Array(16);
+              for (var l = 0; l < luts[value].data.length; l++) {
+                i[l] = luts[value].data[l][0];
+                r[l] = luts[value].data[l][1];
+                g[l] = luts[value].data[l][2];
+                b[l] = luts[value].data[l][3];
+              }
+
+              mergedHelpers[0]._uniforms.uLutI.value = i;
+              mergedHelpers[0]._uniforms.uLutR.value = r;
+              mergedHelpers[0]._uniforms.uLutG.value = g;
+              mergedHelpers[0]._uniforms.uLutB.value = b;
+              mergedHelpers[0]._uniforms.uLut.value = 1;
+            }
           });
 
           var frameIndex = stackFolder.add(mergedHelpers[0], '_frameIndex', 0, stack._dimensions.z - 1).step(1);
