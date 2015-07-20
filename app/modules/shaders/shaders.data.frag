@@ -1,81 +1,6 @@
-vec4 sampleAs3DTexture(sampler2D textureContainer[16], vec3 textureCoordinate, vec3 dataSize, float textureSize) {
-
-  float slicePixelSize = 1.0 / textureSize;
-  // Model coordinate (IJK) to data index
-  float index = textureCoordinate.x * dataSize.x + textureCoordinate.y * dataSize.y * dataSize.x + textureCoordinate.z * dataSize.z * dataSize.y * dataSize.x;
-
-  // Map data index to right sampler2D texture
-  float textureIndex = floor(index / (textureSize*textureSize));
-  float inTextureIndex = mod(index, textureSize*textureSize);
-
-  // Get row and column in the texture
-  float rowIndex = floor(inTextureIndex/textureSize);
-  float colIndex = mod(inTextureIndex, textureSize);
-
-  // Map row and column to uv
-  vec2 uv = vec2(0,0);
-  uv.x = slicePixelSize * 0.5 + colIndex * slicePixelSize;
-  uv.y = 1.0 - (slicePixelSize * 0.5 + rowIndex * slicePixelSize);
-
-  vec4 dataValue = vec4(0, 0, 0, 1);
-  if(textureIndex == 0.0){
-    dataValue = texture2D(textureContainer[0], uv);
-  }
-  else if(textureIndex == 1.0){
-    dataValue = texture2D(textureContainer[1], uv);
-  }
-  else if(textureIndex == 2.0){
-    dataValue = texture2D(textureContainer[2], uv);
-  }
-  else if(textureIndex == 3.0){
-    dataValue = texture2D(textureContainer[3], uv);
-  }
-  else if(textureIndex == 4.0){
-    dataValue = texture2D(textureContainer[4], uv);
-  }
-  else if(textureIndex == 5.0){
-    dataValue = texture2D(textureContainer[5], uv);
-  }
-  else if(textureIndex == 6.0){
-    dataValue = texture2D(textureContainer[6], uv);
-  }
-  else if(textureIndex == 7.0){
-    dataValue = texture2D(textureContainer[7], uv);
-  }
-  else if(textureIndex == 8.0){
-    dataValue = texture2D(textureContainer[8], uv);
-  }
-  else if(textureIndex == 9.0){
-    dataValue = texture2D(textureContainer[9], uv);
-  }
-  else if(textureIndex == 10.0){
-    dataValue = texture2D(textureContainer[10], uv);
-  }
-  else if(textureIndex == 11.0){
-    dataValue = texture2D(textureContainer[11], uv);
-  }
-  else if(textureIndex == 12.0){
-    dataValue = texture2D(textureContainer[12], uv);
-  }
-  else if(textureIndex == 13.0){
-    dataValue = texture2D(textureContainer[13], uv);
-  }
-  else if(textureIndex == 14.0){
-    dataValue = texture2D(textureContainer[14], uv);
-  }
-  else if(textureIndex == 15.0){
-    dataValue = texture2D(textureContainer[15], uv);
-  }
-  else {
-    discard;
-  }
-
-  return dataValue;
-}
-
-uniform lowp float uTextureSize;
-uniform lowp float uWindowLevel[2];
-uniform sampler2D uTextureContainer[16];
+uniform float uTextureSize;
+uniform float uWindowLevel[2];
+uniform sampler2D uTextureContainer[7];
 uniform vec3 uDataDimensions;
 uniform mat4 uWorldToData;
 uniform int uNumberOfChannels;
@@ -85,12 +10,88 @@ uniform int uInvert;
 // hack because can not pass arrays if too big
 // best would be to pass texture but have to deal with 16bits
 uniform int uLut;
-uniform lowp float uLutI[16]; // 16 * 4 (intesity - r- g - b)
-uniform lowp float uLutR[16];
-uniform lowp float uLutG[16];
-uniform lowp float uLutB[16];
+uniform float uLutI[16]; // 16 * 4 (intesity - r- g - b)
+uniform float uLutR[16];
+uniform float uLutG[16];
+uniform float uLutB[16];
 
 varying vec4 vPos;
+
+vec4 sampleAs3DTexture(in vec3 textureCoordinate) {
+
+  float slicePixelSize = 1.0 / uTextureSize;
+  // Model coordinate (IJK) to data index
+  float index = textureCoordinate.x * uDataDimensions.x + textureCoordinate.y * uDataDimensions.y * uDataDimensions.x + textureCoordinate.z * uDataDimensions.z * uDataDimensions.y * uDataDimensions.x;
+
+  // Map data index to right sampler2D texture
+  float textureIndex = floor(index / (uTextureSize*uTextureSize));
+  float inTextureIndex = mod(index, uTextureSize*uTextureSize);
+
+  // Get row and column in the texture
+  float rowIndex = floor(inTextureIndex/uTextureSize);
+  float colIndex = mod(inTextureIndex, uTextureSize);
+
+  // Map row and column to uv
+  vec2 uv = vec2(0,0);
+  uv.x = slicePixelSize * 0.5 + colIndex * slicePixelSize;
+  uv.y = 1.0 - (slicePixelSize * 0.5 + rowIndex * slicePixelSize);
+
+  vec4 dataValue = vec4(0, 0, 0, 1);
+  if(textureIndex == 0.0){
+    dataValue = texture2D(uTextureContainer[0], uv);
+  }
+  else if(textureIndex == 1.0){
+    dataValue = texture2D(uTextureContainer[1], uv);
+  }
+  else if(textureIndex == 2.0){
+    dataValue = texture2D(uTextureContainer[2], uv);
+  }
+  else if(textureIndex == 3.0){
+    dataValue = texture2D(uTextureContainer[3], uv);
+  }
+  else if(textureIndex == 4.0){
+    dataValue = texture2D(uTextureContainer[4], uv);
+  }
+  else if(textureIndex == 5.0){
+    dataValue = texture2D(uTextureContainer[5], uv);
+  }
+  else if(textureIndex == 6.0){
+    dataValue = texture2D(uTextureContainer[6], uv);
+  }
+  // else if(textureIndex == 7.0){
+  //   dataValue = texture2D(uTextureContainer[7], uv);
+  // }
+  // else if(textureIndex == 8.0){
+  //   dataValue = texture2D(uTextureContainer[8], uv);
+  // }
+  // else if(textureIndex == 9.0){
+  //   dataValue = texture2D(uTextureContainer[9], uv);
+  // }
+  // else if(textureIndex == 10.0){
+  //   dataValue = texture2D(uTextureContainer[10], uv);
+  // }
+  // else if(textureIndex == 11.0){
+  //   dataValue = texture2D(uTextureContainer[11], uv);
+  // }
+  // else if(textureIndex == 12.0){
+  //   dataValue = texture2D(uTextureContainer[12], uv);
+  // }
+  // else if(textureIndex == 13.0){
+  //   dataValue = texture2D(uTextureContainer[13], uv);
+  // }
+  // else if(textureIndex == 14.0){
+  //   dataValue = texture2D(uTextureContainer[14], uv);
+  // }
+  // else if(textureIndex == 15.0){
+  //   dataValue = texture2D(uTextureContainer[15], uv);
+  // }
+  // else {
+  //   discard;
+  // }
+
+  return dataValue;
+}
+
 
 void main(void) {
 
@@ -112,7 +113,8 @@ void main(void) {
   && dataCoordinate.z < uDataDimensions.z
   ){
     vec3 textureCoordinate = dataCoordinate/uDataDimensions;
-    vec4 dataValue = sampleAs3DTexture(uTextureContainer, textureCoordinate, uDataDimensions, uTextureSize);
+    vec4 dataValue = sampleAs3DTexture(textureCoordinate);
+    //vec4(1.0, 0.5, 0.5, 1.0);//
     
 
     // Threshold? to copr intensities out?
@@ -131,22 +133,6 @@ void main(void) {
     // will pass it through a texture...
 
     if(uLut == 1){
-    float lut[12];
-    // float[12](0.0, 1.0, 0.0, 0.0, 0.5, 1.0. 1.0. 0.0, 1.0, 1.0, 1.0, 1.0);
-    lut[0] = 0.0;
-    lut[1] = 1.0;
-    lut[2] = 0.0;
-    lut[3] = 0.0;
-
-    lut[4] = 0.5;
-    lut[5] = 1.0;
-    lut[6] = 1.0;
-    lut[7] = 0.0;
-
-    lut[8] = 1.0;
-    lut[9] = 1.0;
-    lut[10] = 1.0;
-    lut[11] = 1.0;
     // if uApplyLUT
     // if LUT Gradation? Interpolation
     // get LUT from texture

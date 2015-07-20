@@ -69,8 +69,8 @@ VJS.models.stack = function() {
   this._halfDimensions = null;
   this._orientation = null;
 
-  this._textureSize = 2048;
-  this._nbTextures = 16; // HIGH RES..
+  this._textureSize = 4096;
+  this._nbTextures = 7; // HIGH RES..
   this._rawData = [];
   // this._windowCenter = 0;
   // this._windowWidth = 0;
@@ -264,6 +264,8 @@ VJS.models.stack.prototype.prepare = function() {
   //var prevFrame = -1;
   //var prevTexture = -1;
 
+  // ADD WARNING IF DATA TO BIG TO FIT IN MEMORY...!
+
   var frameDimension = this._dimensions.x * this._dimensions.y;
   var textureDimension = this._textureSize * this._textureSize;
 
@@ -296,8 +298,13 @@ VJS.models.stack.prototype.prepare = function() {
       var lsb = rawValue & 0xFF;
       var msb = (rawValue >> 8) & 0xFF;
 
+      // add 
       this._rawData[textureIndex][3 * inTextureIndex] = msb;
       this._rawData[textureIndex][3 * inTextureIndex + 1] = lsb;
+
+      // can we add next msb/lsb to b/a - yes!
+      // or just forbid it?
+
       this._rawData[textureIndex][3 * inTextureIndex + 2] = frameIndex;
 
     }
