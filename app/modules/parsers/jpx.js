@@ -1479,17 +1479,19 @@ var JpxImage = (function JpxImageClosure() {
             var items = transformedTiles[c].items;
 
             if(isSigned){
-              shift = 0;
-              offset = 0;
+              for (pos = c, j = 0, jj = items.length; j < jj; j++) {
+                out[pos] = items[j];
+                pos += componentsCount;
+              }
             }else{
               shift = components[c].precision - 8;
               offset = (128 << shift) + 0.5;
-            }
-
-            for (pos = c, j = 0, jj = items.length; j < jj; j++) {
-              val = items[j];
-              out[pos] = (val + offset);
-              pos += componentsCount;
+              var precisionMax = Math.pow(2,components[c].precision)-1;
+              for (pos = c, j = 0, jj = items.length; j < jj; j++) {
+                val = items[j];
+                out[pos] = Math.max(Math.min((val + offset),precisionMax),0);
+                pos += componentsCount;
+              }
             }
           }
         }
@@ -2531,9 +2533,7 @@ if (!globalScope.PDFJS) {
   globalScope.PDFJS = {};
 }
 
-//globalScope.PDFJS.pdfBug = false;
-
-var PDFJS = PDFJS || {};
+globalScope.PDFJS.pdfBug = false;
 
 PDFJS.VERBOSITY_LEVELS = {
   errors: 0,
@@ -3539,8 +3539,8 @@ PDFJS.createPromiseCapability = createPromiseCapability;
         });
       };
     }
-    if (typeof globalScope.Promise.prototype.catch2 !== 'function') {
-      globalScope.Promise.prototype.catch2 = function (onReject) {
+    if (typeof globalScope.Promise.prototype.catch !== 'function') {
+      globalScope.Promise.prototype.catch = function (onReject) {
         return globalScope.Promise.prototype.then(undefined, onReject);
       };
     }
@@ -3800,7 +3800,7 @@ PDFJS.createPromiseCapability = createPromiseCapability;
       return nextPromise;
     },
 
-    catch2: function Promise_catch(onReject) {
+    catch: function Promise_catch(onReject) {
       return this.then(undefined, onReject);
     }
   };
@@ -4039,7 +4039,6 @@ function loadJpegStream(id, imageUrl, objs) {
   });
   img.src = imageUrl;
 }
-
 
 var moduleType = typeof module;
 if ((moduleType !== 'undefined') && module.exports) {

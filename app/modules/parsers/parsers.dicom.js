@@ -512,6 +512,8 @@ VJS.parsers.dicom.prototype.decompressPixelData =  function(frameIndex) {
     // var pixelDataElement = this._dataSet.elements.x7fe00010;
     // var pixelData = new Uint8Array(this._dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
     var jpxImage = new jpx();
+    // https://github.com/OHIF/image-JPEG2000/issues/6
+    // It currently returns either Int16 or Uint16 based on whether the codestream is signed or not.
     jpxImage.parse(compressedPixelData);
 
     // var j2kWidth = jpxImage.width;
@@ -622,12 +624,12 @@ VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
   for (var index = 0; index < numPixels; index++) {
     var spv = pixelData[index];
 
-    // apply rescale/intercept
+    //apply rescale/intercept
     // var rSlope = this.rescaleSlope(0);
     // var rIntercept = this.rescaleIntercept(0);
     // var rpv = spv * rSlope + rIntercept;
 
-    // // apply window/level
+    // apply window/level
     // var wWidth = this.windowWidth(0);
     // var wCenter = this.windowCenter(0);
     // var wpv = rpv;
