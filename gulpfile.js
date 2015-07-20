@@ -157,7 +157,7 @@ gulp.task('copy', function() {
 gulp.task('jshint', function() {
   return gulp.src([
       'app/**/*.js',
-      '!app/daikon{,/**}'
+      '!app/deprecated{,/**}'
     ])
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'));

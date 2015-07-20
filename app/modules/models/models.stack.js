@@ -105,7 +105,7 @@ VJS.models.stack.prototype.prepare = function() {
   this.orderFrames();
   var zSpacing = this.zSpacing();
 
-    // prepare the frame
+  // prepare the frame
   if (this._frame[0]._pixelSpacing) {
     this._pixelSpacing.row = this._frame[0]._pixelSpacing[0];
     this._pixelSpacing.column = this._frame[0]._pixelSpacing[1];
@@ -124,7 +124,6 @@ VJS.models.stack.prototype.prepare = function() {
   if (!this._frame[0]._imageOrientation) {
     this._frame[0]._imageOrientation = [1, 0, 0, 0, 1, 0];
   }
-
 
   this._rows = this._frame[0]._rows;
   this._columns = this._frame[0]._columns;
@@ -252,10 +251,10 @@ VJS.models.stack.prototype.prepare = function() {
   var nbVoxels = this._dimensions.x * this._dimensions.y * this._dimensions.z;
   window.console.log(this._dimensions);
 
-  // create 16 rgb textures
+  // create 16 rgba textures
   for (var ii = 0; ii < this._nbTextures; ii++) {
     // *3 because always create RGB
-    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * 3));
+    this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * 4));
   }
 
   // http://stackoverflow.com/questions/6413744/looking-to-access-16-bit-image-data-in-javascript-webgl
@@ -280,9 +279,10 @@ VJS.models.stack.prototype.prepare = function() {
     var inTextureIndex = jj % (textureDimension);
     if (this._numberOfChannels === 3) {
 
-      this._rawData[textureIndex][3 * inTextureIndex] = this._frame[frameIndex]._pixelData[3 * inFrameIndex];
-      this._rawData[textureIndex][3 * inTextureIndex + 1] = this._frame[frameIndex]._pixelData[3 * inFrameIndex + 1];
-      this._rawData[textureIndex][3 * inTextureIndex + 2] = this._frame[frameIndex]._pixelData[3 * inFrameIndex + 2];
+      this._rawData[textureIndex][4 * inTextureIndex] = this._frame[frameIndex]._pixelData[4 * inFrameIndex];
+      this._rawData[textureIndex][4 * inTextureIndex + 1] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 1];
+      this._rawData[textureIndex][4 * inTextureIndex + 2] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 2];
+      this._rawData[textureIndex][4 * inTextureIndex + 3] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 3];
 
     } else {
       //
@@ -295,17 +295,20 @@ VJS.models.stack.prototype.prepare = function() {
       // deal with image type (single/multi channel)
       // >> or >>> ?
       // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift
+
+      /*jshint bitwise: false*/
       var lsb = rawValue & 0xFF;
       var msb = (rawValue >> 8) & 0xFF;
 
       // add 
-      this._rawData[textureIndex][3 * inTextureIndex] = msb;
-      this._rawData[textureIndex][3 * inTextureIndex + 1] = lsb;
+      this._rawData[textureIndex][4 * inTextureIndex] = msb;
+      this._rawData[textureIndex][4 * inTextureIndex + 1] = lsb;
 
       // can we add next msb/lsb to b/a - yes!
       // or just forbid it?
 
-      this._rawData[textureIndex][3 * inTextureIndex + 2] = frameIndex;
+      this._rawData[textureIndex][4 * inTextureIndex + 2] = frameIndex;
+      this._rawData[textureIndex][4 * inTextureIndex + 3] = frameIndex;
 
     }
 
@@ -378,19 +381,9 @@ VJS.models.stack.prototype.orderFrames = function() {
 
     var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
 
-    function computeDistance(normal, frame) {
-      frame._dist = frame._imagePosition[0] * normal.x +
-        frame._imagePosition[1] * normal.y +
-        frame._imagePosition[2] * normal.z;
-      return frame;
-    }
-
-    // // compute dist in this series
-    this._frame.map(computeDistance.bind(null, zCosine));
-    window.console.log(this._frame);
-    // // order by dist
-    this._frame.sort(function(a, b) {return a._dist - b._dist});
-    window.console.log(this._frame);
+    // compute and sort by dist in this series
+    this._frame.map(this._computeDistance.bind(null, zCosine));
+    this._frame.sort(this._sortDistance);
 
   } else {
     // else slice location
@@ -400,6 +393,15 @@ VJS.models.stack.prototype.orderFrames = function() {
     // first_image.sort(function(a,b){return a["instance_number"]-b["instance_number"]});
   }
 };
+
+VJS.models.stack.prototype._computeDistance = function(normal, frame) {
+  frame._dist = frame._imagePosition[0] * normal.x +
+  frame._imagePosition[1] * normal.y +
+  frame._imagePosition[2] * normal.z;
+  return frame;
+};
+
+VJS.models.stack.prototype._sortDistance = function(a, b) {return a._dist - b._dist;};
 
 VJS.models.stack.prototype.zSpacing = function() {
   // Spacing
@@ -427,18 +429,9 @@ VJS.models.stack.prototype.zSpacing = function() {
 
       var zCosine = new THREE.Vector3(0, 0, 0).crossVectors(xCosine, yCosine).normalize();
 
-      function computeDistance(normal, frame) {
-      frame._dist = frame._imagePosition[0] * normal.x +
-        frame._imagePosition[1] * normal.y +
-        frame._imagePosition[2] * normal.z;
-      return frame;
-    }
-
-      // // compute dist in this series
-      this._frame.map(computeDistance.bind(null, zCosine));
-      window.console.log(this._frame);
-      // // order by dist
-      this._frame.sort(function(a, b) {return a._dist - b._dist});
+      // compute and sort by dist in this series
+      this._frame.map(this._computeDistance.bind(null, zCosine));
+      this._frame.sort(this._sortDistance);
 
       zSpacing = this._frame[1]._dist - this._frame[0]._dist;
     }

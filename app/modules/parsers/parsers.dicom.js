@@ -1,13 +1,12 @@
 /*global module*/
 
-
 //ftp://medical.nema.org/MEDICAL/Dicom/2014c/output/chtml/part05/sect_6.2.html/
 
 'use strict';
 
 // imports
 var dicomParser = require('dicom-parser');
-// var jpx = require('./jpx.js');
+var jpx = require('./jpx.js');
 
 var VJS = VJS || {};
 
@@ -261,6 +260,10 @@ VJS.parsers.dicom.prototype.pixelSpacing =  function(frameIndex) {
 
 VJS.parsers.dicom.prototype.sopInstanceUID =  function(frameIndex) {
   // expect frame index to start at 0!
+
+  // per frame
+  // philips 2005,140f
+  //
   var sopInstanceUID = this._dataSet.string('x00080018');
   return sopInstanceUID;
 };
@@ -465,14 +468,13 @@ VJS.parsers.dicom.prototype.inStackPositionNumber =  function(frameIndex) {
     // NOT A PHILIPS TRICK!
     var philipsPrivateSequence = perFrameFunctionnalGroupSequence
       .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
-      inStackPositionNumber = philipsPrivateSequence.uint32('x00209057');
+    inStackPositionNumber = philipsPrivateSequence.uint32('x00209057');
   } else {
     inStackPositionNumber = null;
   }
 
   return inStackPositionNumber;
 };
-
 
 VJS.parsers.dicom.prototype.stackID =  function(frameIndex) {
   var stackID = null;
@@ -485,7 +487,7 @@ VJS.parsers.dicom.prototype.stackID =  function(frameIndex) {
     // NOT A PHILIPS TRICK!
     var philipsPrivateSequence = perFrameFunctionnalGroupSequence
       .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
-      stackID = philipsPrivateSequence.intString('x00209056');
+    stackID = philipsPrivateSequence.intString('x00209056');
   } else {
     stackID = null;
   }
@@ -493,7 +495,7 @@ VJS.parsers.dicom.prototype.stackID =  function(frameIndex) {
   return stackID;
 };
 
-VJS.parsers.dicom.prototype.dPixelData =  function(frameIndex) {
+VJS.parsers.dicom.prototype.decompressPixelData =  function(frameIndex) {
   // expect frame index to start at 0!
   var dPixelData = [];
   // http://www.dicomlibrary.com/dicom/transfer-syntax/
@@ -506,16 +508,29 @@ VJS.parsers.dicom.prototype.dPixelData =  function(frameIndex) {
     // window.console.log(this._dataSet);
     //window.console.log(dicomParser);
     //window.console.log(this._dataSet.elements);
-    //var compressedPixelData = dicomParser.readEncapsulatedPixelData(this._dataSet, this._dataSet.elements.x7fe00010, frameIndex);
-    var pixelDataElement = this._dataSet.elements.x7fe00010;
-    var pixelData = new Uint8Array(this._dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
-    // var jpxImage = new jpx();
-    // jpxImage.parse(pixelData);
+    var compressedPixelData = dicomParser.readEncapsulatedPixelData(this._dataSet, this._dataSet.elements.x7fe00010, frameIndex);
+    // var pixelDataElement = this._dataSet.elements.x7fe00010;
+    // var pixelData = new Uint8Array(this._dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
+    var jpxImage = new jpx();
+    jpxImage.parse(compressedPixelData);
 
     // var j2kWidth = jpxImage.width;
     // var j2kHeight = jpxImage.height;
 
-    // window.console.log(jpxImage);
+    var componentsCount = jpxImage.componentsCount;
+    if (componentsCount !== 1) {
+      throw 'JPEG2000 decoder returned a componentCount of ' + componentsCount + ', when 1 is expected';
+    }
+    var tileCount = jpxImage.tiles.length;
+    if (tileCount !== 1) {
+      throw 'JPEG2000 decoder returned a tileCount of ' + tileCount + ', when 1 is expected';
+    }
+    var tileComponents = jpxImage.tiles[0];
+    var pixelData = tileComponents.items;
+
+    // window.console.log(j2kWidth, j2kHeight);
+
+    return pixelData;
   }
 
   return dPixelData;
@@ -531,7 +546,8 @@ VJS.parsers.dicom.prototype.extractPixelData =  function(frameIndex) {
   // find compression scheme
   if (transferSyntaxUID === '1.2.840.10008.1.2.4.90' ||  // JPEG 2000 lossless
       transferSyntaxUID === '1.2.840.10008.1.2.4.91') {
-    return ePixelData;
+    // which format
+    return this.decompressPixelData(frameIndex);
   }
 
   // else
@@ -605,7 +621,23 @@ VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
   var numPixels = pixelData.length;
   for (var index = 0; index < numPixels; index++) {
     var spv = pixelData[index];
-    // TODO: test to see if it is faster to use conditional here rather than calling min/max functions
+
+    // apply rescale/intercept
+    // var rSlope = this.rescaleSlope(0);
+    // var rIntercept = this.rescaleIntercept(0);
+    // var rpv = spv * rSlope + rIntercept;
+
+    // // apply window/level
+    // var wWidth = this.windowWidth(0);
+    // var wCenter = this.windowCenter(0);
+    // var wpv = rpv;
+    // if( wpv < wCenter - wWidth/2){
+    //   wpv = wCenter - wWidth/2;
+    // }
+    // else if( wpv > wCenter + wWidth/2){
+    //   wpv = wCenter + wWidth/2;
+    // }
+
     minMax[0] = Math.min(minMax[0], spv);
     minMax[1] = Math.max(minMax[1], spv);
   }
@@ -613,26 +645,16 @@ VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
   return minMax;
 };
 
-VJS.parsers.dicom.prototype.frameOfReferenceUID = function(imageJqueryDom) {
-  // try to access frame of reference UID through its DICOM tag
-  var seriesNumber = imageJqueryDom.find('[tag="00200052"] Value').text();
+// VJS.parsers.dicom.prototype.frameOfReferenceUID = function(imageJqueryDom) {
+//   // try to access frame of reference UID through its DICOM tag
+//   var seriesNumber = imageJqueryDom.find('[tag="00200052"] Value').text();
 
-  // if not available, assume we only have 1 frame
-  if (seriesNumber === '') {
-    seriesNumber = 1;
-  }
-  return seriesNumber;
-};
-
-//
-// getFrame
-// getFrameSpacing
-// getFrame...
-// getStach
-// getStack...
-// image ...
-
-// merge!
+//   // if not available, assume we only have 1 frame
+//   if (seriesNumber === '') {
+//     seriesNumber = 1;
+//   }
+//   return seriesNumber;
+// };
 
 // export the probePixel widget module
 module.exports = VJS.parsers.dicom;

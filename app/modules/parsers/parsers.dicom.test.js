@@ -55,7 +55,7 @@ data = {
   // computed values
   minMax: [0, 437]
 };
-datasets.push(data);
+//datasets.push(data);
 
 data = {
   name: 'Osirix test',
@@ -96,7 +96,7 @@ data = {
   stackID: null,
 
   // computed values
-  minMax: [0, 437]
+  minMax: [-1024, 1379]
 };
 datasets.push(data);
 
@@ -142,7 +142,7 @@ data = {
   // computed values
   minMax: [16, 248]
 };
-datasets.push(data);
+//datasets.push(data);
 
 // MR
 data = {
@@ -186,7 +186,7 @@ data = {
   // computed values
   minMax: [0, 252]
 };
-datasets.push(data);
+//datasets.push(data);
 
 function DICOMTestSequence(referenceDataset) {
   describe(referenceDataset.name, function() {
@@ -378,6 +378,14 @@ function PixelDataTestSequence(referenceDataset) {
     });
 
     describe('Parse pixel data', function() {
+
+      it('Decompress pixel data', function() {
+        var frameIndex = 0;
+        var pixelData = parser.decompressPixelData(frameIndex);
+        // check typeof and length...
+        expect(true).toBe(true);
+      });
+
       it('Extract pixel data', function() {
         var frameIndex = 0;
         var pixelData = parser.extractPixelData(frameIndex);
