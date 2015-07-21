@@ -2,39 +2,38 @@
 
 A light-weight JS library for medical imaging with ThreeJS.
 
-We assume you graphic card can load up to 16 textures of 2048x2048.
 
-WebGL support: http://caniuse.com/#search=webgl
+## Requirements
+
+We assume you graphic card can load up to 8 RGBA textures of 4096x4096.
 
 ## Examples
 
 http://fnndsc.github.io/vjs
 
+## Usage
+
+### NodeJS
+
+### RequireJS
+
+### Else
+
 ## Dev corner
 
-### Setup environment
+(to be updated)
 
+Live reload
 ```
-$> git clone https://github.com/FNNDSC/vjs.git
-$> cd vjs 
-$> npm install
-$> bower install
+$> gulp serve --env dev
 ```
 
-### Gulp task
-
+Build
 ```
-// build VJS to /dist directory.
-// no minifaction happening yet
-$> gulp
-
-// run a browserSync local server for development
-gulp serve
-
-// run a browserSync local server over built VJS
-gulp serve:dist
+$> gulp serve
 ```
 
-### TODO
-* testings
-* glslify
+Test
+```
+$> gulp test
+```
