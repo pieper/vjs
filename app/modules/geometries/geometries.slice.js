@@ -1,16 +1,13 @@
 'use strict';
 
-var vjsIntersections = require('../core/Intersections');
-
 var VJS = VJS || {};
-
-/**
- * geometries namespace
- * @namespace geometries
- * @memberOf VJS
- * @public
- */
 VJS.geometries = VJS.geometries || {};
+
+/*** Imports ***/
+
+VJS.core = VJS.core || {};
+VJS.core.intersections = VJS.core.intersections || require('../core/core.intersections');
+
 
 /**
  *
@@ -73,7 +70,7 @@ VJS.geometries.slice = function(halfDimensions, center, orientation, position, d
     };
 
     // BOOM!
-    var intersections = vjsIntersections.obbPlane(obb, plane);
+    var intersections = VJS.core.intersections.obbPlane(obb, plane);
 
     if (intersections.length < 3) {
         window.console.log('WARNING: Less than 3 intersections between OBB and Plane.');
@@ -216,5 +213,11 @@ VJS.geometries.slice.prototype.orderIntersections = function(points, reference, 
     return orderedpoints;
 };
 
-// export the slice geometry module
-module.exports = VJS.geometries.slice;
+
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.geometries.slice;
+}

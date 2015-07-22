@@ -1,6 +1,9 @@
 'use strict';
 
 var VJS = VJS || {};
+VJS.loaders = VJS.loaders || {};
+
+/*** Imports ***/
 
 VJS.parsers = VJS.parsers || {};
 VJS.parsers.dicom = VJS.parsers.dicom || require('../parsers/parsers.dicom');
@@ -11,16 +14,8 @@ VJS.models.stack = VJS.models.stack || require('../models/models.stack');
 VJS.models.frame = VJS.models.frame || require('../models/models.frame');
 
 VJS.helpers = VJS.helpers || {};
-VJS.helpers.series = VJS.helpers.series || require('../helpers/helpers.series');
+VJS.helpers.slice = VJS.helpers.slice || require('../helpers/helpers.slice');
 
-/**
- * loaders namespace
- * @namespace loaders
- * @memberOf VJS
- * @public
- */
-
-VJS.loaders = VJS.loaders || {};
 
 /**
  *
@@ -163,7 +158,7 @@ VJS.loaders.dicom.prototype.parse = function(response) {
   window.console.log('file downloaded yay!');
 
   // series helper with lot of goodies
-  var seriesHelper = new VJS.helpers.series();
+  var seriesHelper = new VJS.helpers.slice();
 
   // parse DICOM
   var dicomParser = new VJS.parsers.dicom(response, seriesHelper.id);
@@ -313,5 +308,11 @@ VJS.loaders.dicom.prototype.parse = function(response) {
 
 };
 
-// export the probePixel widget module
-module.exports = VJS.loaders.dicom;
+
+
+/** Exports **/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.loaders.dicom;
+}

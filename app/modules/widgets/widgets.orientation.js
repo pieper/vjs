@@ -69,8 +69,12 @@ VJS.widgets.orientation.prototype.update = function() {
     this._Renderer.render(this._Scene, this._Camera);
 };
 
-// export the probePixel widget module
-module.exports = VJS.widgets.orientation;
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.widgets.orientation;
+}
 
 // // create arrow helper scene
 //     // scene

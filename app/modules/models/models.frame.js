@@ -101,5 +101,11 @@ VJS.models.frame = function() {
 
 VJS.models.frame.prototype.constructor = VJS.models.frame;
 
-// export the frame module
-module.exports = VJS.models.frame;
+
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.models.frame;
+}

@@ -67,5 +67,11 @@ VJS.models.series.prototype.merge = function(series) {
     return sameSeriesUID;
 };
 
-// export the frame module
-module.exports = VJS.models.series;
+
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.models.series;
+}

@@ -9,14 +9,6 @@ var dicomParser = require('dicom-parser');
 var jpx = require('./jpx.js');
 
 var VJS = VJS || {};
-
-// WE RETURN NULL INSTEAD OF GUESSING
-
-/**
- * parsers namespace
- * @namespace parsers
- * @memberOf VJS
- */
 VJS.parsers = VJS.parsers || {};
 
 /**
@@ -658,5 +650,10 @@ VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
 //   return seriesNumber;
 // };
 
-// export the probePixel widget module
-module.exports = VJS.parsers.dicom;
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.parsers.dicom;
+}

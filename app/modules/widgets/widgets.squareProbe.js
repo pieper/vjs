@@ -176,3 +176,10 @@ VJS.widgets.squareProbe.prototype.update = function(raycaster, mouse) {
 VJS.widgets.squareProbe.prototype.hideUI = function() {
     document.getElementById('VJSProbe').style.display = 'none';
 };
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.widgets.squareProbe;
+}

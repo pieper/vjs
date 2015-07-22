@@ -511,98 +511,11 @@ VJS.models.stack.prototype.merge = function(stack) {
   return sameStackID;
 };
 
-// export the frame module
-module.exports = VJS.models.stack;
 
-// The Image Position (0020,0032) specifies the x, y, and z coordinates
-// of the upper left hand corner of the image; it is the center of the
-// first voxel transmitted. Image Orientation (0020,0037) specifies the
-// direction cosines of the first row and the first column with respect
-// to the patient. These Attributes shall be provide as a pair. Row value
-// for the x, y, and z axes respectively followed by the Column value for
-// the x, y, and z axes respectively.
 
-// The direction of the axes is defined fully by the patient's
-// orientation. The x-axis is increasing to the left hand side of the
-// patient. The y-axis is increasing to the posterior side of the
-// patient. The z-axis is increasing toward the head of the patient.
+/*** Exports ***/
 
-// The patient based coordinate system is a right handed system, i.e. the
-// vector cross product of a unit vector along the positive x-axis and a
-// unit vector along the positive y-axis is equal to a unit vector along
-// the positive z-axis.
-// "
-
-// (**)
-// http://www.itk.org/mailman/private/i...ry/007553.html
-// You need to be suscribed to the ML to have access to this post (sorry).
-
-// Reply With Quote Reply With Quote
-// 10-02-2007 10:05 AM #2
-// Re: Image Position (Patient) and Image Orientation (Patient)
-// Since it might be usefull for other people, I am copy/pasting the
-// answer from David Clunie here:
-
-// -------- Original Message --------
-// Subject: Re: [Insight-developers] [GDCM] ITK Origin and coordinate
-// system
-// Date: Wed, 18 Jan 2006 12:57:42 -0500
-// From: David Clunie <>
-// Reply-To:
-// To:
-
-// Hi all
-
-// Just to clarify a few things with respect to DICOM and what
-// vendors do, without knowing enough about ITK or gdcm to
-// answer the context of the concern. Please excuse me if I
-// restate the obvious.
-
-// As has been pointed out in previous posts there is absolutely
-// no ambiguity about the DICOM attributes in this respect, nor
-// whether the vendors interpret them differently (they do not).
-
-// Specifically:
-
-// - all DICOM references are relative to a specific "frame of
-// reference" identified by a UID - all images that share that
-// FoR share the same, completely arbitrary, origin; the origin
-// might be the isocenter of the magnet, which is constant, but
-// the patient position relative to it is not; this is the
-// context in which all other DICOM attributes related to the
-// "patient coordinate system" should be interpreted; the
-// corollary is that different FoRs means coordinates and vectors
-// are not comparable
-
-// - the center of the top left hand voxel of a slice is defined
-// relative to the FoR-specific origin by an x,y,z tuple that
-// represents a translation of that location in mm from the offset;
-// the x,y and z directions are patient (not gantry) relative,
-// and their order is consistent and defined (see the standard)
-
-// - the direction of the rows and columns are defined relative
-// to the patient by unit vectors (direction cosines), again
-// the details are in the standard.
-
-// - the Image Position (Patient) TLHC location (which defines
-// the offset from the FoR origin) is completely independent of
-// the Image Orientation (Patient) unit vectors, which define
-// the plane of the slice (only)
-
-// Again, the x,y,z translation from the origin of the TLHC is
-// in the nominal patient relative FoR, NOT the plane specified
-// by the unit vectors that define the orientation of the slice.
-
-// Note that the use of "patient relative" is relatively imprecise,
-// in the sense that if the operator does not line the patient's
-// head foot axis exactly down the center line of the gantry or
-// table, then though the direction of the Z axis will nominally
-// be along the head-foot axis, but reproducible only within the
-// same nominal FoR, and even then, only as long as the patient
-// doesn't move without the operator re-landmarking.
-
-// All the vendors interpret this the same way, with the one notable
-// exception being arguments over whether the TLHC is the center
-// of the voxel or one edge of it (the standard has been clarified
-// to specify the center, whereas previously it was unspecified,
-// hence older implementations vary in this respect).
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.models.stack;
+}

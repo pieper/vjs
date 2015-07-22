@@ -1,13 +1,15 @@
 'use strict';
 
 var VJS = VJS || {};
+VJS.core = VJS.core || {};
 
 /**
- * intersections namespace
- * @namespace intersections
- * @memberOf VJS
- */
-VJS.intersections = VJS.intersections || {};
+ * @constructor
+ * @class
+ * @memberOf VJS.core
+ * @public
+*/
+VJS.core.intersections = VJS.core.intersections || {};
 
 
 /**
@@ -16,7 +18,7 @@ VJS.intersections = VJS.intersections || {};
  * Should return at least 3 intersections. If not, the plane and the box do not
  * intersect.
  *
- * @memberOf VJS.intersections
+ * @memberOf VJS.core.intersections
  * @public
  *
  * @param {Object} obb - Oriented Bounding Box representation.
@@ -35,7 +37,7 @@ VJS.intersections = VJS.intersections || {};
  * @todo find best way to deal with different spaces.
  */
 
-VJS.intersections.obbPlane = function(obb, plane) {
+VJS.core.intersections.obbPlane = function(obb, plane) {
 
     //
     // obb = { halfDimensions, orientation, center, toOBBSpace }
@@ -265,7 +267,7 @@ VJS.intersections.obbPlane = function(obb, plane) {
 /**
  * Compute intersection between a ray and a plane.
  *
- * @memberOf VJS.intersections
+ * @memberOf VJS.core.intersections
  * @public
  *
  * @param {Object} ray - Ray representation.
@@ -277,7 +279,7 @@ VJS.intersections.obbPlane = function(obb, plane) {
  *
  * @returns {THREE.Vector3|null} Intersection between ray and plane or null.
  */
-VJS.intersections.rayPlane = function(ray, plane) {
+VJS.core.intersections.rayPlane = function(ray, plane) {
     // ray: {position, direction}
     // plane: {position, direction}
 
@@ -328,5 +330,9 @@ VJS.intersections.rayPlane = function(ray, plane) {
 
 };
 
-// export the frame module
-module.exports = VJS.intersections;
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.core.intersections;
+}

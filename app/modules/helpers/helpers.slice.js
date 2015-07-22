@@ -1,22 +1,23 @@
 'use strict';
 
-var vjsSliceGeometries = require('../geometries/geometries.slice');
-var vjsShadersData = require('../shaders/shaders.data');
-var glslify = require('glslify');
-
 var VJS = VJS || {};
-
-/**
- * helpers namespace
- * @namespace helpers
- * @memberOf VJS
- * @public
- */
 VJS.helpers = VJS.helpers || {};
+
+/*** Imports ***/
+
+VJS.geometries = VJS.geometries || {};
+VJS.geometries.slice = VJS.geometries.slice || require('../geometries/geometries.slice');
+
+VJS.shaders = VJS.shaders || {};
+VJS.shaders.data = VJS.shaders.data || require('../shaders/shaders.data');
+
+var glslify =  require('glslify');
+
+
 
 //
 // https://en.wikipedia.org/wiki/Immediately-invoked_function_expression
-VJS.helpers.series = function() {
+VJS.helpers.slice = function() {
 
   THREE.Object3D.call(this);
 
@@ -29,23 +30,23 @@ VJS.helpers.series = function() {
 
 };
 
-VJS.helpers.series.prototype = Object.create(THREE.Object3D.prototype);
+VJS.helpers.slice.prototype = Object.create(THREE.Object3D.prototype);
 
-VJS.helpers.series.prototype.constructor = VJS.helpers.series;
+VJS.helpers.slice.prototype.constructor = VJS.helpers.slice;
 
-VJS.helpers.series.prototype.merge = function(seriesHelper) {
+VJS.helpers.slice.prototype.merge = function(seriesHelper) {
   return this._series.merge(seriesHelper._series);
 };
 
-VJS.helpers.series.prototype.addSeries = function(series) {
+VJS.helpers.slice.prototype.addSeries = function(series) {
   this._series = series;
 };
 
-VJS.helpers.series.prototype.getStack = function(stackIndex) {
+VJS.helpers.slice.prototype.getStack = function(stackIndex) {
   return stackIndex;
 };
 
-VJS.helpers.series.prototype.prepare = function() {
+VJS.helpers.slice.prototype.prepare = function() {
 
   window.console.log('helpers Series Prepare!!!');
   if (this._series) {
@@ -97,7 +98,7 @@ VJS.helpers.series.prototype.prepare = function() {
 
     var direction = new THREE.Vector3(0, 0, 1);
 
-    var sliceGeometry = new vjsSliceGeometries(
+    var sliceGeometry = new VJS.geometries.slice(
         halfDimensions, center, orientation,
         position, direction);
     sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
@@ -120,7 +121,7 @@ VJS.helpers.series.prototype.prepare = function() {
       // 'wireframe': true,
       'side': THREE.DoubleSide,
       'transparency': true,
-      'uniforms': vjsShadersData.parameters.uniforms,
+      'uniforms': VJS.shaders.data.parameters.uniforms,
       'vertexShader': glslify('../shaders/shaders.data.vert'),
       'fragmentShader': glslify('../shaders/shaders.data.frag')
     });
@@ -165,7 +166,7 @@ VJS.helpers.series.prototype.prepare = function() {
   }
 };
 
-VJS.helpers.series.prototype.updateSliceGeometry = function() {
+VJS.helpers.slice.prototype.updateSliceGeometry = function() {
   var stack = this._series._stack[0];
   var halfDimensions = stack._halfDimensions;
   // voxel offset
@@ -185,7 +186,7 @@ VJS.helpers.series.prototype.updateSliceGeometry = function() {
 
   var direction = new THREE.Vector3(0, 0, 1);
 
-  var sliceGeometry = new vjsSliceGeometries(
+  var sliceGeometry = new VJS.geometries.slice(
       halfDimensions, center, orientation,
       position, direction);
   sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
@@ -199,7 +200,7 @@ VJS.helpers.series.prototype.updateSliceGeometry = function() {
   this._slice.geometry.verticesNeedUpdate = true;
 };
 
-VJS.helpers.series.prototype.updateBorderGeometry = function() {
+VJS.helpers.slice.prototype.updateBorderGeometry = function() {
 
   var borderGeometry = new THREE.Geometry();
   for (var i = 0; i < this._slice.geometry.vertices.length; i++) {
@@ -211,5 +212,12 @@ VJS.helpers.series.prototype.updateBorderGeometry = function() {
   this._border.geometry.verticesNeedUpdate = true;
 };
 
-// export the slice geometry module
-module.exports = VJS.helpers.series;
+// a delete method too!
+
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.helpers.slice;
+}

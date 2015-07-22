@@ -55,7 +55,7 @@ data = {
   // computed values
   minMax: [0, 437]
 };
-//datasets.push(data);
+datasets.push(data);
 
 data = {
   name: 'Osirix test',
@@ -142,7 +142,7 @@ data = {
   // computed values
   minMax: [16, 248]
 };
-//datasets.push(data);
+datasets.push(data);
 
 // MR
 data = {
@@ -186,7 +186,7 @@ data = {
   // computed values
   minMax: [0, 252]
 };
-//datasets.push(data);
+datasets.push(data);
 
 function DICOMTestSequence(referenceDataset) {
   describe(referenceDataset.name, function() {

@@ -56,6 +56,7 @@ gulp.task('css', function() {
 });
 
 // Javascript task browserify and babelify
+// http://www.forbeslindesay.co.uk/post/46324645400/standalone-browserify-builds
 gulp.task('javascript', function(cb) {
   // process files of interest
   globby(['app/app.js', 'app/examples/**/*.js'], function(err, files) {
@@ -70,7 +71,8 @@ gulp.task('javascript', function(cb) {
               {entries: [entry],
                 debug: true,
                 // could add babelify there...
-                transform: [glslify]
+                standalone: 'VJSROX',
+                transform: [glslify],
               })
             .bundle()
             .pipe(source(entry.substring(index + 1)))

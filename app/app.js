@@ -1,27 +1,25 @@
+'use strict';
+
 /**
  * @namespace
  */
 
 var VJS = VJS || {};
 
-/**
- * models namespace
- * @namespace models
- * @memberOf VJS
- * @public
- */
-VJS.models = VJS.models || {};
+/*** Imports ***/
 
-/**
- * widgets namespace
- * @namespace widgets
- * @memberOf VJS
- * @public
- */
-VJS.widgets = VJS.widgets || {};
+VJS.core = VJS.core || require('./modules/core/core');
+VJS.geometries = VJS.geometries || require('./modules/geometries/geometries');
+VJS.helpers = VJS.helpers || require('./modules/helpers/helpers');
+VJS.loaders = VJS.loaders || require('./modules/loaders/loaders');
+VJS.models = VJS.models || require('./modules/models/models');
+VJS.parsers = VJS.parsers || require('./modules/parsers/parsers');
+VJS.widgets = VJS.widgets || require('./modules/widgets/widgets');
 
-// var glslify = require('glslify');
 
-// var src = glslify('./shader.glsl');
+/*** Exports ***/
 
-// console.log(src);
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS;
+}
