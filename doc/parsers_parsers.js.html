@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
-  <title>Class: pixelProbe</title>
+  <title>Source: parsers/parsers.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -22,24 +22,34 @@
   <div id="jsdoc-body-container">
     <div id="jsdoc-content">
       <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-public">public</span>&nbsp;<span class="label label-static">static</span></div><small><a href="VJS.html">VJS</a>.<wbr>widgets.<wbr></small><span class="symbol-name">pixelProbe</span></h1>
-            <p class="source-link">Source: <a href="widgets_widgets.pixelProbe.js.html#source-line-18">widgets/<wbr>widgets.<wbr>pixelProbe.<wbr>js:18</a></p>
-            <dl class="dl-compact">
-            </dl>
+            <h1>Source: parsers/parsers.js</h1>
           </header>
-          <section id="summary">
-          </section>
-          <section>
-            <h2 id="pixelProbe">new&nbsp;<span class="symbol-name">pixelProbe</span><span class="signature"><span class="signature-params">()</span></span></h2>
-            <p>It is typically used to get information about an image from the mouse cursor.</p>
-            <p>Demo: <a href="https://fnndsc.github.io/vjs#widget_pixelProbe">https://fnndsc.github.io/vjs#widget_pixelProbe</a></p>
-            <dl class="dl-compact">
-            </dl>
-          </section>
-          <section>
-          </section>
+          <article>
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+
+var VJS = VJS || {};
+
+/**
+ * models namespace
+ * @namespace parsers
+ * @memberOf VJS
+ * @public
+ */
+VJS.parsers = VJS.parsers || {};
+
+/*** Imports ***/
+VJS.parsers.dicom = VJS.parsers.dicom || require(&#x27;./parsers.dicom&#x27;);
+
+/*** Exports ***/
+var moduleType = typeof module;
+if ((moduleType !== &#x27;undefined&#x27;) &amp;amp;&amp;amp; module.exports) {
+    module.exports = VJS.parsers;
+}</code></pre>
+          </article>
         </div>
       </div>
       <nav id="jsdoc-toc-nav" role="navigation"></nav>

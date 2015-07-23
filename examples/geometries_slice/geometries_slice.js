@@ -1,2 +1,1464 @@
-"use strict";!function e(t,o,n){function i(a,s){if(!o[a]){if(!t[a]){var c="function"==typeof require&&require;if(!s&&c)return c(a,!0);if(r)return r(a,!0);var d=new Error("Cannot find module '"+a+"'");throw d.code="MODULE_NOT_FOUND",d}var l=o[a]={exports:{}};t[a][0].call(l.exports,function(e){var o=t[a][1][e];return i(o?o:e)},l,l.exports,e,t,o,n)}return o[a].exports}for(var r="function"==typeof require&&require,a=0;a<n.length;a++)i(n[a]);return i}({1:[function(e,t,o){function n(){function e(){i.update(),r.render(a,s),c.update(),requestAnimationFrame(function(){e()})}var t=document.getElementById("r3d");r=new THREE.WebGLRenderer({antialias:!0}),r.setSize(t.offsetWidth,t.offsetHeight),r.setClearColor(16777215,1);var o=r.context.getParameter(r.context.MAX_TEXTURE_SIZE);window.console.log(o),t.appendChild(r.domElement),c=new Stats,t.appendChild(c.domElement),a=new THREE.Scene,s=new THREE.PerspectiveCamera(45,t.offsetWidth/t.offsetHeight,1,1e7),s.position.x=100,s.position.y=100,s.position.z=100,s.lookAt(a.position),i=new l(s,r.domElement),e()}var i,r,a,s,c,d=e("../../modules/geometries/geometries.slice"),l=e("../../modules/controls/OrbitControls2D");window.onload=function(){n();var e=new THREE.Vector3(123,45,67),t=new THREE.BoxGeometry(e.x,e.y,e.z),o=new THREE.MeshBasicMaterial({wireframe:!0,color:6419187}),i=new THREE.Mesh(t,o);a.add(i);var r=e.clone().divideScalar(2),s=new THREE.Vector3(0,0,0),c=new THREE.Vector3(new THREE.Vector3(1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1)),l=s.clone(),p=new THREE.Vector3(-.2,.5,.3),h=new d(r,s,c,l,p),E=new THREE.MeshBasicMaterial({side:THREE.DoubleSide,transparency:!0,color:240116}),u=new THREE.Mesh(h,E);a.add(u);var y=20,m=16007990,x=new THREE.ArrowHelper(p,l,y,m),f={direction:{i:p.x,j:p.y,k:p.z},position:{i:l.x,j:l.y,k:l.z}};a.add(x);var v=new dat.GUI({autoPlace:!1}),T=document.getElementById("my-gui-container");T.appendChild(v.domElement);var w=v.addFolder("Plane direction"),z=w.add(f.direction,"i",-1,1),g=w.add(f.direction,"j",-1,1),R=w.add(f.direction,"k",-1,1);w.open();var H=v.addFolder("Plane position"),O=H.add(f.position,"i",-61.5,61.5),b=H.add(f.position,"j",-22.5,22.5),M=H.add(f.position,"k",-33.5,33.5);H.open(),z.onChange(function(e){var t=new THREE.Vector3(e,f.direction.j,f.direction.k);t.normalize();var o=new THREE.Vector3(f.position.i,f.position.j,f.position.k);x.setDirection(t);var n=new d(r,s,c,o,t);u.geometry=n,u.geometry.verticesNeedUpdate=!0}),g.onChange(function(e){var t=new THREE.Vector3(f.direction.i,e,f.direction.k);t.normalize();var o=new THREE.Vector3(f.position.i,f.position.j,f.position.k);x.setDirection(t);var n=new d(r,s,c,o,t);u.geometry=n,u.geometry.verticesNeedUpdate=!0}),R.onChange(function(e){var t=new THREE.Vector3(f.direction.i,f.direction.j,e);t.normalize();var o=new THREE.Vector3(f.position.i,f.position.j,f.position.k);x.setDirection(t);var n=new d(r,s,c,o,t);u.geometry=n,u.geometry.verticesNeedUpdate=!0}),O.onChange(function(e){var t=new THREE.Vector3(f.direction.i,f.direction.j,f.direction.k);t.normalize();var o=new THREE.Vector3(e,f.position.j,f.position.k);a.remove(x),x=new THREE.ArrowHelper(t,o,y,m),a.add(x);var n=new d(r,s,c,o,t);u.geometry=n,u.geometry.verticesNeedUpdate=!0}),b.onChange(function(e){var t=new THREE.Vector3(f.direction.i,f.direction.j,f.direction.k);t.normalize();var o=new THREE.Vector3(f.position.i,e,f.position.k);a.remove(x),x=new THREE.ArrowHelper(t,o,y,m),a.add(x);var n=new d(r,s,c,o,t);u.geometry=n,u.geometry.verticesNeedUpdate=!0}),M.onChange(function(e){var t=new THREE.Vector3(f.direction.i,f.direction.j,f.direction.k);t.normalize();var o=new THREE.Vector3(f.position.i,f.position.j,e);a.remove(x),x=new THREE.ArrowHelper(t,o,y,m),a.add(x);var n=new d(r,s,c,o,t);u.geometry=n,u.geometry.verticesNeedUpdate=!0})}},{"../../modules/controls/OrbitControls2D":2,"../../modules/geometries/geometries.slice":4}],2:[function(e,t,o){THREE.OrbitControls2D=function(e,t){function o(){return 2*Math.PI/60/60*u.autoRotateSpeed}function n(){return Math.pow(.95,u.zoomSpeed)}function i(e){if(u.enabled!==!1){if(e.preventDefault(),e.button===u.mouseButtons.ORBIT){if(u.noRotate===!0)return;j=S.ROTATE,m.set(e.clientX,e.clientY)}else if(e.button===u.mouseButtons.ZOOM){if(u.noZoom===!0)return;j=S.DOLLY,R.set(e.clientX,e.clientY)}else if(e.button===u.mouseButtons.PAN){if(u.noPan===!0)return;j=S.PAN,v.set(e.clientX,e.clientY)}j!==S.NONE&&(document.addEventListener("mousemove",r,!1),document.addEventListener("mouseup",a,!1),u.dispatchEvent(k))}}function r(e){if(u.enabled!==!1){e.preventDefault();var t=u.domElement===document?u.domElement.body:u.domElement;if(j===S.ROTATE){if(u.noRotate===!0)return;x.set(e.clientX,e.clientY),f.subVectors(x,m),u.rotateLeft(2*Math.PI*f.x/t.clientWidth*u.rotateSpeed),u.rotateUp(2*Math.PI*f.y/t.clientHeight*u.rotateSpeed),m.copy(x)}else if(j===S.DOLLY){if(u.noZoom===!0)return;H.set(e.clientX,e.clientY),O.subVectors(H,R),O.y>0?u.dollyIn():u.dollyOut(),R.copy(H)}else if(j===S.PAN){if(u.noPan===!0)return;T.set(e.clientX,e.clientY),w.subVectors(T,v),u.pan(w.x,w.y),v.copy(T)}j!==S.NONE&&u.update()}}function a(){u.enabled!==!1&&(document.removeEventListener("mousemove",r,!1),document.removeEventListener("mouseup",a,!1),u.dispatchEvent(L),j=S.NONE)}function s(e){if(u.enabled!==!1&&u.noZoom!==!0&&j===S.NONE){e.preventDefault(),e.stopPropagation();var t=0;void 0!==e.wheelDelta?t=e.wheelDelta:void 0!==e.detail&&(t=-e.detail),t>0?u.dollyOut():u.dollyIn(),u.update(),u.dispatchEvent(k),u.dispatchEvent(L)}}function c(e){if(u.enabled!==!1&&u.noKeys!==!0&&u.noPan!==!0)switch(e.keyCode){case u.keys.UP:u.pan(0,u.keyPanSpeed),u.update();break;case u.keys.BOTTOM:u.pan(0,-u.keyPanSpeed),u.update();break;case u.keys.LEFT:u.pan(u.keyPanSpeed,0),u.update();break;case u.keys.RIGHT:u.pan(-u.keyPanSpeed,0),u.update()}}function d(e){if(u.enabled!==!1){switch(e.touches.length){case 1:if(u.noRotate===!0)return;j=S.TOUCH_ROTATE,m.set(e.touches[0].pageX,e.touches[0].pageY);break;case 2:if(u.noZoom===!0)return;j=S.TOUCH_DOLLY;var t=e.touches[0].pageX-e.touches[1].pageX,o=e.touches[0].pageY-e.touches[1].pageY,n=Math.sqrt(t*t+o*o);R.set(0,n);break;case 3:if(u.noPan===!0)return;j=S.TOUCH_PAN,v.set(e.touches[0].pageX,e.touches[0].pageY);break;default:j=S.NONE}j!==S.NONE&&u.dispatchEvent(k)}}function l(e){if(u.enabled!==!1){e.preventDefault(),e.stopPropagation();var t=u.domElement===document?u.domElement.body:u.domElement;switch(e.touches.length){case 1:if(u.noRotate===!0)return;if(j!==S.TOUCH_ROTATE)return;x.set(e.touches[0].pageX,e.touches[0].pageY),f.subVectors(x,m),u.rotateLeft(2*Math.PI*f.x/t.clientWidth*u.rotateSpeed),u.rotateUp(2*Math.PI*f.y/t.clientHeight*u.rotateSpeed),m.copy(x),u.update();break;case 2:if(u.noZoom===!0)return;if(j!==S.TOUCH_DOLLY)return;var o=e.touches[0].pageX-e.touches[1].pageX,n=e.touches[0].pageY-e.touches[1].pageY,i=Math.sqrt(o*o+n*n);H.set(0,i),O.subVectors(H,R),O.y>0?u.dollyOut():u.dollyIn(),R.copy(H),u.update();break;case 3:if(u.noPan===!0)return;if(j!==S.TOUCH_PAN)return;T.set(e.touches[0].pageX,e.touches[0].pageY),w.subVectors(T,v),u.pan(w.x,w.y),v.copy(T),u.update();break;default:j=S.NONE}}}function p(){u.enabled!==!1&&(u.dispatchEvent(L),j=S.NONE)}this.object=e,this.domElement=void 0!==t?t:document,this.enabled=!0,this.target=new THREE.Vector3,this.center=this.target,this.noZoom=!1,this.zoomSpeed=1,this.minDistance=0,this.maxDistance=1/0,this.noRotate=!1,this.rotateSpeed=1,this.noPan=!1,this.keyPanSpeed=7,this.autoRotate=!1,this.autoRotateSpeed=2,this.minPolarAngle=0,this.maxPolarAngle=Math.PI,this.minAzimuthAngle=-(1/0),this.maxAzimuthAngle=1/0,this.noKeys=!1,this.keys={LEFT:37,UP:38,RIGHT:39,BOTTOM:40},this.mouseButtons={ORBIT:THREE.MOUSE.LEFT,ZOOM:THREE.MOUSE.MIDDLE,PAN:THREE.MOUSE.RIGHT};var h,E,u=this,y=1e-6,m=new THREE.Vector2,x=new THREE.Vector2,f=new THREE.Vector2,v=new THREE.Vector2,T=new THREE.Vector2,w=new THREE.Vector2,z=new THREE.Vector3,g=new THREE.Vector3,R=new THREE.Vector2,H=new THREE.Vector2,O=new THREE.Vector2,b=0,M=0,P=1,V=new THREE.Vector3,D=new THREE.Vector3,B=new THREE.Quaternion,S={NONE:-1,ROTATE:0,DOLLY:1,PAN:2,TOUCH_ROTATE:3,TOUCH_DOLLY:4,TOUCH_PAN:5},j=S.NONE;this.target0=this.target.clone(),this.position0=this.object.position.clone();var N=(new THREE.Quaternion).setFromUnitVectors(e.up,new THREE.Vector3(0,1,0)),I=N.clone().inverse(),A={type:"change"},k={type:"start"},L={type:"end"};this.rotateLeft=function(e){void 0===e&&(e=o()),M-=e},this.rotateUp=function(e){void 0===e&&(e=o()),b-=e},this.panLeft=function(e){var t=this.object.matrix.elements;z.set(t[0],t[1],t[2]),z.multiplyScalar(-e),V.add(z)},this.panUp=function(e){var t=this.object.matrix.elements;z.set(t[4],t[5],t[6]),z.multiplyScalar(e),V.add(z)},this.pan=function(e,t){var o=u.domElement===document?u.domElement.body:u.domElement;if(void 0!==u.object.fov){var n=u.object.position,i=n.clone().sub(u.target),r=i.length();r*=Math.tan(u.object.fov/2*Math.PI/180),u.panLeft(2*e*r/o.clientHeight),u.panUp(2*t*r/o.clientHeight)}else void 0!==u.object.top?(u.panLeft(e*(u.object.right-u.object.left)/(o.clientWidth*this.object.zoom)),u.panUp(t*(u.object.top-u.object.bottom)/(o.clientHeight*this.object.zoom))):console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.")},this.dollyIn=function(e){void 0===e&&(e=n()),void 0!==u.object.top?(this.object.zoom*=e,this.object.updateProjectionMatrix()):P/=e},this.dollyOut=function(e){void 0===e&&(e=n()),void 0!==u.object.top?(this.object.zoom/=e,this.object.updateProjectionMatrix()):P*=e},this.update=function(){var e=this.object.position;g.copy(e).sub(this.target),g.applyQuaternion(N),h=Math.atan2(g.x,g.z),E=Math.atan2(Math.sqrt(g.x*g.x+g.z*g.z),g.y),this.autoRotate&&j===S.NONE&&this.rotateLeft(o()),h+=M,E+=b,h=Math.max(this.minAzimuthAngle,Math.min(this.maxAzimuthAngle,h)),E=Math.max(this.minPolarAngle,Math.min(this.maxPolarAngle,E)),E=Math.max(y,Math.min(Math.PI-y,E));var t=g.length()*P;t=Math.max(this.minDistance,Math.min(this.maxDistance,t)),this.target.add(V),g.x=t*Math.sin(E)*Math.sin(h),g.y=t*Math.cos(E),g.z=t*Math.sin(E)*Math.cos(h),g.applyQuaternion(I),e.copy(this.target).add(g),this.object.lookAt(this.target),M=0,b=0,P=1,V.set(0,0,0),(D.distanceToSquared(this.object.position)>y||8*(1-B.dot(this.object.quaternion))>y)&&(this.dispatchEvent(A),D.copy(this.object.position),B.copy(this.object.quaternion))},this.reset=function(){j=S.NONE,this.target.copy(this.target0),this.object.position.copy(this.position0),this.update()},this.getPolarAngle=function(){return E},this.getAzimuthalAngle=function(){return h},this.domElement.addEventListener("contextmenu",function(e){e.preventDefault()},!1),this.domElement.addEventListener("mousedown",i,!1),this.domElement.addEventListener("mousewheel",s,!1),this.domElement.addEventListener("DOMMouseScroll",s,!1),this.domElement.addEventListener("touchstart",d,!1),this.domElement.addEventListener("touchend",p,!1),this.domElement.addEventListener("touchmove",l,!1),window.addEventListener("keydown",c,!1),this.update()},THREE.OrbitControls2D.prototype=Object.create(THREE.EventDispatcher.prototype),THREE.OrbitControls2D.prototype.constructor=THREE.OrbitControls2D,t.exports=THREE.OrbitControls2D},{}],3:[function(e,t,o){var n=n||{};n.intersections=n.intersections||{},n.intersections.obbPlane=function(e,t){var o=[],n=t.direction.clone().applyMatrix4(e.toOBBSpace),i=new THREE.Vector3(0,0,0).applyMatrix4(e.toOBBSpace),r={position:t.position.clone().applyMatrix4(e.toOBBSpace),direction:new THREE.Vector3(n.x-i.x,n.y-i.y,n.z-i.z).normalize()},a=new THREE.Vector3(e.center.x-e.halfDimensions.x,e.center.y-e.halfDimensions.y,e.center.z-e.halfDimensions.z),s=new THREE.Vector3(e.center.x+e.halfDimensions.x,e.center.y+e.halfDimensions.y,e.center.z+e.halfDimensions.z),c={position:new THREE.Vector3(e.center.x-e.halfDimensions.x,e.center.y-e.halfDimensions.y,e.center.z-e.halfDimensions.z),direction:e.orientation.x},d=this.rayPlane(c,r);return d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c.direction=e.orientation.y,d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c.direction=e.orientation.z,d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c={position:new THREE.Vector3(e.center.x+e.halfDimensions.x,e.center.y+e.halfDimensions.y,e.center.z+e.halfDimensions.z),direction:e.orientation.x},d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c.direction=e.orientation.y,d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c.direction=e.orientation.z,d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c={position:new THREE.Vector3(e.center.x+e.halfDimensions.x,e.center.y-e.halfDimensions.y,e.center.z-e.halfDimensions.z),direction:e.orientation.y},d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c.direction=e.orientation.z,d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c={position:new THREE.Vector3(e.center.x-e.halfDimensions.x,e.center.y+e.halfDimensions.y,e.center.z-e.halfDimensions.z),direction:e.orientation.x},d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c.direction=e.orientation.z,d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c={position:new THREE.Vector3(e.center.x-e.halfDimensions.x,e.center.y-e.halfDimensions.y,e.center.z+e.halfDimensions.z),direction:e.orientation.x},d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),c.direction=e.orientation.y,d=this.rayPlane(c,r),d&&d.x>=a.x&&d.y>=a.y&&d.z>=a.z&&d.x<=s.x&&d.y<=s.y&&d.z<=s.z&&o.push(d.applyMatrix4(e.toOBBSpaceInvert)),o},n.intersections.rayPlane=function(e,t){if(0!==e.direction.dot(t.direction)){var o=(t.direction.x*(t.position.x-e.position.x)+t.direction.y*(t.position.y-e.position.y)+t.direction.z*(t.position.z-e.position.z))/(t.direction.x*e.direction.x+t.direction.y*e.direction.y+t.direction.z*e.direction.z),n=new THREE.Vector3(e.position.x+o*e.direction.x,e.position.y+o*e.direction.y,e.position.z+o*e.direction.z);return n}return null},t.exports=n.intersections},{}],4:[function(e,t,o){var n=e("../core/Intersections"),i=i||{};i.geometries=i.geometries||{},i.geometries.slice=function(e,t,o,i,r){var a={halfDimensions:e,center:t,orientation:o,toOBBSpace:new THREE.Matrix4,toOBBSpaceInvert:new THREE.Matrix4},s={position:i,direction:r},c=n.obbPlane(a,s);c.length<3&&(window.console.log("WARNING: Less than 3 intersections between OBB and Plane."),window.console.log("OBB"),window.console.log(a),window.console.log("Plane"),window.console.log(s),window.console.log("exiting..."));for(var d=this.centerOfMass(c),l=this.orderIntersections(c,d,r),p=[],h=[],E=0;E<l.length;E++)p.push(l[E].point),h.push(l[E].xy);var u=new THREE.Shape;u.moveTo(h[0].x,h[0].y);for(var y=1;y<h.length;y++)u.lineTo(h[y].x,h[y].y);u.lineTo(h[0].x,h[0].y),THREE.ShapeGeometry.call(this,u),this.type="SliceGeometry",this.vertices=p,this.verticesNeedUpdate=!0},i.geometries.slice.prototype=Object.create(THREE.ShapeGeometry.prototype),i.geometries.slice.prototype.constructor=i.geometries.slice,i.geometries.slice.prototype.centerOfMass=function(e){for(var t=new THREE.Vector3(0,0,0),o=0;o<e.length;o++)t.x+=e[o].x,t.y+=e[o].y,t.z+=e[o].z;return t.divideScalar(e.length),t},i.geometries.slice.prototype.orderIntersections=function(e,t,o){for(var n=e[0].x,i=e[0].y,r=e[0].z,a=e[0].x-t.x,s=e[0].y-t.y,c=e[0].z-t.z,d={origin:new THREE.Vector3(n,i,r),direction:new THREE.Vector3(a,s,c).normalize()},l=new THREE.Vector3(0,0,0).crossVectors(d.direction,o).normalize(),p=[],h=0;h<e.length;h++){var E=e[h].x,u=e[h].y,y=e[h].z,m=e[h].x-t.x,x=e[h].y-t.y,f=e[h].z-t.z,v={origin:new THREE.Vector3(E,u,y),direction:new THREE.Vector3(m,x,f).normalize()},T=d.direction.dot(v.direction),w=l.dot(v.direction),z=Math.atan2(w,T),g=z*(180/Math.PI);p.push({angle:g,point:v.origin,xy:{x:T,y:w}})}return p.sort(function(e,t){return e.angle-t.angle}),p},t.exports=i.geometries.slice},{"../core/Intersections":3}]},{},[1]);
-//# sourceMappingURL=../../examples/geometries_slice/geometries_slice.js.map
+"use strict";
+
+(function e(t, n, r) {
+    function s(o, u) {
+        if (!n[o]) {
+            if (!t[o]) {
+                var a = typeof require == "function" && require;if (!u && a) return a(o, !0);if (i) return i(o, !0);var f = new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND", f);
+            }var l = n[o] = { exports: {} };t[o][0].call(l.exports, function (e) {
+                var n = t[o][1][e];return s(n ? n : e);
+            }, l, l.exports, e, t, n, r);
+        }return n[o].exports;
+    }var i = typeof require == "function" && require;for (var o = 0; o < r.length; o++) s(r[o]);return s;
+})({ 1: [function (require, module, exports) {
+        /* globals Stats, dat*/
+        "use strict";
+
+        var vjsSliceGeometry = require("../../src/geometries/geometries.slice");
+        var vjsOrbitControl2D = require("../../src/controls/OrbitControls2D");
+
+        // standard global variables
+        var controls, renderer, scene, camera, statsyay;
+
+        // FUNCTIONS
+        function init() {
+
+            // this function is executed on each animation frame
+            function animate() {
+                // render
+                controls.update();
+                renderer.render(scene, camera);
+                statsyay.update();
+
+                // request new frame
+                requestAnimationFrame(function () {
+                    animate();
+                });
+            }
+
+            // renderer
+            var threeD = document.getElementById("r3d");
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(threeD.offsetWidth, threeD.offsetHeight);
+            renderer.setClearColor(0xFFFFFF, 1);
+
+            var maxTextureSize = renderer.context.getParameter(renderer.context.MAX_TEXTURE_SIZE);
+            window.console.log(maxTextureSize);
+
+            threeD.appendChild(renderer.domElement);
+
+            // stats
+            statsyay = new Stats();
+            threeD.appendChild(statsyay.domElement);
+
+            // scene
+            scene = new THREE.Scene();
+            // camera
+            camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+            camera.position.x = 100;
+            camera.position.y = 100;
+            camera.position.z = 100;
+            camera.lookAt(scene.position);
+            // controls
+            controls = new vjsOrbitControl2D(camera, renderer.domElement);
+
+            animate();
+        }
+
+        window.onload = function () {
+            // init threeJS...
+            init();
+
+            // make a box!
+            var dimensions = new THREE.Vector3(123, 45, 67);
+            var boxGeometry = new THREE.BoxGeometry(dimensions.x, dimensions.y, dimensions.z);
+            var boxMaterial = new THREE.MeshBasicMaterial({
+                wireframe: true,
+                color: 0x61F2F3
+            });
+            var box = new THREE.Mesh(boxGeometry, boxMaterial);
+            scene.add(box);
+
+            // make a slice!
+            var halfDimensions = dimensions.clone().divideScalar(2);
+            var center = new THREE.Vector3(0, 0, 0);
+            var orientation = new THREE.Vector3(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+
+            var position = center.clone();
+            var direction = new THREE.Vector3(-0.2, 0.5, 0.3);
+
+            var sliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, position, direction);
+            var sliceMaterial = new THREE.MeshBasicMaterial({
+                "side": THREE.DoubleSide,
+                "transparency": true,
+                "color": 0x03A9F4
+            });
+            var slice = new THREE.Mesh(sliceGeometry, sliceMaterial);
+            scene.add(slice);
+
+            // make the direction!!
+            var length = 20;
+            var hex = 0xF44336;
+
+            var arrowHelper = new THREE.ArrowHelper(direction, position, length, hex);
+            var arrowUpdate = {
+                "direction": {
+                    "i": direction.x,
+                    "j": direction.y,
+                    "k": direction.z
+                },
+                "position": {
+                    "i": position.x,
+                    "j": position.y,
+                    "k": position.z
+                }
+            };
+
+            scene.add(arrowHelper);
+
+            var gui = new dat.GUI({
+                autoPlace: false
+            });
+
+            var customContainer = document.getElementById("my-gui-container");
+            customContainer.appendChild(gui.domElement);
+
+            var directionFolder = gui.addFolder("Plane direction");
+            var frameIndexControllerDirectionI = directionFolder.add(arrowUpdate.direction, "i", -1, 1);
+            var frameIndexControllerDirectionJ = directionFolder.add(arrowUpdate.direction, "j", -1, 1);
+            var frameIndexControllerDirectionK = directionFolder.add(arrowUpdate.direction, "k", -1, 1);
+            directionFolder.open();
+
+            var positionFolder = gui.addFolder("Plane position");
+            var frameIndexControllerOriginI = positionFolder.add(arrowUpdate.position, "i", -61.5, 61.5);
+            var frameIndexControllerOriginJ = positionFolder.add(arrowUpdate.position, "j", -22.5, 22.5);
+            var frameIndexControllerOriginK = positionFolder.add(arrowUpdate.position, "k", -33.5, 33.5);
+            positionFolder.open();
+
+            frameIndexControllerDirectionI.onChange(function (value) {
+                var newDirection = new THREE.Vector3(value, arrowUpdate.direction.j, arrowUpdate.direction.k);
+                newDirection.normalize();
+                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, arrowUpdate.position.k);
+
+                arrowHelper.setDirection(newDirection);
+
+                // is memory leaking???
+                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
+                slice.geometry = newSliceGeometry;
+                slice.geometry.verticesNeedUpdate = true;
+            });
+
+            frameIndexControllerDirectionJ.onChange(function (value) {
+                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, value, arrowUpdate.direction.k);
+                newDirection.normalize();
+                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, arrowUpdate.position.k);
+
+                arrowHelper.setDirection(newDirection);
+
+                // is memory leaking???
+                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
+                slice.geometry = newSliceGeometry;
+                slice.geometry.verticesNeedUpdate = true;
+            });
+
+            frameIndexControllerDirectionK.onChange(function (value) {
+                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, value);
+                newDirection.normalize();
+                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, arrowUpdate.position.k);
+
+                arrowHelper.setDirection(newDirection);
+
+                // is memory leaking???
+                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
+                slice.geometry = newSliceGeometry;
+                slice.geometry.verticesNeedUpdate = true;
+            });
+
+            frameIndexControllerOriginI.onChange(function (value) {
+                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, arrowUpdate.direction.k);
+                newDirection.normalize();
+                var newPosition = new THREE.Vector3(value, arrowUpdate.position.j, arrowUpdate.position.k);
+
+                scene.remove(arrowHelper);
+                arrowHelper = new THREE.ArrowHelper(newDirection, newPosition, length, hex);
+                scene.add(arrowHelper);
+
+                // is memory leaking???
+                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
+                slice.geometry = newSliceGeometry;
+                slice.geometry.verticesNeedUpdate = true;
+            });
+
+            frameIndexControllerOriginJ.onChange(function (value) {
+                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, arrowUpdate.direction.k);
+                newDirection.normalize();
+                var newPosition = new THREE.Vector3(arrowUpdate.position.i, value, arrowUpdate.position.k);
+
+                scene.remove(arrowHelper);
+                arrowHelper = new THREE.ArrowHelper(newDirection, newPosition, length, hex);
+                scene.add(arrowHelper);
+
+                // is memory leaking???
+                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
+                slice.geometry = newSliceGeometry;
+                slice.geometry.verticesNeedUpdate = true;
+            });
+
+            frameIndexControllerOriginK.onChange(function (value) {
+                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, arrowUpdate.direction.k);
+                newDirection.normalize();
+                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, value);
+
+                scene.remove(arrowHelper);
+                arrowHelper = new THREE.ArrowHelper(newDirection, newPosition, length, hex);
+                scene.add(arrowHelper);
+
+                // is memory leaking???
+                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
+                slice.geometry = newSliceGeometry;
+                slice.geometry.verticesNeedUpdate = true;
+            });
+        };
+    }, { "../../src/controls/OrbitControls2D": 2, "../../src/geometries/geometries.slice": 4 }], 2: [function (require, module, exports) {
+        "use strict";
+
+        /**
+         * traversc: modified mouse wheel zoom to work with orthographic camera
+         * @author qiao / https://github.com/qiao
+         * @author mrdoob / http://mrdoob.com
+         * @author alteredq / http://alteredqualia.com/
+         * @author WestLangley / http://github.com/WestLangley
+         * @author erich666 / http://erichaines.com
+         */
+        /*global THREE, console */
+
+        // This set of controls performs orbiting, dollying (zooming), and panning. It maintains
+        // the "up" direction as +Y, unlike the TrackballControls. Touch on tablet and phones is
+        // supported.
+        //
+        //    Orbit - left mouse / touch: one finger move
+        //    Zoom - middle mouse, or mousewheel / touch: two finger spread or squish
+        //    Pan - right mouse, or arrow keys / touch: three finter swipe
+
+        THREE.OrbitControls2D = function (object, domElement) {
+
+            this.object = object;
+            this.domElement = domElement !== undefined ? domElement : document;
+
+            // API
+
+            // Set to false to disable this control
+            this.enabled = true;
+
+            // "target" sets the location of focus, where the control orbits around
+            // and where it pans with respect to.
+            this.target = new THREE.Vector3();
+
+            // center is old, deprecated; use "target" instead
+            this.center = this.target;
+
+            // This option actually enables dollying in and out; left as "zoom" for
+            // backwards compatibility
+            this.noZoom = false;
+            this.zoomSpeed = 1.0;
+
+            // Limits to how far you can dolly in and out
+            this.minDistance = 0;
+            this.maxDistance = Infinity;
+
+            // Set to true to disable this control
+            this.noRotate = false;
+            this.rotateSpeed = 1.0;
+
+            // Set to true to disable this control
+            this.noPan = false;
+            this.keyPanSpeed = 7.0; // pixels moved per arrow key push
+
+            // Set to true to automatically rotate around the target
+            this.autoRotate = false;
+            this.autoRotateSpeed = 2.0; // 30 seconds per round when fps is 60
+
+            // How far you can orbit vertically, upper and lower limits.
+            // Range is 0 to Math.PI radians.
+            this.minPolarAngle = 0; // radians
+            this.maxPolarAngle = Math.PI; // radians
+
+            // How far you can orbit horizontally, upper and lower limits.
+            // If set, must be a sub-interval of the interval [ - Math.PI, Math.PI ].
+            this.minAzimuthAngle = -Infinity; // radians
+            this.maxAzimuthAngle = Infinity; // radians
+
+            // Set to true to disable use of the keys
+            this.noKeys = false;
+
+            // The four arrow keys
+            this.keys = {
+                LEFT: 37,
+                UP: 38,
+                RIGHT: 39,
+                BOTTOM: 40
+            };
+
+            // Mouse buttons
+            this.mouseButtons = {
+                ORBIT: THREE.MOUSE.LEFT,
+                ZOOM: THREE.MOUSE.MIDDLE,
+                PAN: THREE.MOUSE.RIGHT
+            };
+
+            ////////////
+            // internals
+
+            var scope = this;
+
+            var EPS = 0.000001;
+
+            var rotateStart = new THREE.Vector2();
+            var rotateEnd = new THREE.Vector2();
+            var rotateDelta = new THREE.Vector2();
+
+            var panStart = new THREE.Vector2();
+            var panEnd = new THREE.Vector2();
+            var panDelta = new THREE.Vector2();
+            var panOffset = new THREE.Vector3();
+
+            var offset = new THREE.Vector3();
+
+            var dollyStart = new THREE.Vector2();
+            var dollyEnd = new THREE.Vector2();
+            var dollyDelta = new THREE.Vector2();
+
+            var theta;
+            var phi;
+            var phiDelta = 0;
+            var thetaDelta = 0;
+            var scale = 1;
+            var pan = new THREE.Vector3();
+
+            var lastPosition = new THREE.Vector3();
+            var lastQuaternion = new THREE.Quaternion();
+
+            var STATE = {
+                NONE: -1,
+                ROTATE: 0,
+                DOLLY: 1,
+                PAN: 2,
+                TOUCH_ROTATE: 3,
+                TOUCH_DOLLY: 4,
+                TOUCH_PAN: 5
+            };
+
+            var state = STATE.NONE;
+
+            // for reset
+
+            this.target0 = this.target.clone();
+            this.position0 = this.object.position.clone();
+
+            // so camera.up is the orbit axis
+
+            var quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0, 1, 0));
+            var quatInverse = quat.clone().inverse();
+
+            // events
+
+            var changeEvent = {
+                type: "change"
+            };
+            var startEvent = {
+                type: "start"
+            };
+            var endEvent = {
+                type: "end"
+            };
+
+            this.rotateLeft = function (angle) {
+
+                if (angle === undefined) {
+
+                    angle = getAutoRotationAngle();
+                }
+
+                thetaDelta -= angle;
+            };
+
+            this.rotateUp = function (angle) {
+
+                if (angle === undefined) {
+
+                    angle = getAutoRotationAngle();
+                }
+
+                phiDelta -= angle;
+            };
+
+            // pass in distance in world space to move left
+            this.panLeft = function (distance) {
+
+                var te = this.object.matrix.elements;
+
+                // get X column of matrix
+                panOffset.set(te[0], te[1], te[2]);
+                panOffset.multiplyScalar(-distance);
+
+                pan.add(panOffset);
+            };
+
+            // pass in distance in world space to move up
+            this.panUp = function (distance) {
+
+                var te = this.object.matrix.elements;
+
+                // get Y column of matrix
+                panOffset.set(te[4], te[5], te[6]);
+                panOffset.multiplyScalar(distance);
+
+                pan.add(panOffset);
+            };
+
+            // pass in x,y of change desired in pixel space,
+            // right and down are positive
+            this.pan = function (deltaX, deltaY) {
+
+                var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+
+                if (scope.object.fov !== undefined) {
+
+                    // perspective
+                    var position = scope.object.position;
+                    var offset = position.clone().sub(scope.target);
+                    var targetDistance = offset.length();
+
+                    // half of the fov is center to top of screen
+                    targetDistance *= Math.tan(scope.object.fov / 2 * Math.PI / 180.0);
+
+                    // we actually don't use screenWidth, since perspective camera is fixed to screen height
+                    scope.panLeft(2 * deltaX * targetDistance / element.clientHeight);
+                    scope.panUp(2 * deltaY * targetDistance / element.clientHeight);
+                } else if (scope.object.top !== undefined) {
+
+                    // orthographic
+                    scope.panLeft(deltaX * (scope.object.right - scope.object.left) / (element.clientWidth * this.object.zoom));
+                    scope.panUp(deltaY * (scope.object.top - scope.object.bottom) / (element.clientHeight * this.object.zoom));
+                } else {
+
+                    // camera neither orthographic or perspective
+                    console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
+                }
+            };
+
+            //traversc: fix with orthographic camera zoom
+            this.dollyIn = function (dollyScale) {
+                if (dollyScale === undefined) {
+                    dollyScale = getZoomScale();
+                }
+                if (scope.object.top !== undefined) {
+                    this.object.zoom *= dollyScale;
+                    this.object.updateProjectionMatrix();
+                } else {
+                    scale /= dollyScale;
+                }
+            };
+
+            this.dollyOut = function (dollyScale) {
+                if (dollyScale === undefined) {
+                    dollyScale = getZoomScale();
+                }
+                if (scope.object.top !== undefined) {
+                    this.object.zoom /= dollyScale;
+                    this.object.updateProjectionMatrix();
+                } else {
+                    scale *= dollyScale;
+                }
+            };
+
+            this.update = function () {
+
+                var position = this.object.position;
+
+                offset.copy(position).sub(this.target);
+
+                // rotate offset to "y-axis-is-up" space
+                offset.applyQuaternion(quat);
+
+                // angle from z-axis around y-axis
+
+                theta = Math.atan2(offset.x, offset.z);
+
+                // angle from y-axis
+
+                phi = Math.atan2(Math.sqrt(offset.x * offset.x + offset.z * offset.z), offset.y);
+
+                if (this.autoRotate && state === STATE.NONE) {
+
+                    this.rotateLeft(getAutoRotationAngle());
+                }
+
+                theta += thetaDelta;
+                phi += phiDelta;
+
+                // restrict theta to be between desired limits
+                theta = Math.max(this.minAzimuthAngle, Math.min(this.maxAzimuthAngle, theta));
+
+                // restrict phi to be between desired limits
+                phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, phi));
+
+                // restrict phi to be betwee EPS and PI-EPS
+                phi = Math.max(EPS, Math.min(Math.PI - EPS, phi));
+
+                var radius = offset.length() * scale;
+
+                // restrict radius to be between desired limits
+                radius = Math.max(this.minDistance, Math.min(this.maxDistance, radius));
+
+                // move target to panned location
+                this.target.add(pan);
+
+                offset.x = radius * Math.sin(phi) * Math.sin(theta);
+                offset.y = radius * Math.cos(phi);
+                offset.z = radius * Math.sin(phi) * Math.cos(theta);
+
+                // rotate offset back to "camera-up-vector-is-up" space
+                offset.applyQuaternion(quatInverse);
+
+                position.copy(this.target).add(offset);
+
+                this.object.lookAt(this.target);
+
+                thetaDelta = 0;
+                phiDelta = 0;
+                scale = 1;
+                pan.set(0, 0, 0);
+
+                // update condition is:
+                // min(camera displacement, camera rotation in radians)^2 > EPS
+                // using small-angle approximation cos(x/2) = 1 - x^2 / 8
+
+                if (lastPosition.distanceToSquared(this.object.position) > EPS || 8 * (1 - lastQuaternion.dot(this.object.quaternion)) > EPS) {
+
+                    this.dispatchEvent(changeEvent);
+
+                    lastPosition.copy(this.object.position);
+                    lastQuaternion.copy(this.object.quaternion);
+                }
+            };
+
+            this.reset = function () {
+
+                state = STATE.NONE;
+
+                this.target.copy(this.target0);
+                this.object.position.copy(this.position0);
+
+                this.update();
+            };
+
+            this.getPolarAngle = function () {
+
+                return phi;
+            };
+
+            this.getAzimuthalAngle = function () {
+
+                return theta;
+            };
+
+            function getAutoRotationAngle() {
+
+                return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
+            }
+
+            function getZoomScale() {
+
+                return Math.pow(0.95, scope.zoomSpeed);
+            }
+
+            function onMouseDown(event) {
+
+                if (scope.enabled === false) {
+                    return;
+                }
+                event.preventDefault();
+
+                if (event.button === scope.mouseButtons.ORBIT) {
+                    if (scope.noRotate === true) {
+                        return;
+                    }
+
+                    state = STATE.ROTATE;
+
+                    rotateStart.set(event.clientX, event.clientY);
+                } else if (event.button === scope.mouseButtons.ZOOM) {
+                    if (scope.noZoom === true) {
+                        return;
+                    }
+
+                    state = STATE.DOLLY;
+
+                    dollyStart.set(event.clientX, event.clientY);
+                } else if (event.button === scope.mouseButtons.PAN) {
+                    if (scope.noPan === true) {
+                        return;
+                    }
+
+                    state = STATE.PAN;
+
+                    panStart.set(event.clientX, event.clientY);
+                }
+
+                if (state !== STATE.NONE) {
+                    document.addEventListener("mousemove", onMouseMove, false);
+                    document.addEventListener("mouseup", onMouseUp, false);
+                    scope.dispatchEvent(startEvent);
+                }
+            }
+
+            function onMouseMove(event) {
+
+                if (scope.enabled === false) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+
+                if (state === STATE.ROTATE) {
+
+                    if (scope.noRotate === true) {
+                        return;
+                    }
+
+                    rotateEnd.set(event.clientX, event.clientY);
+                    rotateDelta.subVectors(rotateEnd, rotateStart);
+
+                    // rotating across whole screen goes 360 degrees around
+                    scope.rotateLeft(2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
+
+                    // rotating up and down along whole screen attempts to go 360, but limited to 180
+                    scope.rotateUp(2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+
+                    rotateStart.copy(rotateEnd);
+                } else if (state === STATE.DOLLY) {
+
+                    if (scope.noZoom === true) {
+                        return;
+                    }
+
+                    dollyEnd.set(event.clientX, event.clientY);
+                    dollyDelta.subVectors(dollyEnd, dollyStart);
+
+                    if (dollyDelta.y > 0) {
+
+                        scope.dollyIn();
+                    } else {
+
+                        scope.dollyOut();
+                    }
+
+                    dollyStart.copy(dollyEnd);
+                } else if (state === STATE.PAN) {
+
+                    if (scope.noPan === true) {
+                        return;
+                    }
+
+                    panEnd.set(event.clientX, event.clientY);
+                    panDelta.subVectors(panEnd, panStart);
+
+                    scope.pan(panDelta.x, panDelta.y);
+
+                    panStart.copy(panEnd);
+                }
+
+                if (state !== STATE.NONE) {
+                    scope.update();
+                }
+            }
+
+            function onMouseUp() {
+
+                if (scope.enabled === false) {
+                    return;
+                }
+
+                document.removeEventListener("mousemove", onMouseMove, false);
+                document.removeEventListener("mouseup", onMouseUp, false);
+                scope.dispatchEvent(endEvent);
+                state = STATE.NONE;
+            }
+
+            function onMouseWheel(event) {
+
+                if (scope.enabled === false || scope.noZoom === true || state !== STATE.NONE) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                var delta = 0;
+
+                if (event.wheelDelta !== undefined) {
+                    // WebKit / Opera / Explorer 9
+
+                    delta = event.wheelDelta;
+                } else if (event.detail !== undefined) {
+                    // Firefox
+
+                    delta = -event.detail;
+                }
+
+                if (delta > 0) {
+
+                    scope.dollyOut();
+                } else {
+
+                    scope.dollyIn();
+                }
+
+                scope.update();
+                scope.dispatchEvent(startEvent);
+                scope.dispatchEvent(endEvent);
+            }
+
+            function onKeyDown(event) {
+
+                if (scope.enabled === false || scope.noKeys === true || scope.noPan === true) {
+                    return;
+                }
+
+                switch (event.keyCode) {
+
+                    case scope.keys.UP:
+                        scope.pan(0, scope.keyPanSpeed);
+                        scope.update();
+                        break;
+
+                    case scope.keys.BOTTOM:
+                        scope.pan(0, -scope.keyPanSpeed);
+                        scope.update();
+                        break;
+
+                    case scope.keys.LEFT:
+                        scope.pan(scope.keyPanSpeed, 0);
+                        scope.update();
+                        break;
+
+                    case scope.keys.RIGHT:
+                        scope.pan(-scope.keyPanSpeed, 0);
+                        scope.update();
+                        break;
+
+                }
+            }
+
+            function touchstart(event) {
+
+                if (scope.enabled === false) {
+                    return;
+                }
+
+                switch (event.touches.length) {
+
+                    case 1:
+                        // one-fingered touch: rotate
+
+                        if (scope.noRotate === true) {
+                            return;
+                        }
+
+                        state = STATE.TOUCH_ROTATE;
+
+                        rotateStart.set(event.touches[0].pageX, event.touches[0].pageY);
+                        break;
+
+                    case 2:
+                        // two-fingered touch: dolly
+
+                        if (scope.noZoom === true) {
+                            return;
+                        }
+
+                        state = STATE.TOUCH_DOLLY;
+
+                        var dx = event.touches[0].pageX - event.touches[1].pageX;
+                        var dy = event.touches[0].pageY - event.touches[1].pageY;
+                        var distance = Math.sqrt(dx * dx + dy * dy);
+                        dollyStart.set(0, distance);
+                        break;
+
+                    case 3:
+                        // three-fingered touch: pan
+
+                        if (scope.noPan === true) {
+                            return;
+                        }
+
+                        state = STATE.TOUCH_PAN;
+
+                        panStart.set(event.touches[0].pageX, event.touches[0].pageY);
+                        break;
+
+                    default:
+
+                        state = STATE.NONE;
+
+                }
+
+                if (state !== STATE.NONE) {
+                    scope.dispatchEvent(startEvent);
+                }
+            }
+
+            function touchmove(event) {
+
+                if (scope.enabled === false) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+
+                switch (event.touches.length) {
+
+                    case 1:
+                        // one-fingered touch: rotate
+
+                        if (scope.noRotate === true) {
+                            return;
+                        }
+                        if (state !== STATE.TOUCH_ROTATE) {
+                            return;
+                        }
+
+                        rotateEnd.set(event.touches[0].pageX, event.touches[0].pageY);
+                        rotateDelta.subVectors(rotateEnd, rotateStart);
+
+                        // rotating across whole screen goes 360 degrees around
+                        scope.rotateLeft(2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
+                        // rotating up and down along whole screen attempts to go 360, but limited to 180
+                        scope.rotateUp(2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+
+                        rotateStart.copy(rotateEnd);
+
+                        scope.update();
+                        break;
+
+                    case 2:
+                        // two-fingered touch: dolly
+
+                        if (scope.noZoom === true) {
+                            return;
+                        }
+                        if (state !== STATE.TOUCH_DOLLY) {
+                            return;
+                        }
+
+                        var dx = event.touches[0].pageX - event.touches[1].pageX;
+                        var dy = event.touches[0].pageY - event.touches[1].pageY;
+                        var distance = Math.sqrt(dx * dx + dy * dy);
+
+                        dollyEnd.set(0, distance);
+                        dollyDelta.subVectors(dollyEnd, dollyStart);
+
+                        if (dollyDelta.y > 0) {
+
+                            scope.dollyOut();
+                        } else {
+
+                            scope.dollyIn();
+                        }
+
+                        dollyStart.copy(dollyEnd);
+
+                        scope.update();
+                        break;
+
+                    case 3:
+                        // three-fingered touch: pan
+
+                        if (scope.noPan === true) {
+                            return;
+                        }
+                        if (state !== STATE.TOUCH_PAN) {
+                            return;
+                        }
+
+                        panEnd.set(event.touches[0].pageX, event.touches[0].pageY);
+                        panDelta.subVectors(panEnd, panStart);
+
+                        scope.pan(panDelta.x, panDelta.y);
+
+                        panStart.copy(panEnd);
+
+                        scope.update();
+                        break;
+
+                    default:
+
+                        state = STATE.NONE;
+
+                }
+            }
+
+            function touchend() {
+
+                if (scope.enabled === false) {
+                    return;
+                }
+
+                scope.dispatchEvent(endEvent);
+                state = STATE.NONE;
+            }
+
+            this.domElement.addEventListener("contextmenu", function (event) {
+                event.preventDefault();
+            }, false);
+            this.domElement.addEventListener("mousedown", onMouseDown, false);
+            this.domElement.addEventListener("mousewheel", onMouseWheel, false);
+            this.domElement.addEventListener("DOMMouseScroll", onMouseWheel, false); // firefox
+
+            this.domElement.addEventListener("touchstart", touchstart, false);
+            this.domElement.addEventListener("touchend", touchend, false);
+            this.domElement.addEventListener("touchmove", touchmove, false);
+
+            window.addEventListener("keydown", onKeyDown, false);
+
+            // force an update at start
+            this.update();
+        };
+
+        THREE.OrbitControls2D.prototype = Object.create(THREE.EventDispatcher.prototype);
+        THREE.OrbitControls2D.prototype.constructor = THREE.OrbitControls2D;
+
+        // export the frame module
+        module.exports = THREE.OrbitControls2D;
+    }, {}], 3: [function (require, module, exports) {
+        "use strict";
+
+        var VJS = VJS || {};
+        VJS.core = VJS.core || {};
+
+        /**
+         * @constructor
+         * @class
+         * @memberOf VJS.core
+         * @public
+        */
+        VJS.core.intersections = VJS.core.intersections || {};
+
+        /**
+         * Compute intersection between oriented bounding box and a plane.
+         * Returns intersection in plane's space (toOBBSpaceInvert applied).
+         * Should return at least 3 intersections. If not, the plane and the box do not
+         * intersect.
+         *
+         * @memberOf VJS.core.intersections
+         * @public
+         *
+         * @param {Object} obb - Oriented Bounding Box representation.
+         * @param {THREE.Vector3} obb.halfDimensions - Half dimensions of the box.
+         * @param {THREE.Vector3<THREE.Vector3>} obb.orientation - Orientation of the edges of the box.
+         * @param {THREE.Vector3} obb.center - Center of the box.
+         * @param {THREE.Matrix4} obb.toOBBSpace - Transform to go from plane space to box space.
+         * @param {THREE.Matrix4} obb.toOBBSpaceInvert - Transform to go from box space to plane space.
+         * @param {Object} plane - Plane representation
+         * @param {THREE.Vector3} plane.position - position of normal which describes the plane.
+         * @param {THREE.Vector3} plane.direction - Direction of normal which describes the plane.
+         *
+         * @returns {Array<THREE.Vector3>} List of all intersections, in plane's space.
+         *
+         * @todo toOBBSpace and toOBBSpaceInvert might be redundent.
+         * @todo find best way to deal with different spaces.
+         */
+
+        VJS.core.intersections.obbPlane = function (obb, plane) {
+
+            //
+            // obb = { halfDimensions, orientation, center, toOBBSpace }
+            // plane = { position, direction }
+            //
+            //
+            // LOGIC:
+            //
+            // Test intersection of each edge of the Oriented Bounding Box with the Plane
+            //
+            // ALL EDGES
+            //
+            //      .+-------+ 
+            //    .' |     .'| 
+            //   +---+---+'  | 
+            //   |   |   |   | 
+            //   |  ,+---+---+ 
+            //   |.'     | .'  
+            //   +-------+'    
+            //
+            // SPACE ORIENTATION
+            //
+            //       +
+            //     j |
+            //       |
+            //       |   i
+            //   k  ,+-------+ 
+            //    .'
+            //   +
+            //
+            //
+            // 1- Move Plane position and orientation in IJK space
+            // 2- Test Edges/ IJK Plane intersections
+            // 3- Return intersection Edge/ IJK Plane if it touches the Oriented BBox
+
+            var intersections = [];
+
+            var t1 = plane.direction.clone().applyMatrix4(obb.toOBBSpace);
+            var t0 = new THREE.Vector3(0, 0, 0).applyMatrix4(obb.toOBBSpace);
+
+            var planeOBB = {
+                position: plane.position.clone().applyMatrix4(obb.toOBBSpace),
+                direction: new THREE.Vector3(t1.x - t0.x, t1.y - t0.y, t1.z - t0.z).normalize()
+            };
+
+            var bboxMin = new THREE.Vector3(obb.center.x - obb.halfDimensions.x, obb.center.y - obb.halfDimensions.y, obb.center.z - obb.halfDimensions.z);
+            var bboxMax = new THREE.Vector3(obb.center.x + obb.halfDimensions.x, obb.center.y + obb.halfDimensions.y, obb.center.z + obb.halfDimensions.z);
+
+            // 12 edges (i.e. ray)/plane intersection tests
+
+            // RAYS STARTING FROM THE FIRST CORNER (0, 0, 0)
+            //
+            //       +
+            //       |
+            //       |
+            //       |
+            //      ,+---+---+
+            //    .'  
+            //   +  
+
+            var ray = {
+                "position": new THREE.Vector3(obb.center.x - obb.halfDimensions.x, obb.center.y - obb.halfDimensions.y, obb.center.z - obb.halfDimensions.z),
+                "direction": obb.orientation.x
+            };
+
+            var intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            ray.direction = obb.orientation.y;
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            ray.direction = obb.orientation.z;
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            // RAYS STARTING FROM THE LAST CORNER
+            //
+            //               +
+            //             .'
+            //   +-------+'
+            //           |
+            //           |
+            //           |
+            //           +
+            //
+
+            ray = {
+                "position": new THREE.Vector3(obb.center.x + obb.halfDimensions.x, obb.center.y + obb.halfDimensions.y, obb.center.z + obb.halfDimensions.z),
+                "direction": obb.orientation.x
+            };
+
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            ray.direction = obb.orientation.y;
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            ray.direction = obb.orientation.z;
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            // RAYS STARTING FROM THE SECOND CORNER
+            //
+            //               +
+            //               |
+            //               |
+            //               |
+            //               +
+            //             .'
+            //           +'
+
+            ray = {
+                "position": new THREE.Vector3(obb.center.x + obb.halfDimensions.x, obb.center.y - obb.halfDimensions.y, obb.center.z - obb.halfDimensions.z),
+                "direction": obb.orientation.y
+            };
+
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            ray.direction = obb.orientation.z;
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            // RAYS STARTING FROM THE THIRD CORNER
+            //
+            //      .+-------+ 
+            //    .'
+            //   +
+            //  
+            //  
+            //  
+            //  
+
+            ray = {
+                "position": new THREE.Vector3(obb.center.x - obb.halfDimensions.x, obb.center.y + obb.halfDimensions.y, obb.center.z - obb.halfDimensions.z),
+                "direction": obb.orientation.x
+            };
+
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            ray.direction = obb.orientation.z;
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            // RAYS STARTING FROM THE FOURTH CORNER
+            //
+            //  
+            //  
+            //   +
+            //   |
+            //   | 
+            //   |
+            //   +-------+
+
+            ray = {
+                "position": new THREE.Vector3(obb.center.x - obb.halfDimensions.x, obb.center.y - obb.halfDimensions.y, obb.center.z + obb.halfDimensions.z),
+                "direction": obb.orientation.x
+            };
+
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            ray.direction = obb.orientation.y;
+            intersection = this.rayPlane(ray, planeOBB);
+            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+                intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
+            }
+
+            return intersections;
+        };
+
+        /**
+         * Compute intersection between a ray and a plane.
+         *
+         * @memberOf VJS.core.intersections
+         * @public
+         *
+         * @param {Object} ray - Ray representation.
+         * @param {THREE.Vector3} ray.position - position of normal which describes the ray.
+         * @param {THREE.Vector3} ray.direction - Direction of normal which describes the ray.
+         * @param {Object} plane - Plane representation
+         * @param {THREE.Vector3} plane.position - position of normal which describes the plane.
+         * @param {THREE.Vector3} plane.direction - Direction of normal which describes the plane.
+         *
+         * @returns {THREE.Vector3|null} Intersection between ray and plane or null.
+         */
+        VJS.core.intersections.rayPlane = function (ray, plane) {
+            // ray: {position, direction}
+            // plane: {position, direction}
+
+            if (ray.direction.dot(plane.direction) !== 0) {
+                //
+                // not parallel, move forward
+                //
+                // LOGIC:
+                //
+                // Ray equation: P = P0 + tV
+                // P = <Px, Py, Pz>
+                // P0 = <ray.position.x, ray.position.y, ray.position.z>
+                // V = <ray.direction.x, ray.direction.y, ray.direction.z>
+                //
+                // Therefore:
+                // Px = ray.position.x + t*ray.direction.x
+                // Py = ray.position.y + t*ray.direction.y
+                // Pz = ray.position.z + t*ray.direction.z
+                //
+                //
+                //
+                // Plane equation: ax + by + cz + d = 0
+                // a = plane.direction.x
+                // b = plane.direction.y
+                // c = plane.direction.z
+                // d = -( plane.direction.x*plane.position.x +
+                //        plane.direction.y*plane.position.y +
+                //        plane.direction.z*plane.position.z )
+                //
+                //
+                // 1- in the plane equation, we replace x, y and z by Px, Py and Pz
+                // 2- find t
+                // 3- replace t in Px, Py and Pz to get the coordinate of the intersection
+                //
+                var t = (plane.direction.x * (plane.position.x - ray.position.x) + plane.direction.y * (plane.position.y - ray.position.y) + plane.direction.z * (plane.position.z - ray.position.z)) / (plane.direction.x * ray.direction.x + plane.direction.y * ray.direction.y + plane.direction.z * ray.direction.z);
+
+                var intersection = new THREE.Vector3(ray.position.x + t * ray.direction.x, ray.position.y + t * ray.direction.y, ray.position.z + t * ray.direction.z);
+
+                return intersection;
+            }
+
+            return null;
+        };
+
+        /*** Exports ***/
+
+        var moduleType = typeof module;
+        if (moduleType !== "undefined" && module.exports) {
+            module.exports = VJS.core.intersections;
+        }
+    }, {}], 4: [function (require, module, exports) {
+        "use strict";
+
+        var VJS = VJS || {};
+        VJS.geometries = VJS.geometries || {};
+
+        /*** Imports ***/
+
+        VJS.core = VJS.core || {};
+        VJS.core.intersections = VJS.core.intersections || require("../core/core.intersections");
+
+        /**
+         *
+         * It is typically used for creating an irregular 3D planar shape given a box and the cut-plane.
+         *
+         * Demo: {@link https://fnndsc.github.io/vjs#geometry_slice}
+         *
+         * @constructor
+         * @class
+         * @memberOf VJS.geometries
+         * @public
+         *
+         * @param {THREE.Vector3} halfDimensions - Half-dimensions of the box to be sliced.
+         * @param {THREE.Vector3} center - Center of the box to be sliced.
+         * @param {THREE.Vector3<THREE.Vector3>} orientation - Orientation of the box to be sliced. (might not be necessary..?)
+         * @param {THREE.Vector3} position - Position of the cutting plane.
+         * @param {THREE.Vector3} direction - Cross direction of the cutting plane.
+         *
+         * @example
+         * // Define box to be sliced
+         * var halfDimensions = new THREE.Vector(123, 45, 67);
+         * var center = new THREE.Vector3(0, 0, 0);
+         * var orientation = new THREE.Vector3(
+         *   new THREE.Vector3(1, 0, 0),
+         *   new THREE.Vector3(0, 1, 0),
+         *   new THREE.Vector3(0, 0, 1)
+         * );
+         *
+         * // Define slice plane
+         * var position = center.clone();
+         * var direction = new THREE.Vector3(-0.2, 0.5, 0.3);
+         *
+         * // Create the slice geometry & materials
+         * var sliceGeometry = new VJS.geometries.slice(halfDimensions, center, orientation, position, direction);
+         * var sliceMaterial = new THREE.MeshBasicMaterial({
+         *   'side': THREE.DoubleSide,
+         *   'color': 0xFF5722
+         * });
+         *
+         *  // Create mesh and add it to the scene
+         *  var slice = new THREE.Mesh(sliceGeometry, sliceMaterial);
+         *  scene.add(slice);
+         */
+        VJS.geometries.slice = function (halfDimensions, center, orientation, position, direction) {
+
+            //
+            // prepare data for the shape!
+            //
+            var obb = {
+                "halfDimensions": halfDimensions,
+                "center": center,
+                "orientation": orientation,
+                "toOBBSpace": new THREE.Matrix4(), // not necessary
+                "toOBBSpaceInvert": new THREE.Matrix4() // not necessary
+            };
+
+            var plane = {
+                "position": position,
+                "direction": direction
+            };
+
+            // BOOM!
+            var intersections = VJS.core.intersections.obbPlane(obb, plane);
+
+            if (intersections.length < 3) {
+                window.console.log("WARNING: Less than 3 intersections between OBB and Plane.");
+                window.console.log("OBB");
+                window.console.log(obb);
+                window.console.log("Plane");
+                window.console.log(plane);
+                window.console.log("exiting...");
+            }
+
+            var centerOfMass = this.centerOfMass(intersections);
+            var orderedIntersections = this.orderIntersections(intersections, centerOfMass, direction);
+
+            // split for convenience
+            var formatIntersections = [];
+            var formatIntersectionsXY = [];
+            for (var k = 0; k < orderedIntersections.length; k++) {
+                formatIntersections.push(orderedIntersections[k].point);
+                formatIntersectionsXY.push(orderedIntersections[k].xy);
+            }
+
+            //
+            // Create Shape
+            //
+            var sliceShape = new THREE.Shape();
+            // move to first point!
+            sliceShape.moveTo(formatIntersectionsXY[0].x, formatIntersectionsXY[0].y);
+
+            // loop through all points!
+            for (var l = 1; l < formatIntersectionsXY.length; l++) {
+                // project each on plane!
+                sliceShape.lineTo(formatIntersectionsXY[l].x, formatIntersectionsXY[l].y);
+            }
+
+            // close the shape!
+            sliceShape.lineTo(formatIntersectionsXY[0].x, formatIntersectionsXY[0].y);
+
+            //
+            // Generate Geometry from shape
+            // It does triangulation for us!
+            //
+            THREE.ShapeGeometry.call(this, sliceShape);
+            this.type = "SliceGeometry";
+
+            // update real position of each vertex! (not in 2d)
+            this.vertices = formatIntersections;
+            this.verticesNeedUpdate = true;
+        };
+
+        VJS.geometries.slice.prototype = Object.create(THREE.ShapeGeometry.prototype);
+        VJS.geometries.slice.prototype.constructor = VJS.geometries.slice;
+
+        /**
+         *
+         * Convenience function to extract center of mass from list of points.
+         *
+         * @private
+         *
+         * @param {Array<THREE.Vector3>} points - Set of points from which we want to extract the center of mass.
+         *
+         * @returns {THREE.Vector3} Center of mass from given points.
+         */
+        VJS.geometries.slice.prototype.centerOfMass = function (points) {
+            var centerOfMass = new THREE.Vector3(0, 0, 0);
+            for (var i = 0; i < points.length; i++) {
+                centerOfMass.x += points[i].x;
+                centerOfMass.y += points[i].y;
+                centerOfMass.z += points[i].z;
+            }
+            centerOfMass.divideScalar(points.length);
+
+            return centerOfMass;
+        };
+
+        /**
+         *
+         * Order 3D planar points around a refence point.
+         *
+         * @private
+         *
+         * @param {Array<THREE.Vector3>} points - Set of planar 3D points to be ordered.
+         * @param {THREE.Vector3} reference - Reference point for ordering.
+         * @param {THREE.Vector3} direction - Direction of the plane in which points and reference are sitting.
+         *
+         * @returns {Array<Object>} Set of object representing the ordered points.
+         */
+        VJS.geometries.slice.prototype.orderIntersections = function (points, reference, direction) {
+
+            var a0 = points[0].x;
+            var b0 = points[0].y;
+            var c0 = points[0].z;
+            var x0 = points[0].x - reference.x;
+            var y0 = points[0].y - reference.y;
+            var z0 = points[0].z - reference.z;
+            var l0 = {
+                origin: new THREE.Vector3(a0, b0, c0),
+                direction: new THREE.Vector3(x0, y0, z0).normalize()
+            };
+
+            var base = new THREE.Vector3(0, 0, 0).crossVectors(l0.direction, direction).normalize();
+
+            var orderedpoints = [];
+
+            // other lines // if inter, return location + angle
+            for (var j = 0; j < points.length; j++) {
+
+                var a1 = points[j].x;
+                var b1 = points[j].y;
+                var c1 = points[j].z;
+                var x1 = points[j].x - reference.x;
+                var y1 = points[j].y - reference.y;
+                var z1 = points[j].z - reference.z;
+
+                var l1 = {
+                    origin: new THREE.Vector3(a1, b1, c1),
+                    direction: new THREE.Vector3(x1, y1, z1).normalize()
+                };
+
+                var x = l0.direction.dot(l1.direction);
+                var y = base.dot(l1.direction);
+
+                var thetaAngle = Math.atan2(y, x);
+                var theta = thetaAngle * (180 / Math.PI);
+                orderedpoints.push({
+                    "angle": theta,
+                    "point": l1.origin,
+                    "xy": {
+                        "x": x,
+                        "y": y
+                    }
+                });
+            }
+
+            orderedpoints.sort(function (a, b) {
+                return a.angle - b.angle;
+            });
+
+            return orderedpoints;
+        };
+
+        /*** Exports ***/
+
+        var moduleType = typeof module;
+        if (moduleType !== "undefined" && module.exports) {
+            module.exports = VJS.geometries.slice;
+        }
+    }, { "../core/core.intersections": 3 }] }, {}, [1]);
+/* event */ /* event */
+//# sourceMappingURL=../geometries_slice/geometries_slice.js.map

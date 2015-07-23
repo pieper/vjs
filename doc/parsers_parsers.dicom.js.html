@@ -1,0 +1,714 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.2">
+  <meta charset="utf-8">
+  <title>Source: parsers/parsers.dicom.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: parsers/parsers.dicom.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>/*global module*/
+
+//ftp://medical.nema.org/MEDICAL/Dicom/2014c/output/chtml/part05/sect_6.2.html/
+
+&#x27;use strict&#x27;;
+
+// imports
+var dicomParser = require(&#x27;dicom-parser&#x27;);
+var jpx = require(&#x27;./jpx.js&#x27;);
+
+var VJS = VJS || {};
+VJS.parsers = VJS.parsers || {};
+
+/**
+ * Dicom parser is a combination of utilities to get a VJS image from dicom files.
+ *
+ * Relies on dcmjs, jquery, HTML5 fetch API, HTML5 promise API.
+ *
+ * @constructor
+ * @class
+ * @memberOf VJS.parsers
+ * @public
+ *
+ * @param arrayBuffer {arraybuffer} - List of files to be parsed. It is urls from which
+ * VJS.parsers.dicom can pull the data from.
+ */
+VJS.parsers.dicom = function(arrayBuffer, id) {
+  /**
+   * @member
+   * @type {arraybuffer}
+   */
+  this._id = id;
+  this._arrayBuffer = arrayBuffer;
+
+  var byteArray = new Uint8Array(arrayBuffer);
+  // window.console.log(byteArray.length);
+  this._dataSet = dicomParser.parseDicom(byteArray);
+
+  //window.console.log(dicomParser);
+  // window.console.log(this._dataSet);
+  // this.rescaleIntercept(0);
+};
+
+VJS.parsers.dicom.prototype.seriesInstanceUID =  function() {
+  return this._dataSet.string(&#x27;x0020000e&#x27;);
+};
+
+VJS.parsers.dicom.prototype.modality =  function() {
+  return this._dataSet.string(&#x27;x00080060&#x27;);
+};
+
+// image/frame specific
+VJS.parsers.dicom.prototype.sopInstanceUID =  function() {
+  return this._dataSet.string(&#x27;x00200018&#x27;);
+};
+
+VJS.parsers.dicom.prototype.transferSyntaxUID =  function() {
+  return this._dataSet.string(&#x27;x00020010&#x27;);
+};
+
+VJS.parsers.dicom.prototype.photometricInterpretation =  function() {
+  return this._dataSet.string(&#x27;x00280004&#x27;);
+};
+
+VJS.parsers.dicom.prototype.planarConfiguration =  function() {
+
+  var planarConfiguration = this._dataSet.uint16(&#x27;x00280006&#x27;);
+
+  if (typeof planarConfiguration === &#x27;undefined&#x27;) {
+    planarConfiguration = null;
+  }
+
+  return planarConfiguration;
+};
+
+VJS.parsers.dicom.prototype.samplesPerPixel =  function() {
+  return this._dataSet.uint16(&#x27;x00280002&#x27;);
+};
+
+VJS.parsers.dicom.prototype.numberOfFrames =  function() {
+  var numberOfFrames = this._dataSet.intString(&#x27;x00280008&#x27;);
+
+  // need something smarter!
+  if (typeof numberOfFrames === &#x27;undefined&#x27;) {
+    numberOfFrames = null;
+  }
+
+  // make sure we return a number! (not a string!)
+  return numberOfFrames;
+};
+
+VJS.parsers.dicom.prototype.numberOfChannels =  function() {
+  var numberOfChannels = 1;
+  var photometricInterpretation = this.photometricInterpretation();
+
+  if (photometricInterpretation === &#x27;RGB&#x27; ||
+            photometricInterpretation === &#x27;PALETTE COLOR&#x27; ||
+            photometricInterpretation === &#x27;YBR_FULL&#x27; ||
+            photometricInterpretation === &#x27;YBR_FULL_422&#x27; ||
+            photometricInterpretation === &#x27;YBR_PARTIAL_422&#x27; ||
+            photometricInterpretation === &#x27;YBR_PARTIAL_420&#x27; ||
+            photometricInterpretation === &#x27;YBR_RCT&#x27;) {
+    numberOfChannels = 3;
+  }
+
+  // make sure we return a number! (not a string!)
+  return numberOfChannels;
+};
+
+VJS.parsers.dicom.prototype.imageOrientation =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var imageOrientation = this._dataSet.string(&#x27;x00200037&#x27;);
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof imageOrientation === &#x27;undefined&#x27;) {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+      // plane orientation sequence for Nth element in the sequence
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00209116.items[0].dataSet;
+      imageOrientation = planeOrientationSequence.string(&#x27;x00200037&#x27;);
+    } else {
+      // default orientation
+      // should we default to undefined??
+      imageOrientation = null;
+    }
+  }
+
+  // format image orientation (&#x27;1\0\0\0\1\0&#x27;) to array containing 6 numbers
+  if (imageOrientation) {
+    // make sure we return a number! (not a string!)
+    // might not need to split (floatString + index)
+    imageOrientation = imageOrientation.split(&#x27;\\&#x27;).map(Number);
+  }
+
+  return imageOrientation;
+};
+
+VJS.parsers.dicom.prototype.pixelAspectRatio =  function() {
+  var pixelAspectRatio = [
+    this._dataSet.intString(&#x27;x00280034&#x27;, 0),
+    this._dataSet.intString(&#x27;x00280034&#x27;, 1)
+    ];
+
+  // need something smarter!
+  if (typeof pixelAspectRatio[0] === &#x27;undefined&#x27;) {
+    pixelAspectRatio = null;
+  }
+
+  // make sure we return a number! (not a string!)
+  return pixelAspectRatio;
+};
+
+VJS.parsers.dicom.prototype.imagePosition =  function(frameIndex) {
+  var imagePosition = null;
+  // first look for frame!
+  // per frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+  if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+    // plane orientation sequence for Nth element in the sequence
+    var planeOrientationSequence = perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x00209113.items[0].dataSet;
+    imagePosition = planeOrientationSequence.string(&#x27;x00200032&#x27;);
+  } else {
+    // should we default to undefined??
+    // default orientation
+    imagePosition = this._dataSet.string(&#x27;x00200032&#x27;);
+
+    if (typeof imagePosition === &#x27;undefined&#x27;) {
+      imagePosition = null;
+    }
+  }
+
+  // format image orientation (&#x27;1\0\0\0\1\0&#x27;) to array containing 6 numbers
+  if (imagePosition) {
+    // make sure we return a number! (not a string!)
+    imagePosition = imagePosition.split(&#x27;\\&#x27;).map(Number);
+  }
+
+  return imagePosition;
+};
+
+VJS.parsers.dicom.prototype.instanceNumber =  function(frameIndex) {
+  var instanceNumber = null;
+  // first look for frame!
+  // per frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+  if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+    // plane orientation sequence for Nth element in the sequence
+    // PHILIPS HACK...
+    if (perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x2005140f) {
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x2005140f.items[0].dataSet;
+      instanceNumber = planeOrientationSequence.intString(&#x27;x00200013&#x27;);
+    } else {
+      instanceNumber = this._dataSet.intString(&#x27;x00200013&#x27;);
+
+      if (typeof instanceNumber === &#x27;undefined&#x27;) {
+        instanceNumber = null;
+      }
+    }
+
+  } else {
+    // should we default to undefined??
+    // default orientation
+    instanceNumber = this._dataSet.intString(&#x27;x00200013&#x27;);
+
+    if (typeof instanceNumber === &#x27;undefined&#x27;) {
+      instanceNumber = null;
+    }
+  }
+
+  return instanceNumber;
+};
+
+VJS.parsers.dicom.prototype.pixelSpacing =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var pixelSpacing = this._dataSet.string(&#x27;x00280030&#x27;);
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof pixelSpacing === &#x27;undefined&#x27;) {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+      // plane orientation sequence for Nth element in the sequence
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289110.items[0].dataSet;
+      pixelSpacing = planeOrientationSequence.string(&#x27;x00280030&#x27;);
+    } else {
+      // default orientation
+      pixelSpacing = null;
+    }
+  }
+
+  // format image orientation (&#x27;1\0\0\0\1\0&#x27;) to array containing 6 numbers
+  // should we default to undefined??
+  if (pixelSpacing) {
+
+    // make sure we return array of numbers! (not strings!)
+    pixelSpacing = pixelSpacing.split(&#x27;\\&#x27;).map(Number);
+  }
+  return pixelSpacing;
+};
+
+VJS.parsers.dicom.prototype.sopInstanceUID =  function(frameIndex) {
+  // expect frame index to start at 0!
+
+  // per frame
+  // philips 2005,140f
+  //
+  var sopInstanceUID = this._dataSet.string(&#x27;x00080018&#x27;);
+  return sopInstanceUID;
+};
+
+VJS.parsers.dicom.prototype.sliceThickness =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var sliceThickness = this._dataSet.floatString(&#x27;x00180050&#x27;);
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof sliceThickness === &#x27;undefined&#x27;) {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+      // plane orientation sequence for Nth element in the sequence
+      var planeOrientationSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289110.items[0].dataSet;
+      sliceThickness = planeOrientationSequence.floatString(&#x27;x00180050&#x27;);
+    } else {
+      // default orientation
+      // should we default to undefined??
+      // print warning at least...
+      sliceThickness = null;
+    }
+  }
+
+  return sliceThickness;
+};
+
+VJS.parsers.dicom.prototype.rows =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var rows = this._dataSet.uint16(&#x27;x00280010&#x27;);
+
+  if (typeof rows === &#x27;undefined&#x27;) {
+    rows = null;
+    // print warning at least...
+  }
+
+  return rows;
+};
+
+VJS.parsers.dicom.prototype.columns =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var columns = this._dataSet.uint16(&#x27;x00280011&#x27;);
+
+  if (typeof columns === &#x27;undefined&#x27;) {
+    columns = null;
+    // print warning at least...
+  }
+
+  return columns;
+};
+
+VJS.parsers.dicom.prototype.pixelRepresentation =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var pixelRepresentation = this._dataSet.uint16(&#x27;x00280103&#x27;);
+  return pixelRepresentation;
+};
+
+VJS.parsers.dicom.prototype.bitsAllocated =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var bitsAllocated = this._dataSet.uint16(&#x27;x00280100&#x27;);
+  return bitsAllocated;
+};
+
+VJS.parsers.dicom.prototype.highBit =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var highBit = this._dataSet.uint16(&#x27;x00280102&#x27;);
+  return highBit;
+};
+
+VJS.parsers.dicom.prototype.rescaleIntercept =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var rescaleIntercept = this._dataSet.floatString(&#x27;x00281052&#x27;);
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof rescaleIntercept === &#x27;undefined&#x27;) {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+      // NOT A PHILIPS TRICK!
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289145.items[0].dataSet;
+      rescaleIntercept = philipsPrivateSequence.floatString(&#x27;x00281052&#x27;);
+    } else {
+      // default rescaleIntercept
+      rescaleIntercept = null;
+    }
+  }
+
+  return rescaleIntercept;
+};
+
+VJS.parsers.dicom.prototype.rescaleSlope =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var rescaleSlope = this._dataSet.floatString(&#x27;x00281053&#x27;);
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof rescaleSlope === &#x27;undefined&#x27;) {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+      // NOT A PHILIPS TRICK!
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289145.items[0].dataSet;
+      rescaleSlope = philipsPrivateSequence.floatString(&#x27;x00281052&#x27;);
+    } else {
+      // default rescaleSlope
+      rescaleSlope = null;
+    }
+  }
+
+  return rescaleSlope;
+};
+
+VJS.parsers.dicom.prototype.windowCenter =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var windowCenter = this._dataSet.floatString(&#x27;x00281050&#x27;);
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof windowCenter === &#x27;undefined&#x27;) {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+      // NOT A PHILIPS TRICK!.
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289132.items[0].dataSet;
+      windowCenter = philipsPrivateSequence.floatString(&#x27;x00281050&#x27;);
+    } else {
+      // default windowCenter
+      // print warning at least...
+      windowCenter = null;
+    }
+  }
+
+  return windowCenter;
+};
+
+VJS.parsers.dicom.prototype.windowWidth =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var windowWidth = this._dataSet.floatString(&#x27;x00281051&#x27;);
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group
+  if (typeof windowWidth === &#x27;undefined&#x27;) {
+    // per frame functionnal group sequence
+    var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+    if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+      // NOT A PHILIPS TRICK!
+      var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+        .items[frameIndex].dataSet.elements.x00289132.items[0].dataSet;
+      windowWidth = philipsPrivateSequence.floatString(&#x27;x00281051&#x27;);
+    } else {
+      // default windowWidth
+      // print warning at least...
+      windowWidth = null;
+    }
+  }
+  return windowWidth;
+};
+
+VJS.parsers.dicom.prototype.dimensionIndexValues =  function(frameIndex) {
+  var dimensionIndexValues = [];
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+  if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+    // NOT A PHILIPS TRICK!
+    var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
+    var element = philipsPrivateSequence.elements.x00209157;
+    // /4 because UL
+    var nbValues = element.length / 4;
+    for (var i = 0; i &amp;lt; nbValues; i++) {
+      dimensionIndexValues.push(philipsPrivateSequence.uint32(&#x27;x00209157&#x27;, i));
+    }
+  } else {
+    dimensionIndexValues = null;
+  }
+
+  return dimensionIndexValues;
+};
+
+VJS.parsers.dicom.prototype.inStackPositionNumber =  function(frameIndex) {
+  var inStackPositionNumber = null;
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+  if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+    // NOT A PHILIPS TRICK!
+    var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
+    inStackPositionNumber = philipsPrivateSequence.uint32(&#x27;x00209057&#x27;);
+  } else {
+    inStackPositionNumber = null;
+  }
+
+  return inStackPositionNumber;
+};
+
+VJS.parsers.dicom.prototype.stackID =  function(frameIndex) {
+  var stackID = null;
+
+  // try to get it from enhanced MR images
+  // per-frame functionnal group sequence
+  var perFrameFunctionnalGroupSequence = this._dataSet.elements.x52009230;
+
+  if (typeof perFrameFunctionnalGroupSequence !== &#x27;undefined&#x27;) {
+    // NOT A PHILIPS TRICK!
+    var philipsPrivateSequence = perFrameFunctionnalGroupSequence
+      .items[frameIndex].dataSet.elements.x00209111.items[0].dataSet;
+    stackID = philipsPrivateSequence.intString(&#x27;x00209056&#x27;);
+  } else {
+    stackID = null;
+  }
+
+  return stackID;
+};
+
+VJS.parsers.dicom.prototype.decompressPixelData =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var dPixelData = [];
+  // http://www.dicomlibrary.com/dicom/transfer-syntax/
+  var transferSyntaxUID = this.transferSyntaxUID();
+
+  // find compression scheme
+  if (transferSyntaxUID === &#x27;1.2.840.10008.1.2.4.90&#x27; ||  // JPEG 2000 lossless
+      transferSyntaxUID === &#x27;1.2.840.10008.1.2.4.91&#x27;) {  // JPEG 2000 lossy
+    //window.console.log(&#x27;JPG2000 in action!&#x27;);
+    // window.console.log(this._dataSet);
+    //window.console.log(dicomParser);
+    //window.console.log(this._dataSet.elements);
+    var compressedPixelData = dicomParser.readEncapsulatedPixelData(this._dataSet, this._dataSet.elements.x7fe00010, frameIndex);
+    // var pixelDataElement = this._dataSet.elements.x7fe00010;
+    // var pixelData = new Uint8Array(this._dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
+    var jpxImage = new jpx();
+    // https://github.com/OHIF/image-JPEG2000/issues/6
+    // It currently returns either Int16 or Uint16 based on whether the codestream is signed or not.
+    jpxImage.parse(compressedPixelData);
+
+    // var j2kWidth = jpxImage.width;
+    // var j2kHeight = jpxImage.height;
+
+    var componentsCount = jpxImage.componentsCount;
+    if (componentsCount !== 1) {
+      throw &#x27;JPEG2000 decoder returned a componentCount of &#x27; + componentsCount + &#x27;, when 1 is expected&#x27;;
+    }
+    var tileCount = jpxImage.tiles.length;
+    if (tileCount !== 1) {
+      throw &#x27;JPEG2000 decoder returned a tileCount of &#x27; + tileCount + &#x27;, when 1 is expected&#x27;;
+    }
+    var tileComponents = jpxImage.tiles[0];
+    var pixelData = tileComponents.items;
+
+    // window.console.log(j2kWidth, j2kHeight);
+
+    return pixelData;
+  }
+
+  return dPixelData;
+};
+
+VJS.parsers.dicom.prototype.extractPixelData =  function(frameIndex) {
+  // expect frame index to start at 0!
+  var ePixelData = null;
+
+  // if compressed..?
+  var transferSyntaxUID = this.transferSyntaxUID();
+
+  // find compression scheme
+  if (transferSyntaxUID === &#x27;1.2.840.10008.1.2.4.90&#x27; ||  // JPEG 2000 lossless
+      transferSyntaxUID === &#x27;1.2.840.10008.1.2.4.91&#x27;) {
+    // which format
+    return this.decompressPixelData(frameIndex);
+  }
+
+  // else
+  // ned to guess pixel format to know if uint8, unit16 or int16
+  // Note - we may want to sanity check the rows * columns * bitsAllocated * samplesPerPixel against the buffer size
+  var pixelRepresentation = this.pixelRepresentation(frameIndex);
+  var bitsAllocated = this.bitsAllocated(frameIndex);
+  var pixelDataElement = this._dataSet.elements.x7fe00010;
+  var pixelDataOffset = pixelDataElement.dataOffset;
+  var numberOfChannels  = this.numberOfChannels();
+  var numPixels = this.rows(frameIndex) * this.columns(frameIndex) * numberOfChannels;
+  var frameOffset = 0;
+
+  if (numberOfChannels === 1) {
+    if (pixelRepresentation === 0 &amp;amp;&amp;amp; bitsAllocated === 8) {
+
+      // unsigned 8 bit
+      frameOffset = pixelDataOffset + frameIndex * numPixels;
+      ePixelData =  new Uint8Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+    } else if (pixelRepresentation === 0 &amp;amp;&amp;amp; bitsAllocated === 16) {
+
+      // unsigned 16 bit
+      frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
+      ePixelData = new Uint16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+    } else if (pixelRepresentation === 1 &amp;amp;&amp;amp; bitsAllocated === 16) {
+
+      // signed 16 bit
+      frameOffset = pixelDataOffset + frameIndex * numPixels * 2;
+      ePixelData = new Int16Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+
+    }
+  } else {
+    // ASSUME RGB 8 BITS SIGNED!
+    frameOffset = pixelDataOffset + frameIndex * numPixels;
+    var encodedPixelData = new Uint8Array(this._dataSet.byteArray.buffer, frameOffset, numPixels);
+    var photometricInterpretation = this.photometricInterpretation();
+
+    if (photometricInterpretation === &#x27;RGB&#x27;) {
+      // ALL GOOD, ALREADY ORDERED
+      ePixelData = encodedPixelData;
+
+    } else if (photometricInterpretation === &#x27;YBR_FULL&#x27;) {
+      ePixelData = new Uint8Array(numPixels);
+      // https://github.com/chafey/cornerstoneWADOImageLoader/blob/master/src/decodeYBRFull.js
+      var nPixels = numPixels / 3;
+      var ybrIndex = 0;
+      var rgbaIndex = 0;
+      for (var i = 0; i &amp;lt; nPixels; i++) {
+        var y = encodedPixelData[ybrIndex++];
+        var cb = encodedPixelData[ybrIndex++];
+        var cr = encodedPixelData[ybrIndex++];
+        ePixelData[rgbaIndex++] = y + 1.40200 * (cr - 128);// red
+        ePixelData[rgbaIndex++] = y - 0.34414 * (cb - 128) - 0.71414 * (cr - 128); // green
+        ePixelData[rgbaIndex++] = y + 1.77200 * (cb - 128); // blue
+        ePixelData[rgbaIndex++] = 255; //alpha
+      }
+    } else {
+      window.console.log(&#x27;photometric interpolation not supported: &#x27; + photometricInterpretation);
+    }
+
+  }
+
+  return ePixelData;
+};
+
+VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
+
+  var minMax = [65535, -32768];
+  var numPixels = pixelData.length;
+  for (var index = 0; index &amp;lt; numPixels; index++) {
+    var spv = pixelData[index];
+
+    //apply rescale/intercept
+    // var rSlope = this.rescaleSlope(0);
+    // var rIntercept = this.rescaleIntercept(0);
+    // var rpv = spv * rSlope + rIntercept;
+
+    // apply window/level
+    // var wWidth = this.windowWidth(0);
+    // var wCenter = this.windowCenter(0);
+    // var wpv = rpv;
+    // if( wpv &amp;lt; wCenter - wWidth/2){
+    //   wpv = wCenter - wWidth/2;
+    // }
+    // else if( wpv &gt; wCenter + wWidth/2){
+    //   wpv = wCenter + wWidth/2;
+    // }
+
+    minMax[0] = Math.min(minMax[0], spv);
+    minMax[1] = Math.max(minMax[1], spv);
+  }
+
+  return minMax;
+};
+
+// VJS.parsers.dicom.prototype.frameOfReferenceUID = function(imageJqueryDom) {
+//   // try to access frame of reference UID through its DICOM tag
+//   var seriesNumber = imageJqueryDom.find(&#x27;[tag=&quot;00200052&quot;] Value&#x27;).text();
+
+//   // if not available, assume we only have 1 frame
+//   if (seriesNumber === &#x27;&#x27;) {
+//     seriesNumber = 1;
+//   }
+//   return seriesNumber;
+// };
+
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== &#x27;undefined&#x27;) &amp;amp;&amp;amp; module.exports) {
+    module.exports = VJS.parsers.dicom;
+}
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 23, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>
