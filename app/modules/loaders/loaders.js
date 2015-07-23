@@ -11,6 +11,8 @@ var VJS = VJS || {};
 VJS.loaders = VJS.loaders || {};
 
 /*** Imports ***/
+// DAIKON OVER KILL?
+// || ((typeof require !== 'undefined') ? require('./tag.js') : null);
 VJS.loaders.dicom = VJS.loaders.dicom || require('./loaders.dicom');
 VJS.loaders.trk = VJS.loaders.trk || require('./loaders.trk');
 
