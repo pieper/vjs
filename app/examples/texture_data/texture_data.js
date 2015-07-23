@@ -168,7 +168,7 @@ window.onload = function() {
           uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._numberOfFrames); //[stack._columns, stack._rows, stack._numberOfFrames];
           // world to model
           uniforms.uWorldToData.value = stack._lps2IJK; //new THREE.Matrix4().makeTranslation(448, 448, 30); //new THREE.Matrix4(); //stack._lps2IJK;
-          // window level
+          //uWindowLevel[center, width]
           uniforms.uWindowLevel.value = stack._windowLevel;
           uniforms.uNumberOfChannels.value = stack._numberOfChannels;
           uniforms.uBitsAllocated.value = stack._bitsAllocated;

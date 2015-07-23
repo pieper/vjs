@@ -92,7 +92,6 @@ vec4 sampleAs3DTexture(in vec3 textureCoordinate) {
   return dataValue;
 }
 
-
 void main(void) {
 
   // get texture coordinates of current pixel

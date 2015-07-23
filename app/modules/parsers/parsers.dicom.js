@@ -6,7 +6,7 @@
 
 // imports
 var dicomParser = require('dicom-parser');
-var jpx = require('./jpx.js');
+// var jpx = require('./jpx.js');
 
 var VJS = VJS || {};
 VJS.parsers = VJS.parsers || {};

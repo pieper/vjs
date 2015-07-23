@@ -304,8 +304,6 @@ VJS.loaders.dicom.prototype.parse = function(response) {
 //           return image;
 //         });
 // };
-
-
 };
 
 
