@@ -46,6 +46,9 @@ gulp.task('copy', function() {
 gulp.task('html', function() {
   return gulp.src([
         '**/*.html',
+        '!bower_components{,/**}',
+        '!node_modules{,/**}',
+        '!test{,/**}',
         '!gh-pages{,/**}',
         '!deprecated{,/**}'
     ])
