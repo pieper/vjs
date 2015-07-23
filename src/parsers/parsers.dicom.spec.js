@@ -118,7 +118,7 @@ data = {
   // Frame specific
   photometricInterpretation: 'RGB',
   planarConfiguration: 0,
-  samplesPerPixel: 3,
+  samplesPerPixel: 4,
   imageOrientation: null,
   imagePosition: null,
   pixelSpacing: null,

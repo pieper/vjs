@@ -155,8 +155,6 @@ gulp.task('test', function(cb) {
     reporters: ['spec'],
     singleRun: true,
     autoWatch: false
-  }, function(e, stdout) {
-    cb();
   });
 });
 
