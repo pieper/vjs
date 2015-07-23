@@ -1,9 +1,6 @@
 node_modules
-dist
-test/temp
+gh-pages
 .sass-cache
-app/bower_components
 bower_components
 .tmp
-test/bower_components/
 .DS_STORE

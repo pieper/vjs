@@ -1,11 +1,5 @@
 {
   "name": "vjs",
   "version": "0.0.0",
-  "dependencies": {
-    "dcmjs.org" : "commontk/dcmjs.org#gh-pages",
-    "threejs": "r71",
-    "dat.gui": "dataarts/dat.gui#v0.5.1",
-    "dicomParser": "1.0.2",
-    "daikon": "rii-mango/Daikon#v1.1"
-  }
+  "dependencies": {}
 }

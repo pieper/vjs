@@ -8,8 +8,8 @@ module.exports = function(karma) {
 
     // list of files / patterns to load in the browser
     files: [
-      'app/**/*.spec.js',
-      {pattern: 'app/data/**/*.tar', included: false, watched: false, served: true}
+      'src/**/*.spec.js',
+      {pattern: 'data/**/*.tar', included: false, watched: false, served: true}
     ],
 
     reporters: ['spec'],
@@ -17,7 +17,7 @@ module.exports = function(karma) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'app/**/*.spec.js': ['browserify']
+      'src/**/*.spec.js': ['browserify']
     },
 
     browsers: ['PhantomJS'],
@@ -30,7 +30,6 @@ module.exports = function(karma) {
 
     autoWatch: false,
     singleRun: true,
-
 
     browserify: {
       debug: true,

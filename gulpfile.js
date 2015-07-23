@@ -30,28 +30,35 @@ var knownOptions = {
 var options = minimist(process.argv.slice(2), knownOptions);
 
 // Clean output directories
-gulp.task('clean', del.bind(null, ['dist', '.tmp']));
+gulp.task('clean', del.bind(null, ['gh-pages', '.tmp']));
+
+// Copy (data) task
+// Copy task
+gulp.task('copy', function() {
+  return gulp.src([
+        'data/dcm/**/*' // dicom data used in demos
+    ])
+    .pipe(gulp.dest('gh-pages/data/dcm'))
+    .pipe($.size({title: 'copy'}));
+});
 
 // HTML task
 gulp.task('html', function() {
   return gulp.src([
-        'app/**/*.html',
-        '!app/deprecated{,/**}',
-        '!app/daikon{,/**}'
+        '**/*.html',
+        '!gh-pages{,/**}',
+        '!deprecated{,/**}'
     ])
-    .pipe(gulpif(options.env === 'production', $.replace('bower_components', 'libs')))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('gh-pages'))
     .pipe($.size({title: 'html'}));
 });
 
 // CSS task
 gulp.task('css', function() {
   return gulp.src([
-        'app/**/*.css',
-        '!app/deprecated{,/**}',
-        '!app/daikon{,/**}'
+        'examples/**/*.css'
     ])
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('gh-pages/examples'))
     .pipe($.size({title: 'css'}));
 });
 
@@ -59,7 +66,8 @@ gulp.task('css', function() {
 // http://www.forbeslindesay.co.uk/post/46324645400/standalone-browserify-builds
 gulp.task('javascript', function(cb) {
   // process files of interest
-  globby(['app/app.js', 'app/examples/**/*.js'], function(err, files) {
+  // 'src/vjs.js', 
+  globby(['examples/**/*.js'], function(err, files) {
     if (err) {
       cb(err);
     }
@@ -71,7 +79,7 @@ gulp.task('javascript', function(cb) {
               {entries: [entry],
                 debug: true,
                 // could add babelify there...
-                standalone: 'VJSROX',
+                // standalone: 'VJSROX',
                 transform: [glslify],
               })
             .bundle()
@@ -79,10 +87,10 @@ gulp.task('javascript', function(cb) {
             .pipe(buffer())
             .pipe(sourcemaps.init({loadMaps: true}))
                 .pipe(babel())
-                .pipe(gulpif(options.env === 'production', uglify()))
+                //.pipe(gulpif(options.env === 'production', uglify()))
                 .on('error', gutil.log)
             .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest('dist')); 
+            .pipe(gulp.dest('gh-pages/examples')); 
         });
 
     // create a merged stream
@@ -90,29 +98,54 @@ gulp.task('javascript', function(cb) {
   });
 });
 
-// Generate documentation
-function runJSDoc(done) {
+gulp.task('build', function(cb) {
+  // process files of interest
+  globby(['src/vjs.js'], function(err, files) {
+    if (err) {
+      cb(err);
+    }
+
+    var tasks = files.map(function(entry) {
+          // to remove /app layer
+          var index = entry.indexOf('/');
+          return browserify(
+              {entries: [entry],
+                debug: true,
+                // could add babelify there...
+                standalone: 'VJS',
+                transform: [glslify],
+              })
+            .bundle()
+            .pipe(source(entry.substring(index + 1)))
+            .pipe(buffer())
+            .pipe(sourcemaps.init({loadMaps: true}))
+                .pipe(babel())
+                //.pipe(uglify())
+                .on('error', gutil.log)
+            .pipe(sourcemaps.write('./'))
+            .pipe(gulp.dest('build')); 
+        });
+
+    // create a merged stream
+    es.merge(tasks).on('end', cb);
+  });
+});
+
+// Documentation task with JSDoc
+gulp.task('doc', function(done) {
   var cmd = '';
   if (process.platform === 'win32') {
-    cmd = 'node_modules\\.bin\\jsdoc -r -c jsdoc.conf -t node_modules\\jsdoc-baseline -d dist\\doc app';
+    cmd = 'node_modules\\.bin\\jsdoc -r -c jsdoc.conf -t node_modules\\jsdoc-baseline -d gh-pages\\doc src';
   }else {
-    cmd = 'node_modules/.bin/jsdoc -r -c jsdoc.conf -t node_modules/jsdoc-baseline -d dist/doc app';
+    cmd = 'node_modules/.bin/jsdoc -r -c jsdoc.conf -t node_modules/jsdoc-baseline -d gh-pages/doc src';
   }
   exec(cmd, function(e, stdout) {
     gutil.log(stdout);
     done();
   });
-}
-
-gulp.task('doc', function(done) {
-  if (options.env === 'production') {
-    runJSDoc(done);
-  } else {
-    done();
-  }
 });
 
-// Run tests
+// Test task with Karma+Jasmine
 gulp.task('test', function(cb) {
   karma.server.start({
     configFile: __dirname + '/karma.conf.js',
@@ -120,81 +153,46 @@ gulp.task('test', function(cb) {
     singleRun: true,
     autoWatch: false
   }, function(e, stdout) {
-    // ignore errors, we don't want to fail the build
-    // karma server will print all test failures
-    //gutil.log(stdout);
-    // crash might be good: got to fix it
     cb();
   });
-});
-
-// Copy task
-gulp.task('copy', function() {
-  // we could probably grab that from html files...
-  var threejs = gulp.src([
-    'bower_components/threejs/build/three.min.js'
-  ]).pipe(gulpif(options.env === 'production', gulp.dest('dist/libs/threejs/build')));
-
-  var stats = gulp.src([
-    'bower_components/threejs/examples/js/libs/stats.min.js'
-  ]).pipe(gulpif(options.env === 'production', gulp.dest('dist/libs/threejs/examples/js/libs')));
-
-  var datgui = gulp.src([
-    'bower_components/dat.gui/build/dat.gui.min.js'
-  ]).pipe(gulpif(options.env === 'production', gulp.dest('dist/libs/dat.gui/build')));
-
-  var dcmjs = gulp.src([
-    'bower_components/dcmjs.org/javascripts/**/*.js'
-  ]).pipe(gulpif(options.env === 'production', gulp.dest('dist/libs/dcmjs.org/javascripts')));
-
-  var dicomParser = gulp.src([
-    'bower_components/dicomParser/dist/dicomParser.min.js'
-  ]).pipe(gulpif(options.env === 'production', gulp.dest('dist/libs/dicomParser/dist')));
-
-  return es.merge(threejs, stats, datgui, dcmjs, dicomParser)
-    .pipe($.size({title: 'copy'}));
 });
 
 // Lint JavaScript
 gulp.task('jshint', function() {
   return gulp.src([
-      'app/**/*.js',
-      '!app/deprecated{,/**}'
+      'src/**/*.js',
+      'examples/**/*.js'
     ])
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'));
 });
 
 // no test anymore... too slow...
-gulp.task('js-watch', ['copy', 'doc', 'jshint', 'javascript'], reload);
+gulp.task('js-watch', ['jshint', 'test', 'javascript'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
-// Serve code from Ecma Script Today directory
+// Serve task for devs
 gulp.task('serve', ['default'], function() {
-  // dist mode, no route to web components
+  // gh-pages mode, no route to web components
   browserSync({
     server: {
-      baseDir: ['dist'],
-      routes:{
-        '/bower_components': 'bower_components',
-        '/data': 'app/data'
-      }
+      baseDir: ['gh-pages']
     }
   });
 
-  // js need to go through browserify/babelify/glslify to .tmp and be loaded from there!
-  gulp.watch(['app/**/*.js'], ['js-watch']);
-  gulp.watch(['app/**/*.html'], ['html-watch']);
-  gulp.watch(['app/**/*.css'], ['html-css']);
+  gulp.watch(['src/**/*.js', 'examples/**/*.js'], ['js-watch']);
+  gulp.watch(['examples/**/*.html'], ['html-watch']);
+  gulp.watch(['examples/**/*.css'], ['html-css']);
 });
 
-// Build production files, the default task
+// Gh-pages task is the default task
 gulp.task('default', ['clean'], function(cb) {
   runSequence(
-    'copy',
+    'jshint',
+    'test',
+    'copy', // copy the data over!
     ['javascript', 'html', 'css'],
-   'doc',
-   // 'test',
+    'doc',
     cb);
 });
