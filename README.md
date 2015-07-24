@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/FNNDSC/vjs.svg)](https://travis-ci.org/FNNDSC/vjs)
 
-A light-weight JS library for medical imaging with ThreeJS.
+JS Medical Imaging Sugar on top of ThreeJS
 
 
 ## Requirements
