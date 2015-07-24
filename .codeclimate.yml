@@ -1,0 +1,8 @@
+languages:
+   HTML: true
+   CSS: true
+   JavaScript: true
+exclude_paths:
+- "deprecated/*"
+- "src/parsers/jpg.js"
+- "src/parsers/jpx.js"
