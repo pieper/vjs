@@ -1,9 +1,9 @@
 'use strict';
 
 var VJS = VJS || {};
-VJS.Cameras = VJS.Cameras || {};
+VJS.cameras = VJS.cameras || {};
 
-VJS.Cameras.Camera2D = function(left, right, top, bottom, near, far, position) {
+VJS.cameras.camera2d = function(left, right, top, bottom, near, far, position) {
     this._Camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
     this._Camera.position.x = position.x;
     this._Camera.position.y = position.y;
@@ -11,7 +11,7 @@ VJS.Cameras.Camera2D = function(left, right, top, bottom, near, far, position) {
 
 };
 
-VJS.Cameras.Camera2D.prototype.Orientation = function(orientation) {
+VJS.cameras.camera2d.prototype.Orientation = function(orientation) {
     switch (orientation) {
         case 'SAGITTAL':
             this._Camera.position.x = -400;
@@ -40,6 +40,19 @@ VJS.Cameras.Camera2D.prototype.Orientation = function(orientation) {
 
 };
 
-VJS.Cameras.Camera2D.prototype.GetCamera = function() {
+VJS.cameras.camera2d.prototype.set = function(position, up) {
+    this._Camera.position = position;
+    this._Camera.up = up;
+};
+
+VJS.cameras.camera2d.prototype.GetCamera = function() {
     return this._Camera;
 };
+
+
+/*** Exports ***/
+
+var moduleType = typeof module;
+if ((moduleType !== 'undefined') && module.exports) {
+    module.exports = VJS.cameras.camera2d;
+}
