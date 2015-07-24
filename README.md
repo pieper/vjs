@@ -21,19 +21,27 @@ http://fnndsc.github.io/vjs
 
 ## Dev corner
 
-(to be updated)
-
-Live reload
+Default task (runs tests, documentation, etc. and create a directory ready to be pushed as gh-page)
 ```
-$> gulp serve --env dev
+$> gulp
 ```
 
-Build
+For development (runs test tests and reloads page on every change)
 ```
 $> gulp serve
 ```
 
-Test
+Build standalone library to build/
+```
+$> gulp build
+```
+
+Tests
 ```
 $> gulp test
+```
+
+Documentation
+```
+$> gulp doc
 ```
