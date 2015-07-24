@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/FNNDSC/vjs.svg)](https://travis-ci.org/FNNDSC/vjs) [![Code Climate](https://codeclimate.com/github/FNNDSC/vjs/badges/gpa.svg)](https://codeclimate.com/github/FNNDSC/vjs)
+[![Build Status](https://travis-ci.org/FNNDSC/vjs.svg)](https://travis-ci.org/FNNDSC/vjs)
+[![Code Climate](https://codeclimate.com/github/FNNDSC/vjs/badges/gpa.svg)](https://codeclimate.com/github/FNNDSC/vjs)
+[![Slack](https://img.shields.io/badge/slack-join-blue.svg)](http://slack.babymri.org)
 
 JS Medical Imaging Sugar on top of ThreeJS
 
