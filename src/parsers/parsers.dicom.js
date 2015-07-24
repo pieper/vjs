@@ -650,6 +650,12 @@ VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
 //   return seriesNumber;
 // };
 
+//
+// ENDIAN NESS NOT TAKEN CARE OF
+// http://stackoverflow.com/questions/5320439/how-do-i-swap-endian-ness-byte-order-of-a-variable-in-javascript
+// http://www.barre.nom.fr/medical/samples/
+//
+//
 
 /*** Exports ***/
 

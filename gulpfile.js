@@ -149,20 +149,22 @@ gulp.task('doc', function(done) {
 });
 
 // Test task with Karma+Jasmine
-gulp.task('test', function(cb) {
+gulp.task('test', function(done) {
   karma.server.start({
     configFile: __dirname + '/karma.conf.js',
     reporters: ['spec'],
     singleRun: true,
     autoWatch: false
-  });
+  }, done);
 });
 
 // Lint JavaScript
 gulp.task('jshint', function() {
   return gulp.src([
       'src/**/*.js',
-      'examples/**/*.js'
+      'examples/**/*.js',
+      '!src/parsers/jpx.js',
+      '!src/parsers/jpg.js'
     ])
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'));
