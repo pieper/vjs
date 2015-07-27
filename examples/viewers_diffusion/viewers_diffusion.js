@@ -53,8 +53,8 @@ function init() {
   scene = new THREE.Scene();
   // camera
   // var positionT = new THREE.Vector3(400, 0, 0);
-    camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
-  // camera = new THREE.OrthographicCamera(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, -1000, 1000);
+    // camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+  camera = new THREE.OrthographicCamera(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, -1000, 1000);
   // var vjsCamera = new VJS.cameras.camera2d(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, -1000, 1000, positionT);
   // camera = vjsCamera.GetCamera();
 
@@ -199,67 +199,10 @@ window.onload = function() {
           camera.position.set(intersections[0].x, intersections[0].y, intersections[0].z);
           camera.up.set(up.x, up.y, up.z);
           camera.lookAt(intersections[1].x, intersections[1].y, intersections[1].z);
+          camera.updateProjectionMatrix();
 
           controls.target.set(intersections[1].x, intersections[1].y, intersections[1].z);
 
-
-          //camera.lookAt(lpsCenter.x, lpsCenter.y, lpsCenter.z);
-
-
-
-
-//           var distance = 100; // for example
-
-// camera.position.copy( ray.direction ).multiplyScalar( distance ).add( ray.position );
-// var direction = new THREE.Vector3();
-// direction.copy( ray.direction ).negate();
-// camera.lookAt( direction );
-
-// controls.target.set(direction.x, direction.y, direction.z);
-
-          // camera.target.position.copy( intersections[1] );
-          // camera.lookAt(-(upEnd.x - upStart.x), -(upEnd.y - upStart.y), -(upEnd.z - upStart.z));
-          
-
-          // window.console.log('LOOKAT:', centerFirstPlane);
-
-          // camera.position.set(0, 0, -400);
-          // camera.up.set(0, 1, 0);
-
-          // camera.updateProjectionMatrix();
-
-  //           camera.position.set(500, 500, 500 + 100);
-  // camera.up.set(0, 1, 0);
-  // camera.lookAt(0, 0, 100);
-
-var vector = new THREE.Vector3( 0, 0, -1 );
-vector.applyQuaternion( camera.quaternion );
-
-window.console.log('camera vector:', vector);
-
-           var geometry = new THREE.SphereGeometry(5, 32, 32);
-           geometry.applyMatrix(new THREE.Matrix4().makeTranslation(lpsCenter.x, lpsCenter.y, lpsCenter.z));
-    var material = new THREE.MeshBasicMaterial({
-      color: 0x61F2F3
-    });
-    var sphereCenter = new THREE.Mesh(geometry, material);
-    scene.add(sphereCenter);
-
-           var geometry2 = new THREE.SphereGeometry(5, 32, 32);
-           geometry2.applyMatrix(new THREE.Matrix4().makeTranslation(intersections[0].x, intersections[0].y, intersections[0].z));
-    var material2 = new THREE.MeshBasicMaterial({
-      color: 0x00F2F3
-    });
-    var sphereCenter2 = new THREE.Mesh(geometry2, material2);
-    scene.add(sphereCenter2);
-
-               var geometry3 = new THREE.SphereGeometry(5, 32, 32);
-           geometry3.applyMatrix(new THREE.Matrix4().makeTranslation(intersections[1].x, intersections[1].y, intersections[1].z));
-    var material3 = new THREE.MeshBasicMaterial({
-      color: 0xF200F3
-    });
-    var sphereCenter3 = new THREE.Mesh(geometry3, material3);
-    scene.add(sphereCenter3);
 
 
           var luts = {
