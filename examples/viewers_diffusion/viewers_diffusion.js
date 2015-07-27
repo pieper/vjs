@@ -8,10 +8,13 @@ VJS.loaders.dicom = require('../../src/loaders/loaders.dicom');
 VJS.cameras = VJS.cameras || {};
 VJS.cameras.camera2d = require('../../src/cameras/cameras.camera2d');
 
+VJS.core = VJS.core || {};
+VJS.core.intersections = require('../../src/core/core.intersections');
+
 var vjsOrbitControl2D = require('../../src/controls/OrbitControls2D');
 
 // standard global variables
-var controls, renderer, scene, camera, statsyay;
+var controls, renderer, scene, camera, statsyay, threeD;
 
 // FUNCTIONS
 function init() {
@@ -30,7 +33,7 @@ function init() {
   }
 
   // renderer
-  var threeD = document.getElementById('r3d');
+  threeD = document.getElementById('r3d');
   renderer = new THREE.WebGLRenderer({
     antialias: true
   });
@@ -49,13 +52,15 @@ function init() {
   // scene
   scene = new THREE.Scene();
   // camera
-  var positionT = new THREE.Vector3(400, 0, 0);
-  var vjsCamera = new VJS.cameras.camera2d(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, 1, 10000000, positionT);
-  camera = vjsCamera.GetCamera();
+  // var positionT = new THREE.Vector3(400, 0, 0);
+    camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+  // camera = new THREE.OrthographicCamera(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, -1000, 1000);
+  // var vjsCamera = new VJS.cameras.camera2d(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, -1000, 1000, positionT);
+  // camera = vjsCamera.GetCamera();
 
   // controls
   controls = new vjsOrbitControl2D(camera, renderer.domElement);
-  controls.noRotate = true;
+  // controls.noRotate = true;
 
   animate();
 }
@@ -114,45 +119,148 @@ window.onload = function() {
 
           // up in image space
           var upStart = new THREE.Vector3(0, 0, 0);
-          var upEnd = new THREE.Vector3(0, 1, 0);
+          var upEnd = new THREE.Vector3(0, 0, 1);
           // to LPS space
           upStart.applyMatrix4(stack._ijk2LPS);
           upEnd.applyMatrix4(stack._ijk2LPS);
+          window.console.log('My normal');
+          window.console.log(upEnd.x - upStart.x, upEnd.y - upStart.y, upEnd.z - upStart.z);
+
           // update camera's up
-          var up = new THREE.Vector3(upEnd.x - upStart.x, upEnd.y - upStart.y, upEnd.z - upStart.z).normalize();
-          camera.up.set(up.x, up.y, up.z);
+          var up = new THREE.Vector3(stack._direction.elements[4], stack._direction.elements[5], stack._direction.elements[6]);
+          //camera.up.set(up.x, up.y, up.z);
           // camera.up.set(0, 1, 0);
 
-          window.console.log(camera.up);
+          window.console.log('UP:', camera.up);
 
-          // position
-          var position = new THREE.Vector3(stack._halfDimensions.x - 0.5 , stack._halfDimensions.y - 0.5, - 0.5);
+          // position center first plane
+          // var centerFirstPlane = new THREE.Vector3(stack._halfDimensions.x , stack._halfDimensions.y, 0);
+          // // to LPS space
+          // centerFirstPlane.applyMatrix4(stack._ijk2LPS);
+          // // position center last plane
+          // var centerLastPlane = new THREE.Vector3(stack._halfDimensions.x, stack._halfDimensions.y, stack._dimensions.z);
+          // // to LPS space
+          // centerLastPlane.applyMatrix4(stack._ijk2LPS);
 
-          // ISSUES WITH IMAGE ORIGIN
+          var firstVoxel = new THREE.Vector3(0, 0, 0);
+          firstVoxel.applyMatrix4(stack._ijk2LPS);
+          var lastVoxel = new THREE.Vector3(stack._dimensions.x - 1, stack._dimensions.y - 1, stack._dimensions.z - 1);
+          lastVoxel.applyMatrix4(stack._ijk2LPS);
 
+          window.console.log('FIRST:', firstVoxel);
+          window.console.log('LAST:', lastVoxel);
 
-          // to LPS space
-          position.applyMatrix4(stack._ijk2LPS);
+          var lpsBBox = [
+          Math.min(firstVoxel.x, lastVoxel.x),
+          Math.min(firstVoxel.y, lastVoxel.y),
+          Math.min(firstVoxel.z, lastVoxel.z),
+          Math.max(firstVoxel.x, lastVoxel.x),
+          Math.max(firstVoxel.y, lastVoxel.y),
+          Math.max(firstVoxel.z, lastVoxel.z)];
+
+          window.console.log(lpsBBox);
+                         
+          var lpsCenter = new THREE.Vector3(
+            lpsBBox[0] + (lpsBBox[3] - lpsBBox[0]) / 2,
+            lpsBBox[1] + (lpsBBox[4] - lpsBBox[1]) / 2,
+            lpsBBox[2] + (lpsBBox[5] - lpsBBox[2]) / 2);
+
+          window.console.log(lpsCenter);
+
           // update camera's position
-          camera.position.set(position.x, position.y, position.z);
+          // camera.position.set(centerFirstPlane.x, centerFirstPlane.y, centerFirstPlane.z + 10);
           // camera.position.x = position.x;
           // camera.position.y = position.y;
           // camera.position.z = position.z;
 
-          window.console.log(camera.position);
+          // intersection ray  with box
+          // ray: {position, direction}
+          // box: {halfDimensions, center}
+          var ray = {position: null, direction: null};
+          ray.position = lpsCenter;
+          ray.direction = new THREE.Vector3(stack._direction.elements[8], stack._direction.elements[9], stack._direction.elements[10]);
 
-          // lookat
-          var lookat = new THREE.Vector3(stack._halfDimensions.x - 0.5, stack._halfDimensions.y - 0.5 , stack._halfDimensions.z - 0.5);
-          // to LPS space
-          lookat.applyMatrix4(stack._ijk2LPS);
-          camera.lookAt(lookat);
+          window.console.log(ray);
 
-          window.console.log(stack._ijk2LPS);
+          var box = {halfDimensions: null, center: null};
+          box.center = lpsCenter;
+          box.halfDimensions = new THREE.Vector3(lpsBBox[3] - lpsBBox[0] + 4, lpsBBox[4] - lpsBBox[1] + 4, lpsBBox[5] - lpsBBox[2] + 4);
+
+          window.console.log(box);
+
+          var intersections = VJS.core.intersections.rayBox(ray, box);
+          window.console.log(intersections);
+          // camera.position.set(intersections[0].x, intersections[0].y, intersections[0].z);
+          //camera.position.set(lpsCenter.x, lpsCenter.y, lpsCenter.z);
+
+          window.console.log('POSITION:', camera.position);
+
+
+          camera.position.set(intersections[0].x, intersections[0].y, intersections[0].z);
+          camera.up.set(up.x, up.y, up.z);
+          camera.lookAt(intersections[1].x, intersections[1].y, intersections[1].z);
+
+          controls.target.set(intersections[1].x, intersections[1].y, intersections[1].z);
+
+
+          //camera.lookAt(lpsCenter.x, lpsCenter.y, lpsCenter.z);
+
+
+
+
+//           var distance = 100; // for example
+
+// camera.position.copy( ray.direction ).multiplyScalar( distance ).add( ray.position );
+// var direction = new THREE.Vector3();
+// direction.copy( ray.direction ).negate();
+// camera.lookAt( direction );
+
+// controls.target.set(direction.x, direction.y, direction.z);
+
+          // camera.target.position.copy( intersections[1] );
+          // camera.lookAt(-(upEnd.x - upStart.x), -(upEnd.y - upStart.y), -(upEnd.z - upStart.z));
+          
+
+          // window.console.log('LOOKAT:', centerFirstPlane);
 
           // camera.position.set(0, 0, -400);
           // camera.up.set(0, 1, 0);
 
-          camera.updateProjectionMatrix();
+          // camera.updateProjectionMatrix();
+
+  //           camera.position.set(500, 500, 500 + 100);
+  // camera.up.set(0, 1, 0);
+  // camera.lookAt(0, 0, 100);
+
+var vector = new THREE.Vector3( 0, 0, -1 );
+vector.applyQuaternion( camera.quaternion );
+
+window.console.log('camera vector:', vector);
+
+           var geometry = new THREE.SphereGeometry(5, 32, 32);
+           geometry.applyMatrix(new THREE.Matrix4().makeTranslation(lpsCenter.x, lpsCenter.y, lpsCenter.z));
+    var material = new THREE.MeshBasicMaterial({
+      color: 0x61F2F3
+    });
+    var sphereCenter = new THREE.Mesh(geometry, material);
+    scene.add(sphereCenter);
+
+           var geometry2 = new THREE.SphereGeometry(5, 32, 32);
+           geometry2.applyMatrix(new THREE.Matrix4().makeTranslation(intersections[0].x, intersections[0].y, intersections[0].z));
+    var material2 = new THREE.MeshBasicMaterial({
+      color: 0x00F2F3
+    });
+    var sphereCenter2 = new THREE.Mesh(geometry2, material2);
+    scene.add(sphereCenter2);
+
+               var geometry3 = new THREE.SphereGeometry(5, 32, 32);
+           geometry3.applyMatrix(new THREE.Matrix4().makeTranslation(intersections[1].x, intersections[1].y, intersections[1].z));
+    var material3 = new THREE.MeshBasicMaterial({
+      color: 0xF200F3
+    });
+    var sphereCenter3 = new THREE.Mesh(geometry3, material3);
+    scene.add(sphereCenter3);
+
 
           var luts = {
             lut: 'none',
