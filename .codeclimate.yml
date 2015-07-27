@@ -1,0 +1,9 @@
+# Save as .codeclimate.yml (note leading .) in project root directory
+languages:
+  HTML: true
+  CSS: true
+  JavaScript: true
+exclude_paths:
+  - deprecate/**/*
+  - "src/parsers/jpg.js"
+  - "src/parsers/jpx.js"
