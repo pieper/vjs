@@ -5,6 +5,6 @@ languages:
   PHP: true
   Python: true
 exclude_paths:
-- deprecate/**/*
+- deprecated/**/*
 - "src/parsers/jpg.js"
 - "src/parsers/jpx.js"
