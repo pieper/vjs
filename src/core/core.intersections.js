@@ -109,25 +109,19 @@ VJS.core.intersections.obbPlane = function(obb, plane) {
   };
 
   var intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
   ray.direction = obb.orientation.y;
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
   ray.direction = obb.orientation.z;
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
@@ -148,25 +142,19 @@ VJS.core.intersections.obbPlane = function(obb, plane) {
   };
 
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
   ray.direction = obb.orientation.y;
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
   ray.direction = obb.orientation.z;
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
@@ -186,17 +174,13 @@ VJS.core.intersections.obbPlane = function(obb, plane) {
   };
 
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
   ray.direction = obb.orientation.z;
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
@@ -216,17 +200,13 @@ VJS.core.intersections.obbPlane = function(obb, plane) {
   };
 
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
   ray.direction = obb.orientation.z;
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
@@ -246,17 +226,13 @@ VJS.core.intersections.obbPlane = function(obb, plane) {
   };
 
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
   ray.direction = obb.orientation.y;
   intersection = this.rayPlane(ray, planeOBB);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
   }
 
@@ -355,9 +331,7 @@ VJS.core.intersections.rayBox = function(ray, box) {
     box.center.y,
     box.center.z);
   var intersection = this.rayPlane(ray, plane);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection);
   }
 
@@ -368,9 +342,7 @@ VJS.core.intersections.rayBox = function(ray, box) {
     box.center.y,
     box.center.z);
   intersection = this.rayPlane(ray, plane);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection);
   }
 
@@ -381,9 +353,7 @@ VJS.core.intersections.rayBox = function(ray, box) {
     bboxMin.y,
     box.center.z);
   intersection = this.rayPlane(ray, plane);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection);
   }
 
@@ -394,9 +364,7 @@ VJS.core.intersections.rayBox = function(ray, box) {
     bboxMax.y,
     box.center.z);
   intersection = this.rayPlane(ray, plane);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection);
   }
 
@@ -407,9 +375,7 @@ VJS.core.intersections.rayBox = function(ray, box) {
     box.center.y,
     bboxMin.z);
   intersection = this.rayPlane(ray, plane);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection);
   }
 
@@ -420,13 +386,20 @@ VJS.core.intersections.rayBox = function(ray, box) {
     box.center.y,
     bboxMax.z);
   intersection = this.rayPlane(ray, plane);
-  if (intersection &&
-      intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z &&
-      intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+  if (this.inBBox(intersection, bboxMin, bboxMax)) {
     intersections.push(intersection);
   }
   
   return intersections;
+};
+
+VJS.core.intersections.inBBox = function(point, bboxMin, bboxMax) {
+  if (point &&
+  point.x >= bboxMin.x && point.y >= bboxMin.y && point.z >= bboxMin.z &&
+  point.x <= bboxMax.x && point.y <= bboxMax.y && point.z <= bboxMax.z) {
+    return true;
+  }
+  return false;
 };
 
 /*** Exports ***/
