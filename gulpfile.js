@@ -22,6 +22,9 @@ var globby = require('globby');
 var minimist = require('minimist');
 var karma = require('karma');
 
+//
+var watchify = require('watchify');
+
 // parse gulp input to know if we are in dev mode or not
 var knownOptions = {
   string: 'env',
@@ -78,14 +81,19 @@ gulp.task('javascript', function(cb) {
     var tasks = files.map(function(entry) {
           // to remove /app layer
           var index = entry.indexOf('/');
-          return browserify(
+          var b = watchify(browserify(
               {entries: [entry],
                 debug: true,
                 // could add babelify there...
                 // standalone: 'VJSROX',
                 transform: [glslify],
-              })
-            .bundle()
+              }));
+
+          b.on('update', bundle);
+          b.on('log', gutil.log);
+
+          function bundle(){
+            return b.bundle()
             .pipe(source(entry.substring(index + 1)))
             .pipe(buffer())
             .pipe(sourcemaps.init({loadMaps: true}))
@@ -93,7 +101,12 @@ gulp.task('javascript', function(cb) {
                 //.pipe(gulpif(options.env === 'production', uglify()))
                 .on('error', gutil.log)
             .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest('gh-pages/examples')); 
+            .pipe(gulp.dest('gh-pages/examples'))
+            // needed to ensure we reloaded the page once bundle ready
+            .pipe(reload({stream: true, once: true}));
+          }
+
+          return bundle();
         });
 
     // create a merged stream
@@ -171,7 +184,7 @@ gulp.task('jshint', function() {
 });
 
 // no test anymore... too slow...
-gulp.task('js-watch', ['jshint', 'javascript'], reload);
+gulp.task('js-watch', ['jshint'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
@@ -195,7 +208,8 @@ gulp.task('default', ['clean'], function(cb) {
     'jshint',
     'test',
     'copy', // copy the data over!
-    ['javascript', 'html', 'css'],
+    ['html', 'css'],
+    'javascript',
     'doc',
     cb);
 });
