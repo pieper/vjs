@@ -171,7 +171,7 @@ gulp.task('jshint', function() {
 });
 
 // no test anymore... too slow...
-gulp.task('js-watch', ['jshint', 'test', 'javascript'], reload);
+gulp.task('js-watch', ['jshint', 'javascript'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 

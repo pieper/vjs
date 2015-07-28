@@ -8,3 +8,4 @@ exclude_paths:
 - deprecated/**/*
 - "src/parsers/jpg.js"
 - "src/parsers/jpx.js"
+- "src/controls/Orbit2DControls_old.js"
