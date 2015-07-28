@@ -81,32 +81,48 @@ gulp.task('javascript', function(cb) {
     var tasks = files.map(function(entry) {
           // to remove /app layer
           var index = entry.indexOf('/');
-          var b = watchify(browserify(
-              {entries: [entry],
-                debug: true,
-                // could add babelify there...
-                // standalone: 'VJSROX',
-                transform: [glslify],
-              }));
 
-          b.on('update', bundle);
-          b.on('log', gutil.log);
+          return browserify(
+            {entries: [entry],
+             debug: true,
+             // could add babelify there...
+             // standalone: 'VJSROX',
+             transform: [glslify],
+            })
+          .bundle()
+          .pipe(source(entry.substring(index + 1)))
+          .pipe(buffer())
+          .pipe(sourcemaps.init({loadMaps: true}))
+              .pipe(babel())
+              //.pipe(gulpif(options.env === 'production', uglify()))
+              .on('error', gutil.log)
+          .pipe(sourcemaps.write('./'))
+          .pipe(gulp.dest('gh-pages/examples'));
+          //var b = watchify(browserify(
+          //    {entries: [entry],
+          //      debug: true,
+          //      // could add babelify there...
+          //      // standalone: 'VJSROX',
+          //      transform: [glslify],
+          //    }));
 
-          function bundle(){
-            return b.bundle()
-            .pipe(source(entry.substring(index + 1)))
-            .pipe(buffer())
-            .pipe(sourcemaps.init({loadMaps: true}))
-                .pipe(babel())
-                //.pipe(gulpif(options.env === 'production', uglify()))
-                .on('error', gutil.log)
-            .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest('gh-pages/examples'))
-            // needed to ensure we reloaded the page once bundle ready
-            .pipe(reload({stream: true, once: true}));
-          }
+          //b.on('update', bundle);
+          //b.on('log', gutil.log);
 
-          return bundle();
+          //function bundle(){
+          //  return b.bundle()
+          //  .pipe(source(entry.substring(index + 1)))
+          //  .pipe(buffer())
+          //  .pipe(sourcemaps.init({loadMaps: true}))
+          //      .pipe(babel())
+          //      //.pipe(gulpif(options.env === 'production', uglify()))
+          //      .on('error', gutil.log)
+          //  .pipe(sourcemaps.write('./'))
+          //  .pipe(gulp.dest('gh-pages/examples'));
+          //  //.pipe(reload({stream: true, once: true}));;
+          //}
+
+          //return bundle();
         });
 
     // create a merged stream

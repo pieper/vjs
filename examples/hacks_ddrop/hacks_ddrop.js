@@ -156,10 +156,11 @@ window.onload = function() {
             mergedHelpers[0]._uniforms.uWindowLevel.value = windowLevel;
           });
 
-          var invertUpdate = stackFolder.add(stack, '_invert', 0, 1).step(1);
+          var invertUpdate = stackFolder.add(stack, '_invert');
           invertUpdate.onChange(function(value) {
-            mergedHelpers[0]._uniforms.uInvert.value = value;
+            mergedHelpers[0]._uniforms.uInvert.value = (value === true ? 1 : 0);
           });
+
 
           var lutUpdate = stackFolder.add(luts, 'lut', luts.luts);
           lutUpdate.onChange(function(value) {
