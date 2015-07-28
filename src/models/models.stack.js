@@ -78,7 +78,7 @@ VJS.models.stack = function() {
   this._windowCenter = 0;
   this._windowWidth = 0;
   this._minMax = [65535, -32768];
-  this._invert = 0;
+  this._invert = false;
 
   this._ijk2LPS = null;
   this._lps2IJK = null;
@@ -315,6 +315,7 @@ VJS.models.stack.prototype.prepare = function() {
   }
 
   // default window level based on min/max for now...
+  // could use the frame's windowWidth and center...
   var width = this._minMax[1] - this._minMax[0];
   var center = this._minMax[0] + width / 2;
 

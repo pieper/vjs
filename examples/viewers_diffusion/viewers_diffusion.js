@@ -53,14 +53,14 @@ function init() {
   scene = new THREE.Scene();
   // camera
   // var positionT = new THREE.Vector3(400, 0, 0);
-    // camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
-  camera = new THREE.OrthographicCamera(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, -1000, 1000);
+  // camera = new THREE.PerspectiveCamera(45, threeD.offsetWidth / threeD.offsetHeight, 1, 10000000);
+  camera = new THREE.OrthographicCamera(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, 1, 1000);
   // var vjsCamera = new VJS.cameras.camera2d(threeD.offsetWidth / -2, threeD.offsetWidth / 2, threeD.offsetHeight / 2, threeD.offsetHeight / -2, -1000, 1000, positionT);
   // camera = vjsCamera.GetCamera();
 
   // controls
   controls = new vjsOrbitControl2D(camera, renderer.domElement);
-  // controls.noRotate = true;
+  controls.noRotate = true;
 
   animate();
 }
@@ -195,15 +195,12 @@ window.onload = function() {
 
           window.console.log('POSITION:', camera.position);
 
-
           camera.position.set(intersections[0].x, intersections[0].y, intersections[0].z);
           camera.up.set(up.x, up.y, up.z);
           camera.lookAt(intersections[1].x, intersections[1].y, intersections[1].z);
           camera.updateProjectionMatrix();
 
           controls.target.set(intersections[1].x, intersections[1].y, intersections[1].z);
-
-
 
           var luts = {
             lut: 'none',
@@ -247,22 +244,32 @@ window.onload = function() {
           customContainer.appendChild(gui.domElement);
 
           var stackFolder = gui.addFolder('Stack');
-          var windowWidthUpdate = stackFolder.add(stack, '_windowWidth', 1, stack._minMax[1]).step(1);
+          var windowWidthUpdate = stackFolder.add(stack, '_windowWidth', 1, stack._minMax[1]).step(1).listen();
           windowWidthUpdate.onChange(function(value) {
             var windowLevel = stack._windowLevel;
             windowLevel[1] = value;
             mergedHelpers[0]._uniforms.uWindowLevel.value = windowLevel;
           });
-          var windowCenterUpdate = stackFolder.add(stack, '_windowCenter', stack._minMax[0], stack._minMax[1]).step(1);
+          var windowCenterUpdate = stackFolder.add(stack, '_windowCenter', stack._minMax[0], stack._minMax[1]).step(1).listen();
           windowCenterUpdate.onChange(function(value) {
             var windowLevel = stack._windowLevel;
             windowLevel[0] = value;
             mergedHelpers[0]._uniforms.uWindowLevel.value = windowLevel;
           });
 
-          var invertUpdate = stackFolder.add(stack, '_invert', 0, 1).step(1);
+          var windowLevelUpdate = stackFolder.add(mergedHelpers[0], '_autoWindowLevel');
+          windowLevelUpdate.onChange(function(value) {
+            if (value) {
+              var helperFrameIndex = mergedHelpers[0]._frameIndex;
+              stack._windowCenter = stack._frame[helperFrameIndex]._windowCenter;
+              stack._windowWidth = stack._frame[helperFrameIndex]._windowWidth;
+              mergedHelpers[0]._uniforms.uWindowLevel.value = [stack._windowCenter, stack._windowWidth];
+            }
+          });
+
+          var invertUpdate = stackFolder.add(stack, '_invert');
           invertUpdate.onChange(function(value) {
-            mergedHelpers[0]._uniforms.uInvert.value = value;
+            mergedHelpers[0]._uniforms.uInvert.value = (value === true ? 1 : 0);
           });
 
           var lutUpdate = stackFolder.add(luts, 'lut', luts.luts);
@@ -295,6 +302,13 @@ window.onload = function() {
           frameIndex.onChange(function(value) {
             mergedHelpers[0].updateSliceGeometry();
             mergedHelpers[0].updateBorderGeometry();
+
+            if (mergedHelpers[0]._autoWindowLevel) {
+              stack._windowCenter = stack._frame[value]._windowCenter;
+              stack._windowWidth = stack._frame[value]._windowWidth;
+              mergedHelpers[0]._uniforms.uWindowLevel.value = [stack._windowCenter, stack._windowWidth];
+            }
+
           });
 
           stackFolder.open();

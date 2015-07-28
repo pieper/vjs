@@ -194,6 +194,8 @@ VJS.loaders.dicom.prototype.parse = function(response) {
     frame._dimensionIndexValues = dicomParser.dimensionIndexValues(i);
     frame._bitsAllocated = dicomParser.bitsAllocated(i);
     frame._instanceNumber = dicomParser.instanceNumber(i);
+    frame._windowCenter = dicomParser.windowCenter(i);
+    frame._windowWidth = dicomParser.windowWidth(i);
     // should pass frame index for consistency...
     frame._minMax = dicomParser.minMaxPixelData(frame._pixelData);
 

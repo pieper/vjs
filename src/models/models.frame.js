@@ -95,6 +95,8 @@ VJS.models.frame = function() {
     this._pixelData = null;
 
     this._instanceNumber = null;
+    this._windowCenter = null;
+    this._windowWidth = null;
 
     this._minMax = null;
 };

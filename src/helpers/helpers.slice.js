@@ -28,6 +28,9 @@ VJS.helpers.slice = function() {
   this._slice = null;
   this._border = null;
 
+  //
+  this._autoWindowLevel = false;
+
 };
 
 VJS.helpers.slice.prototype = Object.create(THREE.Object3D.prototype);
