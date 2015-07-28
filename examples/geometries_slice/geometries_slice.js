@@ -18,13 +18,67 @@
         var vjsOrbitControl2D = require("../../src/controls/OrbitControls2D");
 
         // standard global variables
-        var controls, renderer, scene, camera, statsyay;
+        var controls, renderer, scene, camera, statsyay, particleLight, slice, arrowHelper;
+        var arrowUpdate = {
+            "direction": {
+                "i": 0,
+                "j": 0,
+                "k": 0
+            },
+            "position": {
+                "i": 0,
+                "j": 0,
+                "k": 0
+            }
+        };
+        var dimensions = new THREE.Vector3(123, 45, 67);
+        var halfDimensions = dimensions.clone().divideScalar(2);
+        var center = new THREE.Vector3(0, 0, 0);
+        var orientation = new THREE.Vector3(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+
+        // make the direction!!
+        var arrowLength = 20;
+        var arrowColor = 0xF44336;
+
+        function updateGeometries() {
+            if (arrowHelper && slice) {
+                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, arrowUpdate.direction.k);
+                newDirection.normalize();
+                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, arrowUpdate.position.k);
+
+                scene.remove(arrowHelper);
+                arrowHelper = new THREE.ArrowHelper(newDirection, newPosition, arrowLength, arrowColor);
+                scene.add(arrowHelper);
+
+                // is memory leaking???
+                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
+                slice.geometry = newSliceGeometry;
+                slice.geometry.verticesNeedUpdate = true;
+            }
+        }
 
         // FUNCTIONS
         function init() {
 
             // this function is executed on each animation frame
             function animate() {
+
+                // update light position
+                var timer = Date.now() * 0.00025;
+
+                particleLight.position.x = Math.sin(timer * 7) * 80;
+                particleLight.position.y = Math.cos(timer * 5) * 90;
+                particleLight.position.z = Math.cos(timer * 3) * 100;
+
+                //update normal to look at particle
+                var newDirection = new THREE.Vector3(particleLight.position.x - arrowUpdate.position.i, particleLight.position.y - arrowUpdate.position.j, particleLight.position.z - arrowUpdate.position.k).normalize();
+
+                arrowUpdate.direction.i = newDirection.x;
+                arrowUpdate.direction.j = newDirection.y;
+                arrowUpdate.direction.k = newDirection.z;
+
+                updateGeometries();
+
                 // render
                 controls.update();
                 renderer.render(scene, camera);
@@ -42,7 +96,7 @@
                 antialias: true
             });
             renderer.setSize(threeD.offsetWidth, threeD.offsetHeight);
-            renderer.setClearColor(0xFFFFFF, 1);
+            renderer.setClearColor(0x353535, 1);
 
             var maxTextureSize = renderer.context.getParameter(renderer.context.MAX_TEXTURE_SIZE);
             window.console.log(maxTextureSize);
@@ -64,6 +118,18 @@
             // controls
             controls = new vjsOrbitControl2D(camera, renderer.domElement);
 
+            scene.add(new THREE.AmbientLight(0x444444));
+
+            var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(1, 1, 1).normalize();
+            scene.add(directionalLight);
+
+            particleLight = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+            scene.add(particleLight);
+
+            var pointLight = new THREE.PointLight(0xffffff, 2, 200);
+            particleLight.add(pointLight);
+
             animate();
         }
 
@@ -72,7 +138,7 @@
             init();
 
             // make a box!
-            var dimensions = new THREE.Vector3(123, 45, 67);
+
             var boxGeometry = new THREE.BoxGeometry(dimensions.x, dimensions.y, dimensions.z);
             var boxMaterial = new THREE.MeshBasicMaterial({
                 wireframe: true,
@@ -82,28 +148,28 @@
             scene.add(box);
 
             // make a slice!
-            var halfDimensions = dimensions.clone().divideScalar(2);
-            var center = new THREE.Vector3(0, 0, 0);
-            var orientation = new THREE.Vector3(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
-
             var position = center.clone();
             var direction = new THREE.Vector3(-0.2, 0.5, 0.3);
 
             var sliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, position, direction);
-            var sliceMaterial = new THREE.MeshBasicMaterial({
-                "side": THREE.DoubleSide,
-                "transparency": true,
-                "color": 0x03A9F4
+            // var shininess = 50, specular = 0x333333, bumpScale = 1, shading = THREE.SmoothShading;
+            // new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.FlatShading }
+            var sliceMaterial = new THREE.MeshLambertMaterial({
+                color: 0x03A9F4,
+                emissive: 0x000000,
+                shininess: 30,
+                shading: THREE.SmoothShading,
+                "side": THREE.DoubleSide
             });
-            var slice = new THREE.Mesh(sliceGeometry, sliceMaterial);
+            // new THREE.MeshBasicMaterial({
+            //   'side': THREE.DoubleSide,
+            //   'color': 0x03A9F4
+            // });
+            slice = new THREE.Mesh(sliceGeometry, sliceMaterial);
             scene.add(slice);
 
-            // make the direction!!
-            var length = 20;
-            var hex = 0xF44336;
-
-            var arrowHelper = new THREE.ArrowHelper(direction, position, length, hex);
-            var arrowUpdate = {
+            arrowHelper = new THREE.ArrowHelper(direction, position, arrowLength, arrowColor);
+            arrowUpdate = {
                 "direction": {
                     "i": direction.x,
                     "j": direction.y,
@@ -126,99 +192,39 @@
             customContainer.appendChild(gui.domElement);
 
             var directionFolder = gui.addFolder("Plane direction");
-            var frameIndexControllerDirectionI = directionFolder.add(arrowUpdate.direction, "i", -1, 1);
-            var frameIndexControllerDirectionJ = directionFolder.add(arrowUpdate.direction, "j", -1, 1);
-            var frameIndexControllerDirectionK = directionFolder.add(arrowUpdate.direction, "k", -1, 1);
+            var frameIndexControllerDirectionI = directionFolder.add(arrowUpdate.direction, "i", -1, 1).listen();
+            var frameIndexControllerDirectionJ = directionFolder.add(arrowUpdate.direction, "j", -1, 1).listen();
+            var frameIndexControllerDirectionK = directionFolder.add(arrowUpdate.direction, "k", -1, 1).listen();
             directionFolder.open();
 
             var positionFolder = gui.addFolder("Plane position");
-            var frameIndexControllerOriginI = positionFolder.add(arrowUpdate.position, "i", -61.5, 61.5);
-            var frameIndexControllerOriginJ = positionFolder.add(arrowUpdate.position, "j", -22.5, 22.5);
-            var frameIndexControllerOriginK = positionFolder.add(arrowUpdate.position, "k", -33.5, 33.5);
+            var frameIndexControllerOriginI = positionFolder.add(arrowUpdate.position, "i", -61.5, 61.5).listen();
+            var frameIndexControllerOriginJ = positionFolder.add(arrowUpdate.position, "j", -22.5, 22.5).listen();
+            var frameIndexControllerOriginK = positionFolder.add(arrowUpdate.position, "k", -33.5, 33.5).listen();
             positionFolder.open();
 
-            frameIndexControllerDirectionI.onChange(function (value) {
-                var newDirection = new THREE.Vector3(value, arrowUpdate.direction.j, arrowUpdate.direction.k);
-                newDirection.normalize();
-                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, arrowUpdate.position.k);
-
-                arrowHelper.setDirection(newDirection);
-
-                // is memory leaking???
-                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
-                slice.geometry = newSliceGeometry;
-                slice.geometry.verticesNeedUpdate = true;
+            frameIndexControllerDirectionI.onChange(function () {
+                updateGeometries();
             });
 
-            frameIndexControllerDirectionJ.onChange(function (value) {
-                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, value, arrowUpdate.direction.k);
-                newDirection.normalize();
-                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, arrowUpdate.position.k);
-
-                arrowHelper.setDirection(newDirection);
-
-                // is memory leaking???
-                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
-                slice.geometry = newSliceGeometry;
-                slice.geometry.verticesNeedUpdate = true;
+            frameIndexControllerDirectionJ.onChange(function () {
+                updateGeometries();
             });
 
-            frameIndexControllerDirectionK.onChange(function (value) {
-                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, value);
-                newDirection.normalize();
-                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, arrowUpdate.position.k);
-
-                arrowHelper.setDirection(newDirection);
-
-                // is memory leaking???
-                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
-                slice.geometry = newSliceGeometry;
-                slice.geometry.verticesNeedUpdate = true;
+            frameIndexControllerDirectionK.onChange(function () {
+                updateGeometries();
             });
 
-            frameIndexControllerOriginI.onChange(function (value) {
-                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, arrowUpdate.direction.k);
-                newDirection.normalize();
-                var newPosition = new THREE.Vector3(value, arrowUpdate.position.j, arrowUpdate.position.k);
-
-                scene.remove(arrowHelper);
-                arrowHelper = new THREE.ArrowHelper(newDirection, newPosition, length, hex);
-                scene.add(arrowHelper);
-
-                // is memory leaking???
-                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
-                slice.geometry = newSliceGeometry;
-                slice.geometry.verticesNeedUpdate = true;
+            frameIndexControllerOriginI.onChange(function () {
+                updateGeometries();
             });
 
-            frameIndexControllerOriginJ.onChange(function (value) {
-                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, arrowUpdate.direction.k);
-                newDirection.normalize();
-                var newPosition = new THREE.Vector3(arrowUpdate.position.i, value, arrowUpdate.position.k);
-
-                scene.remove(arrowHelper);
-                arrowHelper = new THREE.ArrowHelper(newDirection, newPosition, length, hex);
-                scene.add(arrowHelper);
-
-                // is memory leaking???
-                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
-                slice.geometry = newSliceGeometry;
-                slice.geometry.verticesNeedUpdate = true;
+            frameIndexControllerOriginJ.onChange(function () {
+                updateGeometries();
             });
 
-            frameIndexControllerOriginK.onChange(function (value) {
-                var newDirection = new THREE.Vector3(arrowUpdate.direction.i, arrowUpdate.direction.j, arrowUpdate.direction.k);
-                newDirection.normalize();
-                var newPosition = new THREE.Vector3(arrowUpdate.position.i, arrowUpdate.position.j, value);
-
-                scene.remove(arrowHelper);
-                arrowHelper = new THREE.ArrowHelper(newDirection, newPosition, length, hex);
-                scene.add(arrowHelper);
-
-                // is memory leaking???
-                var newSliceGeometry = new vjsSliceGeometry(halfDimensions, center, orientation, newPosition, newDirection);
-                slice.geometry = newSliceGeometry;
-                slice.geometry.verticesNeedUpdate = true;
+            frameIndexControllerOriginK.onChange(function () {
+                updateGeometries();
             });
         };
     }, { "../../src/controls/OrbitControls2D": 2, "../../src/geometries/geometries.slice": 4 }], 2: [function (require, module, exports) {
@@ -1044,19 +1050,19 @@
             };
 
             var intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
             ray.direction = obb.orientation.y;
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
             ray.direction = obb.orientation.z;
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
@@ -1077,19 +1083,19 @@
             };
 
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
             ray.direction = obb.orientation.y;
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
             ray.direction = obb.orientation.z;
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
@@ -1109,13 +1115,13 @@
             };
 
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
             ray.direction = obb.orientation.z;
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
@@ -1135,13 +1141,13 @@
             };
 
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
             ray.direction = obb.orientation.z;
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
@@ -1161,13 +1167,13 @@
             };
 
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
             ray.direction = obb.orientation.y;
             intersection = this.rayPlane(ray, planeOBB);
-            if (intersection && intersection.x >= bboxMin.x && intersection.y >= bboxMin.y && intersection.z >= bboxMin.z && intersection.x <= bboxMax.x && intersection.y <= bboxMax.y && intersection.z <= bboxMax.z) {
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
                 intersections.push(intersection.applyMatrix4(obb.toOBBSpaceInvert));
             }
 
@@ -1232,6 +1238,77 @@
             }
 
             return null;
+        };
+
+        VJS.core.intersections.rayBox = function (ray, box) {
+            // ray: {position, direction}
+            // box: {halfDimensions, center}
+
+            var intersections = [];
+            var plane = {
+                position: null,
+                direction: null
+            };
+
+            var bboxMin = new THREE.Vector3(box.center.x - box.halfDimensions.x, box.center.y - box.halfDimensions.y, box.center.z - box.halfDimensions.z);
+            var bboxMax = new THREE.Vector3(box.center.x + box.halfDimensions.x, box.center.y + box.halfDimensions.y, box.center.z + box.halfDimensions.z);
+
+            // X min
+            plane.direction = new THREE.Vector3(-1, 0, 0);
+            plane.position = new THREE.Vector3(bboxMin.x, box.center.y, box.center.z);
+            var intersection = this.rayPlane(ray, plane);
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
+                intersections.push(intersection);
+            }
+
+            // X max
+            plane.direction = new THREE.Vector3(1, 0, 0);
+            plane.position = new THREE.Vector3(bboxMax.x, box.center.y, box.center.z);
+            intersection = this.rayPlane(ray, plane);
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
+                intersections.push(intersection);
+            }
+
+            // Y min
+            plane.direction = new THREE.Vector3(0, -1, 0);
+            plane.position = new THREE.Vector3(box.center.x, bboxMin.y, box.center.z);
+            intersection = this.rayPlane(ray, plane);
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
+                intersections.push(intersection);
+            }
+
+            // Y max
+            plane.direction = new THREE.Vector3(0, 1, 0);
+            plane.position = new THREE.Vector3(box.center.x, bboxMax.y, box.center.z);
+            intersection = this.rayPlane(ray, plane);
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
+                intersections.push(intersection);
+            }
+
+            // Z min
+            plane.direction = new THREE.Vector3(0, 0, -1);
+            plane.position = new THREE.Vector3(box.center.x, box.center.y, bboxMin.z);
+            intersection = this.rayPlane(ray, plane);
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
+                intersections.push(intersection);
+            }
+
+            // Z max
+            plane.direction = new THREE.Vector3(0, 0, 1);
+            plane.position = new THREE.Vector3(box.center.x, box.center.y, bboxMax.z);
+            intersection = this.rayPlane(ray, plane);
+            if (this.inBBox(intersection, bboxMin, bboxMax)) {
+                intersections.push(intersection);
+            }
+
+            return intersections;
+        };
+
+        VJS.core.intersections.inBBox = function (point, bboxMin, bboxMax) {
+            if (point && point.x >= bboxMin.x && point.y >= bboxMin.y && point.z >= bboxMin.z && point.x <= bboxMax.x && point.y <= bboxMax.y && point.z <= bboxMax.z) {
+                return true;
+            }
+            return false;
         };
 
         /*** Exports ***/
