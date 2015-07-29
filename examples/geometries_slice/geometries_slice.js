@@ -176,13 +176,13 @@
             var customContainer = document.getElementById("my-gui-container");
             customContainer.appendChild(gui.domElement);
 
-            var directionFolder = gui.addFolder("Plane direction");
+            var directionFolder = gui.addFolder("Arrow direction");
             var frameIndexControllerDirectionI = directionFolder.add(arrow.direction, "x", -1, 1).listen();
             var frameIndexControllerDirectionJ = directionFolder.add(arrow.direction, "y", -1, 1).listen();
             var frameIndexControllerDirectionK = directionFolder.add(arrow.direction, "z", -1, 1).listen();
             directionFolder.open();
 
-            var positionFolder = gui.addFolder("Plane position");
+            var positionFolder = gui.addFolder("Arrow position");
             var frameIndexControllerOriginI = positionFolder.add(arrow.position, "x", -61.5, 61.5).listen();
             var frameIndexControllerOriginJ = positionFolder.add(arrow.position, "y", -22.5, 22.5).listen();
             var frameIndexControllerOriginK = positionFolder.add(arrow.position, "z", -33.5, 33.5).listen();
