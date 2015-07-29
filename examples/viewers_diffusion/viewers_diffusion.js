@@ -11,7 +11,8 @@ VJS.cameras.camera2d = require('../../src/cameras/cameras.camera2d');
 VJS.core = VJS.core || {};
 VJS.core.intersections = require('../../src/core/core.intersections');
 
-var vjsOrbitControl2D = require('../../src/controls/OrbitControls2D');
+VJS.controls = VJS.controls || {};
+VJS.controls.orbitControls2D = require('../../src/controls/OrbitControls2D');
 
 // standard global variables
 var controls, renderer, scene, camera, statsyay, threeD;
@@ -59,7 +60,7 @@ function init() {
   // camera = vjsCamera.GetCamera();
 
   // controls
-  controls = new vjsOrbitControl2D(camera, renderer.domElement);
+  controls = new VJS.controls.orbitControls2D(camera, renderer.domElement);
   controls.noRotate = true;
 
   animate();
@@ -77,18 +78,22 @@ window.onload = function() {
     document.getElementById('fileinput').style.display = 'none';
 
     for (var i = 0; i < evt.target.files.length; i++) {
-      var f = evt.target.files[i]; 
+      var f = evt.target.files[i];
+      var received = 0;
 
       if (f) {
         var r = new FileReader();
-        r.onload = function(e) { 
+        r.onload = function(e) {
+        received++;
         var arrayBuffer = e.target.result;
         var loader = new VJS.loaders.dicom();
         var myHelper = loader.parse(arrayBuffer);
         // myHelper.prepare();
-        seriesHelper.push(myHelper);
-
-        if (seriesHelper.length === evt.target.files.length) {
+        if (myHelper !== null) {
+          seriesHelper.push(myHelper);
+        }
+        
+        if (received === evt.target.files.length) {
           //     window.console.log(seriesHelper);
           var mergedHelpers = [seriesHelper[0]];
           //     // if all files loaded

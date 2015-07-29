@@ -34,7 +34,16 @@ VJS.parsers.dicom = function(arrayBuffer, id) {
 
   var byteArray = new Uint8Array(arrayBuffer);
   // window.console.log(byteArray.length);
-  this._dataSet = dicomParser.parseDicom(byteArray);
+
+  // catch error
+  // throw error if any!
+  try {
+    this._dataSet = dicomParser.parseDicom(byteArray);
+  }
+  catch (e) {
+    window.console.log(e);
+    throw 'VJS.parsers.dicom could not parse the dicom';
+  }
 
   //window.console.log(dicomParser);
   // window.console.log(this._dataSet);
@@ -661,5 +670,5 @@ VJS.parsers.dicom.prototype.minMaxPixelData =  function(pixelData) {
 
 var moduleType = typeof module;
 if ((moduleType !== 'undefined') && module.exports) {
-    module.exports = VJS.parsers.dicom;
+  module.exports = VJS.parsers.dicom;
 }

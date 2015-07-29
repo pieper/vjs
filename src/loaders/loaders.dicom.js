@@ -161,7 +161,18 @@ VJS.loaders.dicom.prototype.parse = function(response) {
   var seriesHelper = new VJS.helpers.slice();
 
   // parse DICOM
-  var dicomParser = new VJS.parsers.dicom(response, seriesHelper.id);
+  var dicomParser = null;
+  try {
+    dicomParser = new VJS.parsers.dicom(response, seriesHelper.id);
+  }
+  catch (e) {
+    window.console.log('error cought in dicom loader');
+    window.console.log(e);
+    return null;
+  }
+
+// throw new Error('My message')
+  
     
   // create a series
   var series = new VJS.models.series();

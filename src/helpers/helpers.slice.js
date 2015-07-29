@@ -109,7 +109,7 @@ VJS.helpers.slice.prototype.prepare = function() {
     sliceGeometry.applyMatrix(stack._ijk2LPS);
 
     // update _framIndex
-    this._frameIndex = Math.round(halfDimensions.z);
+    this._frameIndex = Math.floor(halfDimensions.z);
 
     // Slice
     // Material

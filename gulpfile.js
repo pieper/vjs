@@ -38,10 +38,13 @@ gulp.task('clean', del.bind(null, ['gh-pages', '.tmp']));
 // Copy (data) task
 // Copy task
 gulp.task('copy', function() {
-  return gulp.src([
-        'data/dcm/**/*' // dicom data used in demos
-    ])
-    .pipe(gulp.dest('gh-pages/data/dcm'))
+  var dcm = gulp.src(['data/dcm/**/*'])   // dicom data used in demos
+    .pipe(gulp.dest('gh-pages/data/dcm'));
+
+  var assets = gulp.src(['favicon.ico'])  // fav icon for github page
+    .pipe(gulp.dest('gh-pages'));
+
+  return es.merge(dcm, assets)
     .pipe($.size({title: 'copy'}));
 });
 
@@ -200,7 +203,7 @@ gulp.task('jshint', function() {
 });
 
 // no test anymore... too slow...
-gulp.task('js-watch', ['jshint'], reload);
+gulp.task('js-watch', ['jshint', 'javascript'], reload);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
