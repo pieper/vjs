@@ -1,9 +1,18 @@
 /* globals Stats, dat*/
 'use strict';
 
-var vjsOrbitControl2D = require('../../src/controls/OrbitControls2D');
-var vjsLoaderDicom = require('../../src/loaders/loaders.dicom');
 var vjsShadersData = require('../../src/shaders/shaders.data');
+
+var VJS = VJS || {};
+VJS.loaders = VJS.loaders || {};
+VJS.loaders.dicom = require('../../src/loaders/loaders.dicom');
+
+VJS.controls = VJS.controls || {};
+VJS.controls.orbitControls2D = require('../../src/controls/OrbitControls2D');
+
+VJS.shaders = VJS.shaders || {};
+VJS.shaders.data = require('../../src/shaders/shaders.data');
+
 var glslify = require('glslify');
 
 var VJS = VJS || {};
@@ -87,7 +96,7 @@ function init() {
   camera.position.z = 100;
   camera.lookAt(scene.position);
   // controls
-  controls = new vjsOrbitControl2D(camera, renderer.domElement);
+  controls = new VJS.controls.orbitControls2D(camera, renderer.domElement);
 
   animate();
 }
@@ -117,11 +126,11 @@ window.onload = function() {
   var file = ['../../data/dcm/fruit.dcm.tar'];
 
   // instantiate the loader
-  var loader = new vjsLoaderDicom();
+  var loader = new VJS.loaders.dicom();
   loader.load(
       file,
       // on load
-        function(message) {
+        function(series) {
 
           // float textures to shaders
           //http://jsfiddle.net/greggman/upZ7V/
@@ -134,7 +143,7 @@ window.onload = function() {
 
           // those operations could be async too!
           // prepare the texture!
-          var stack = message._series._stack[0];
+          var stack = series._stack[0];
           window.console.log(stack);
           stack.prepare();
 
@@ -149,9 +158,8 @@ window.onload = function() {
           var cube = new THREE.Mesh(geometry, material);
           scene.add(cube);
 
-          // create 16 luminance textures!
           var textures = [];
-          for (var m = 0; m < stack._nbTextures; m++) {
+          for (var m = 0; m < stack._rawData.length; m++) {
             // always pass it as RGB
             // in shaders handle it depending on how channels/bytes
             //
@@ -161,14 +169,10 @@ window.onload = function() {
           }
 
           var uniforms = vjsShadersData.parameters.uniforms;
-          uniforms.uTextureSize.value = stack._textureSize; //this._sliceCore._volumeCore._textureSize;
-          // array of 16 textures
+          uniforms.uTextureSize.value = stack._textureSize;
           uniforms.uTextureContainer.value = textures;
-          // texture dimensions
-          uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._numberOfFrames); //[stack._columns, stack._rows, stack._numberOfFrames];
-          // world to model
-          uniforms.uWorldToData.value = stack._lps2IJK; //new THREE.Matrix4().makeTranslation(448, 448, 30); //new THREE.Matrix4(); //stack._lps2IJK;
-          //uWindowLevel[center, width]
+          uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._numberOfFrames);
+          uniforms.uWorldToData.value = stack._lps2IJK;
           uniforms.uWindowLevel.value = stack._windowLevel;
           uniforms.uNumberOfChannels.value = stack._numberOfChannels;
           uniforms.uBitsAllocated.value = stack._bitsAllocated;
@@ -207,23 +211,6 @@ window.onload = function() {
 
           var customContainer = document.getElementById('my-gui-container');
           customContainer.appendChild(gui.domElement);
-
-          var stackFolder = gui.addFolder('Stack');
-          var windowWidthUpdate = stackFolder.add(stack, '_windowWidth', 1, stack._minMax[1]).step(1);
-          windowWidthUpdate.onChange(function(value) {
-            uniforms.uWindowLevel.value[1] = value;
-          });
-          var windowCenterUpdate = stackFolder.add(stack, '_windowCenter', stack._minMax[0], stack._minMax[1]).step(1);
-          windowCenterUpdate.onChange(function(value) {
-            uniforms.uWindowLevel.value[0] = value;
-          });
-
-          var invertUpdate = stackFolder.add(stack, '_invert', 0, 1).step(1);
-          invertUpdate.onChange(function(value) {
-            uniforms.uInvert.value = value;
-          });
-
-          stackFolder.open();
 
           var ballsFolder = gui.addFolder('Spheres');
           var numberOfSpheresUpdate = ballsFolder.add(testSpheres, 'nbSpheres', 1, 100).step(1);
