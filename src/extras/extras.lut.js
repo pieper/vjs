@@ -42,53 +42,60 @@ VJS.extras.lut.toIRGB = function(rawLUT) {
   return [i, r, g, b];
 };
 
-VJS.extras.lut.spectrum = function() {
+VJS.extras.lut.lut = function(label, data) {
   return {
-    label: 'Spectrum',
-    data: [[0, 0, 0, 0], [0.1, 0, 0, 1], [0.33, 0, 1, 1], [0.5, 0, 1, 0], [0.66, 1, 1, 0], [0.9, 1, 0, 0], [1, 1, 1, 1]]
+    'label': label,
+    'data': data
   };
+};
+
+VJS.extras.lut.spectrum = function() {
+  return VJS.extras.lut.lut(
+    'Spectrum',
+    [[0, 0, 0, 0], [0.1, 0, 0, 1], [0.33, 0, 1, 1], [0.5, 0, 1, 0], [0.66, 1, 1, 0], [0.9, 1, 0, 0], [1, 1, 1, 1]]
+  );
 };
 
 VJS.extras.lut.hotandcold = function() {
-  return {
-    label: 'Hot and cold',
-    data: [[0, 0, 0, 1], [0.15, 0, 1, 1], [0.3, 0, 1, 0], [0.45, 0, 0, 0], [0.5, 0, 0, 0], [0.55, 0, 0, 0], [0.7, 1, 1, 0], [0.85, 1, 0, 0], [1, 1, 1, 1]]
-  };
+  return VJS.extras.lut.lut(
+    'Hot and cold',
+    [[0, 0, 0, 1], [0.15, 0, 1, 1], [0.3, 0, 1, 0], [0.45, 0, 0, 0], [0.5, 0, 0, 0], [0.55, 0, 0, 0], [0.7, 1, 1, 0], [0.85, 1, 0, 0], [1, 1, 1, 1]]
+  );
 };
 
 VJS.extras.lut.gold = function() {
-  return {
-    label: 'Gold',
-    data: [[0, 0, 0, 0], [0.13, 0.19, 0.03, 0], [0.25, 0.39, 0.12, 0], [0.38, 0.59, 0.26, 0], [0.50, 0.80, 0.46, 0.08], [0.63, 0.99, 0.71, 0.21], [0.75, 0.99, 0.88, 0.34], [0.88, 0.99, 0.99, 0.48], [1, 0.90, 0.95, 0.61]]
-  };
+  return VJS.extras.lut.lut(
+    'Gold',
+    [[0, 0, 0, 0], [0.13, 0.19, 0.03, 0], [0.25, 0.39, 0.12, 0], [0.38, 0.59, 0.26, 0], [0.50, 0.80, 0.46, 0.08], [0.63, 0.99, 0.71, 0.21], [0.75, 0.99, 0.88, 0.34], [0.88, 0.99, 0.99, 0.48], [1, 0.90, 0.95, 0.61]]
+  );
 };
 
 VJS.extras.lut.red = function() {
-  return {
-    label: 'Red',
-    data: [[0, 0.75, 0, 0], [0.5, 1, 0.5, 0], [0.95, 1, 1, 0], [1, 1, 1, 1]]
-  };
+  return VJS.extras.lut.lut(
+    'Red',
+    [[0, 0.75, 0, 0], [0.5, 1, 0.5, 0], [0.95, 1, 1, 0], [1, 1, 1, 1]]
+  );
 };
 
 VJS.extras.lut.green = function() {
-  return {
-    label: 'Green',
-    data: [[0, 0, 0.75, 0], [0.5, 0.5, 1, 0], [0.95, 1, 1, 0], [1, 1, 1, 1]]
-  };
+  return VJS.extras.lut.lut(
+    'Green',
+    [[0, 0, 0.75, 0], [0.5, 0.5, 1, 0], [0.95, 1, 1, 0], [1, 1, 1, 1]]
+  );
 };
 
 VJS.extras.lut.blue = function() {
-  return {
-    label: 'Blue',
-    data: [[0, 0, 0, 1], [0.5, 0, 0.5, 1], [0.95, 0, 1, 1], [1, 1, 1, 1]]
-  };
+  return VJS.extras.lut.lut(
+    'Blue',
+    [[0, 0, 0, 1], [0.5, 0, 0.5, 1], [0.95, 0, 1, 1], [1, 1, 1, 1]]
+  );
 };
 
 VJS.extras.lut.grayscale = function() {
-  return {
-    label: 'Gray Scale',
-    data: [[0, 0, 0, 0], [1, 1, 1, 1]]
-  };
+  return VJS.extras.lut.lut(
+    'Gray Scale',
+    [[0, 0, 0, 0], [1, 1, 1, 1]]
+  );
 };
 
 /*** Exports ***/

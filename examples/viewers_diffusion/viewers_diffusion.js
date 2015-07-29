@@ -96,6 +96,42 @@ window.onload = function() {
     return mergedHelpers;
   }
 
+  function buildGUI(sliceHelper) {
+    var stack = sliceHelper._series._stack[0];
+    
+    var gui = new dat.GUI({
+            autoPlace: false
+          });
+
+    var customContainer = document.getElementById('my-gui-container');
+    customContainer.appendChild(gui.domElement);
+
+    var stackFolder = gui.addFolder('Stack');
+    var windowWidthUpdate = stackFolder.add(sliceHelper._slice, 'windowWidth', 1, stack._minMax[1]).step(1).listen();
+    windowWidthUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
+
+    var windowCenterUpdate = stackFolder.add(sliceHelper._slice, 'windowCenter', stack._minMax[0], stack._minMax[1]).step(1).listen();
+    windowCenterUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
+
+    var windowAutoUpdate = stackFolder.add(sliceHelper._slice, 'windowAuto');
+    windowAutoUpdate.onChange(function() {
+            sliceHelper.updateSliceWindowLevel();
+            sliceHelper.updateCosmeticUniforms();
+          });
+
+    var invertUpdate = stackFolder.add(sliceHelper._slice, 'invert');
+    invertUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
+
+    var lutUpdate = stackFolder.add(sliceHelper._slice, 'lut', VJS.extras.lut.luts());
+    lutUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
+
+    var frameIndex = stackFolder.add(sliceHelper._slice, 'index', 0, stack._dimensions.z - 1).step(1);
+    // update everything, we have to create a new mesh!
+    frameIndex.onChange(function() {sliceHelper.updateSlice();});
+
+    stackFolder.open();
+  }
+
   function handleFile(e) {
     received++;
     var arrayBuffer = e.target.result;
@@ -188,37 +224,7 @@ window.onload = function() {
 
       controls.target.set(intersections[1].x, intersections[1].y, intersections[1].z);
 
-      var gui = new dat.GUI({
-            autoPlace: false
-          });
-
-      var customContainer = document.getElementById('my-gui-container');
-      customContainer.appendChild(gui.domElement);
-
-      var stackFolder = gui.addFolder('Stack');
-      var windowWidthUpdate = stackFolder.add(sliceHelper._slice, 'windowWidth', 1, stack._minMax[1]).step(1).listen();
-      windowWidthUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
-
-      var windowCenterUpdate = stackFolder.add(sliceHelper._slice, 'windowCenter', stack._minMax[0], stack._minMax[1]).step(1).listen();
-      windowCenterUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
-
-      var windowAutoUpdate = stackFolder.add(sliceHelper._slice, 'windowAuto');
-      windowAutoUpdate.onChange(function() {
-            sliceHelper.updateSliceWindowLevel();
-            sliceHelper.updateCosmeticUniforms();
-          });
-
-      var invertUpdate = stackFolder.add(sliceHelper._slice, 'invert');
-      invertUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
-
-      var lutUpdate = stackFolder.add(sliceHelper._slice, 'lut', VJS.extras.lut.luts());
-      lutUpdate.onChange(function() {sliceHelper.updateCosmeticUniforms();});
-
-      var frameIndex = stackFolder.add(sliceHelper._slice, 'index', 0, stack._dimensions.z - 1).step(1);
-      // update everything, we have to create a new mesh!
-      frameIndex.onChange(function() {sliceHelper.updateSlice();});
-
-      stackFolder.open();
+      buildGUI(sliceHelper);
     }
   }
 
