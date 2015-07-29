@@ -44,10 +44,6 @@ VJS.models.series = VJS.models.series || require(&#x27;../models/models.series&#
 VJS.models.stack = VJS.models.stack || require(&#x27;../models/models.stack&#x27;);
 VJS.models.frame = VJS.models.frame || require(&#x27;../models/models.frame&#x27;);
 
-VJS.helpers = VJS.helpers || {};
-VJS.helpers.slice = VJS.helpers.slice || require(&#x27;../helpers/helpers.slice&#x27;);
-
-
 /**
  *
  * It is typically used to load a DICOM image. Use loading manager for
@@ -185,26 +181,22 @@ VJS.loaders.dicom.prototype.load = function(file, onLoad, onProgress, onError) {
  *
  */
 VJS.loaders.dicom.prototype.parse = function(response) {
-  window.console.log(response);
   window.console.log(&#x27;file downloaded yay!&#x27;);
-
-  // series helper with lot of goodies
-  var seriesHelper = new VJS.helpers.slice();
 
   // parse DICOM
   var dicomParser = null;
   try {
-    dicomParser = new VJS.parsers.dicom(response, seriesHelper.id);
+    dicomParser = new VJS.parsers.dicom(response, 0);
   }
   catch (e) {
     window.console.log(&#x27;error cought in dicom loader&#x27;);
     window.console.log(e);
-    return null;
-  }
 
 // throw new Error(&#x27;My message&#x27;)
   
-    
+    return null;
+  }
+
   // create a series
   var series = new VJS.models.series();
   series._seriesInstanceUID = dicomParser.seriesInstanceUID();
@@ -245,11 +237,10 @@ VJS.loaders.dicom.prototype.parse = function(response) {
   }
 
   // var image = dicomParser.parse();
+  // VJS.parsers.dicom._arrayBuffer = null;
+  // VJS.parsers.dicom._dataSet = null;
 
-  // add image to image helper
-  // image helper is a 3D object image wherease image is a general JS Object
-  seriesHelper.addSeries(series);
-  return seriesHelper;
+  return series;
   //var self = this;
 
   //return new Promise(function(resolve) {
