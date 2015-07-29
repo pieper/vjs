@@ -10,6 +10,7 @@ var VJS = VJS || {};
 
 VJS.cameras = VJS.cameras || require('./cameras/cameras');
 VJS.core = VJS.core || require('./core/core');
+VJS.extras = VJS.extras || require('./extras/extras');
 VJS.geometries = VJS.geometries || require('./geometries/geometries');
 VJS.helpers = VJS.helpers || require('./helpers/helpers');
 VJS.loaders = VJS.loaders || require('./loaders/loaders');

@@ -11,24 +11,83 @@ VJS.geometries.slice = VJS.geometries.slice || require('../geometries/geometries
 VJS.shaders = VJS.shaders || {};
 VJS.shaders.data = VJS.shaders.data || require('../shaders/shaders.data');
 
+VJS.extras = VJS.extras || {};
+VJS.extras.lut = require('../../src/extras/extras.lut');
+
 var glslify =  require('glslify');
-
-
 
 //
 // https://en.wikipedia.org/wiki/Immediately-invoked_function_expression
-VJS.helpers.slice = function() {
+// input is a series
+VJS.helpers.slice = function(series) {
+
+  this._series = series;
 
   THREE.Object3D.call(this);
 
-  // ...
-  this._series = null;
-  this._uniforms = null;
-  this._frameIndex = null;
-  this._slice = null;
-  this._border = null;
+  // bounding box
+  // -> show/hide
+  // -> color
+  // -> update()
+  this._bBox = {
+    visible: true,
+    color: 0x61F2F3,
+    material: null,
+    geometry: null,
+    mesh: null
+  };
 
-  //
+  // arrow
+  // -> show/hide
+  // -> color
+  // -> update()
+  this._arrow = {
+    visible: true,
+    color: 0xFFF336,
+    length: 20,
+    material: null,
+    geometry: null,
+    mesh: null
+  };
+
+  // border
+  // -> show/hide
+  // -> color
+  // -> update()
+  this._border = {
+    visible: true,
+    color: 0xff0000,
+    material: null,
+    geometry: null,
+    mesh: null
+  };
+  
+  // slice
+  // -> show/hide
+  // -> autoWindow/Level ? (might be for the frame helper)
+  // -> index()
+  // -> direction(arrow position, arrow direction)
+  // -> lut(lutObj)
+  // with composer? (maybe lut too...?)
+  // -> labelmap(labelMap?)
+  // -> dosemap(doseMap?)
+  this._slice = {
+    visible: true,
+    position: null,
+    direction: null,
+    index: null,
+    windowWidth: null,
+    windowCenter: null,
+    windowAuto: true,
+    invert: false,
+    lut: 'none',
+    material: null,
+    geometry: null,
+    mesh: null
+  };
+
+  // ...
+  this._uniforms = null;
   this._autoWindowLevel = false;
 
 };
@@ -37,82 +96,70 @@ VJS.helpers.slice.prototype = Object.create(THREE.Object3D.prototype);
 
 VJS.helpers.slice.prototype.constructor = VJS.helpers.slice;
 
-VJS.helpers.slice.prototype.merge = function(seriesHelper) {
-  return this._series.merge(seriesHelper._series);
-};
+VJS.helpers.slice.prototype.createBBox = function(stack, bbox) {
+  // Convenience vars
+  var dimensions = stack._dimensions;
+  var halfDimensions = stack._halfDimensions;
+  var offset = new THREE.Vector3(-0.5, -0.5, -0.5);
 
-VJS.helpers.slice.prototype.addSeries = function(series) {
-  this._series = series;
-};
+  // Geometry
+  bbox.geometry = new THREE.BoxGeometry(
+      dimensions.x, dimensions.y, dimensions.z);
+  bbox.geometry .applyMatrix(new THREE.Matrix4().makeTranslation(
+      halfDimensions.x + offset.x, halfDimensions.y + offset.y, halfDimensions.z + offset.z));
+  bbox.geometry .applyMatrix(stack._ijk2LPS);
 
-VJS.helpers.slice.prototype.getStack = function(stackIndex) {
-  return stackIndex;
-};
-
-VJS.helpers.slice.prototype.prepare = function() {
-
-  window.console.log('helpers Series Prepare!!!');
-  if (this._series) {
-
-    // get first stack!
-    var stack = this._series._stack[0];
-    stack.prepare();
-    window.console.log(stack);
-
-    // Convenience function
-    var dimensions = stack._dimensions;
-    var halfDimensions = stack._halfDimensions;
-
-    // voxel offset
-    var offset = new THREE.Vector3(-0.5, -0.5, -0.5);
-
-    // Bounding Box
-    var geometry = new THREE.BoxGeometry(
-        dimensions.x, dimensions.y, dimensions.z);
-    geometry.applyMatrix(new THREE.Matrix4().makeTranslation(
-        halfDimensions.x + offset.x, halfDimensions.y + offset.y, halfDimensions.z + offset.z));
-    geometry.applyMatrix(stack._ijk2LPS);
-    var material = new THREE.MeshBasicMaterial({
+  // Material
+  bbox.material = new THREE.MeshBasicMaterial({
       wireframe: true,
-      color: 0x61F2F3
+      color: bbox.color
     });
-    var cube = new THREE.Mesh(geometry, material);
-    this.add(cube);
 
-    // Slice
-    // Geometry
-    //
+  // mesh
+  bbox.mesh = new THREE.Mesh(bbox.geometry, bbox.material);
+  bbox.mesh.visible = bbox.visible;
+};
 
-    // Define the bouding box used to generate the slice geometry
-    // center
-    // orientation
-    // and half-dimensions
-    var center = new THREE.Vector3(0, 0, 0);
-    var orientation = new THREE.Vector3(
-        new THREE.Vector3(1, 0, 0),
-        new THREE.Vector3(0, 1, 0),
-        new THREE.Vector3(0, 0, 1));
+VJS.helpers.slice.prototype.createSlice = function(stack, slice) {
+  // Convenience vars
+  var halfDimensions = stack._halfDimensions;
+  var offset = new THREE.Vector3(-0.5, -0.5, -0.5);
+  var center = new THREE.Vector3(0, 0, 0);
+  var orientation = new THREE.Vector3(
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, 0, 1));
 
-    var position = new THREE.Vector3(
-      Math.floor(stack._halfDimensions.x),
-      Math.floor(stack._halfDimensions.y),
-      Math.floor(stack._halfDimensions.z) + 0.5 - stack._halfDimensions.z
-    );
+  // default position of the middle frame
+  if (slice.index === null) {
+    slice.index = Math.floor(halfDimensions.z);
+  }
 
-    var direction = new THREE.Vector3(0, 0, 1);
+  this.updateSliceWindowLevel();
 
-    var sliceGeometry = new VJS.geometries.slice(
-        halfDimensions, center, orientation,
-        position, direction);
-    sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
-        halfDimensions.x + offset.x, halfDimensions.y + offset.y, halfDimensions.z + offset.z));
-    sliceGeometry.applyMatrix(stack._ijk2LPS);
+  // compute position based on index
+  // should have a switch (indexed or freemode)
+  slice.position = new THREE.Vector3(
+    0,
+    0,
+    slice.index + 0.5 - stack._halfDimensions.z
+  );
 
-    // update _framIndex
-    this._frameIndex = Math.floor(halfDimensions.z);
+  // should be able to choose that too!
+  slice.direction = new THREE.Vector3(0, 0, 1);
 
-    // Slice
-    // Material
+  slice.geometry = new VJS.geometries.slice(
+      halfDimensions,
+      center,
+      orientation,
+      slice.position,
+      slice.direction);
+  slice.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(
+      halfDimensions.x + offset.x, halfDimensions.y + offset.y, halfDimensions.z + offset.z));
+  slice.geometry.applyMatrix(stack._ijk2LPS);
+
+  if (!slice.material) {
+    // compute texture if material exist
     var textures = [];
     for (var m = 0; m < stack._nbTextures; m++) {
       var tex = new THREE.DataTexture(stack._rawData[m], stack._textureSize, stack._textureSize, THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
@@ -131,76 +178,124 @@ VJS.helpers.slice.prototype.prepare = function() {
 
     // important so uniforms are not overwritten!
     // clone it!
-    var mySliceMaterial = sliceMaterial.clone();
-    this._uniforms = mySliceMaterial.uniforms;
-    this._uniforms.uTextureSize.value = stack._textureSize;
-    this._uniforms.uTextureContainer.value = textures;
-    // texture dimensions
-    this._uniforms.uDataDimensions.value = stack._dimensions;
-    // world to model
-    this._uniforms.uWorldToData.value = stack._lps2IJK;
-    // window level
-    this._uniforms.uWindowLevel.value = stack._windowLevel;
-    this._uniforms.uNumberOfChannels.value = stack._numberOfChannels;
-    this._uniforms.uBitsAllocated.value = stack._bitsAllocated;
-    this._uniforms.uInvert.value = stack._invert;
+    slice.material = sliceMaterial.clone();
 
-    this._slice = new THREE.Mesh(sliceGeometry, mySliceMaterial);
-    this.add(this._slice);
+    // update textures
+    slice.material.uniforms.uTextureContainer.value = textures;
+  }
 
-    // Border of the slice
-    var borderMaterial = new THREE.LineBasicMaterial({
-      color: 0xff0000,
+  // stack related uniform
+  slice.material.uniforms.uTextureSize.value = stack._textureSize;
+  slice.material.uniforms.uDataDimensions.value = stack._dimensions;
+  slice.material.uniforms.uWorldToData.value = stack._lps2IJK;
+  slice.material.uniforms.uNumberOfChannels.value = stack._numberOfChannels;
+  slice.material.uniforms.uBitsAllocated.value = stack._bitsAllocated;
+  // other uniforms
+  this.updateCosmeticUniforms();
+
+  slice.mesh = new THREE.Mesh(slice.geometry, slice.material);
+  slice.mesh.visible = slice.visible;
+};
+
+VJS.helpers.slice.prototype.updateSliceWindowLevel = function() {
+  var stack =  this._series._stack[0];
+  if (this._slice.windowAuto) {
+    if (stack._frame[this._slice.index]._windowCenter) {
+      this._slice.windowCenter = stack._frame[this._slice.index]._windowCenter;
+    } else {
+      this._slice.windowCenter = stack._windowCenter;
+    }
+    if (stack._frame[this._slice.index]._windowWidth) {
+      this._slice.windowWidth = stack._frame[this._slice.index]._windowWidth;
+    } else {
+      this._slice.windowWidth = stack._windowWidth;
+    }
+  } else if (this._slice.windowCenter === null || this._slice.windowWidth === null) {
+    this._slice.windowCenter = stack._windowCenter;
+    this._slice.windowWidth = stack._windowWidth;
+  }
+};
+
+VJS.helpers.slice.prototype.updateCosmeticUniforms = function() {
+
+  // set slice window center and width
+  this._slice.material.uniforms.uWindowLevel.value = [this._slice.windowCenter, this._slice.windowWidth];
+
+  // invert
+  this._slice.material.uniforms.uInvert.value = this._slice.invert === true ? 1 : 0;
+
+  // lut
+  if (this._slice.lut === 'none') {
+    this._slice.material.uniforms.uLut.value = 0;
+  } else {
+    // format LUT (max size 16)
+    //
+    var irgb = VJS.extras.lut.toIRGB(VJS.extras.lut[this._slice.lut]().data);
+
+    this._slice.material.uniforms.uLutI.value = irgb[0];
+    this._slice.material.uniforms.uLutR.value = irgb[1];
+    this._slice.material.uniforms.uLutG.value = irgb[2];
+    this._slice.material.uniforms.uLutB.value = irgb[3];
+    this._slice.material.uniforms.uLut.value = 1;
+  }
+};
+
+VJS.helpers.slice.prototype.createBorder = function(slice, border) {
+  border.material = new THREE.LineBasicMaterial({
+      color: border.color,
       polygonOffset: true,
       polygonOffsetFactor: -0.1
     });
-    var borderGeometry = new THREE.Geometry();
-    for (var i = 0; i < sliceGeometry.vertices.length; i++) {
-      borderGeometry.vertices.push(sliceGeometry.vertices[i]);
-    }
-    borderGeometry.vertices.push(sliceGeometry.vertices[0]);
+    
+  border.geometry = new THREE.Geometry();
+  for (var i = 0; i < slice.geometry.vertices.length; i++) {
+    border.geometry.vertices.push(slice.geometry.vertices[i]);
+  }
+  border.geometry.vertices.push(slice.geometry.vertices[0]);
 
-    // borderGeometry.vertices = sliceGeometry.vertices;
-    this._border = new THREE.Line(borderGeometry, borderMaterial);
-    this.add(this._border);
+  border.mesh = new THREE.Line(border.geometry, border.material);
+  border.mesh.visible = border.visible;
+};
+
+VJS.helpers.slice.prototype.prepare = function() {
+
+  if (this._series) {
+
+    // get first stack and prepare it
+    // make sure there is something, if not throw an error
+    var stack = this._series._stack[0];
+    stack.prepare();
+
+    // Bounding Box
+    this.createBBox(stack, this._bBox);
+    this.add(this._bBox.mesh);
+    
+    // Slice
+    this.createSlice(stack, this._slice);
+    this.add(this._slice.mesh);
+
+    // Border
+    this.createBorder(this._slice, this._border);
+    this.add(this._border.mesh);
+
+    // todo: Arrow
 
   } else {
     window.console.log('no series to be prepared...');
   }
 };
 
-VJS.helpers.slice.prototype.updateSliceGeometry = function() {
+VJS.helpers.slice.prototype.updateSlice = function() {
   var stack = this._series._stack[0];
-  var halfDimensions = stack._halfDimensions;
-  // voxel offset
-  var offset = new THREE.Vector3(-0.5, -0.5, -0.5);
 
-  var center = new THREE.Vector3(0, 0, 0);
-  var orientation = new THREE.Vector3(
-      new THREE.Vector3(1, 0, 0),
-      new THREE.Vector3(0, 1, 0),
-      new THREE.Vector3(0, 0, 1));
-
-  var position = new THREE.Vector3(
-    0,
-    0,
-    this._frameIndex + 0.5 - stack._halfDimensions.z
-    );
-
-  var direction = new THREE.Vector3(0, 0, 1);
-
-  var sliceGeometry = new VJS.geometries.slice(
-      halfDimensions, center, orientation,
-      position, direction);
-  sliceGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
-      halfDimensions.x + offset.x, halfDimensions.y + offset.y, halfDimensions.z + offset.z));
-  sliceGeometry.applyMatrix(stack._ijk2LPS);
-
-  // helper - update Geometry
-  //is memory leaking???
-
-  this._slice.geometry = sliceGeometry;
-  this._slice.geometry.verticesNeedUpdate = true;
+  // update slice
+  this.remove(this._slice.mesh);
+  this._slice.mesh.geometry.dispose();
+  // we do not want to dispose the texture!
+  // this._slice.mesh.material.dispose();
+  this._slice.mesh = null;
+  this.createSlice(stack, this._slice);
+  this.add(this._slice.mesh);
 };
 
 VJS.helpers.slice.prototype.updateBorderGeometry = function() {
@@ -217,10 +312,9 @@ VJS.helpers.slice.prototype.updateBorderGeometry = function() {
 
 // a delete method too!
 
-
 /*** Exports ***/
 
 var moduleType = typeof module;
 if ((moduleType !== 'undefined') && module.exports) {
-    module.exports = VJS.helpers.slice;
+  module.exports = VJS.helpers.slice;
 }

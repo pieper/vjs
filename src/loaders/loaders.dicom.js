@@ -157,23 +157,20 @@ VJS.loaders.dicom.prototype.parse = function(response) {
   window.console.log(response);
   window.console.log('file downloaded yay!');
 
-  // series helper with lot of goodies
-  var seriesHelper = new VJS.helpers.slice();
-
   // parse DICOM
   var dicomParser = null;
   try {
-    dicomParser = new VJS.parsers.dicom(response, seriesHelper.id);
+    dicomParser = new VJS.parsers.dicom(response, 0);
   }
   catch (e) {
     window.console.log('error cought in dicom loader');
     window.console.log(e);
-    return null;
-  }
 
 // throw new Error('My message')
   
-    
+    return null;
+  }
+
   // create a series
   var series = new VJS.models.series();
   series._seriesInstanceUID = dicomParser.seriesInstanceUID();
@@ -217,7 +214,11 @@ VJS.loaders.dicom.prototype.parse = function(response) {
 
   // add image to image helper
   // image helper is a 3D object image wherease image is a general JS Object
-  seriesHelper.addSeries(series);
+  // series helper with lot of goodies
+  var seriesHelper = new VJS.helpers.slice(series);
+  // try catch it...?
+
+
   return seriesHelper;
   //var self = this;
 
