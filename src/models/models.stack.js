@@ -252,7 +252,8 @@ VJS.models.stack.prototype.prepare = function() {
   window.console.log(this._dimensions);
 
   // create 16 rgba textures
-  for (var ii = 0; ii < this._nbTextures; ii++) {
+  var requiredTextures = Math.ceil(nbVoxels / (this._textureSize * this._textureSize));
+  for (var ii = 0; ii < requiredTextures; ii++) {
     // *3 because always create RGB
     this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * 4));
   }

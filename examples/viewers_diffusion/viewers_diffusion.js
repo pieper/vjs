@@ -17,6 +17,9 @@ VJS.controls.orbitControls2D = require('../../src/controls/OrbitControls2D');
 VJS.extras = VJS.extras || {};
 VJS.extras.lut = require('../../src/extras/extras.lut');
 
+VJS.helpers = VJS.helpers || {};
+VJS.helpers.slice = require('../../src/helpers/helpers.slice');
+
 // standard global variables
 var controls, renderer, scene, camera, statsyay, threeD;
 var received = 0;
@@ -136,7 +139,12 @@ window.onload = function() {
     received++;
     var arrayBuffer = e.target.result;
     var loader = new VJS.loaders.dicom();
-    var myHelper = loader.parse(arrayBuffer);
+    var dummySeries = loader.parse(arrayBuffer);
+    // add image to image helper
+    // image helper is a 3D object image wherease image is a general JS Object
+    // series helper with lot of goodies
+    var myHelper = new VJS.helpers.slice(dummySeries);
+    // try catch it...?
     // myHelper.prepare();
     if (myHelper !== null) {
       seriesHelperContainer.push(myHelper);
@@ -150,6 +158,8 @@ window.onload = function() {
       var sliceHelper = mergeSeries(seriesHelperContainer)[0];
       sliceHelper.prepare();
       scene.add(sliceHelper);
+
+      // return;
 
       window.console.log(sliceHelper);
 

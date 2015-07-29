@@ -161,7 +161,7 @@ VJS.helpers.slice.prototype.createSlice = function(stack, slice) {
   if (!slice.material) {
     // compute texture if material exist
     var textures = [];
-    for (var m = 0; m < stack._nbTextures; m++) {
+    for (var m = 0; m < stack._rawData.length; m++) {
       var tex = new THREE.DataTexture(stack._rawData[m], stack._textureSize, stack._textureSize, THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
       tex.needsUpdate = true;
       textures.push(tex);

@@ -13,10 +13,6 @@ VJS.models.series = VJS.models.series || require('../models/models.series');
 VJS.models.stack = VJS.models.stack || require('../models/models.stack');
 VJS.models.frame = VJS.models.frame || require('../models/models.frame');
 
-VJS.helpers = VJS.helpers || {};
-VJS.helpers.slice = VJS.helpers.slice || require('../helpers/helpers.slice');
-
-
 /**
  *
  * It is typically used to load a DICOM image. Use loading manager for
@@ -154,7 +150,6 @@ VJS.loaders.dicom.prototype.load = function(file, onLoad, onProgress, onError) {
  *
  */
 VJS.loaders.dicom.prototype.parse = function(response) {
-  window.console.log(response);
   window.console.log('file downloaded yay!');
 
   // parse DICOM
@@ -211,15 +206,10 @@ VJS.loaders.dicom.prototype.parse = function(response) {
   }
 
   // var image = dicomParser.parse();
+  // VJS.parsers.dicom._arrayBuffer = null;
+  // VJS.parsers.dicom._dataSet = null;
 
-  // add image to image helper
-  // image helper is a 3D object image wherease image is a general JS Object
-  // series helper with lot of goodies
-  var seriesHelper = new VJS.helpers.slice(series);
-  // try catch it...?
-
-
-  return seriesHelper;
+  return series;
   //var self = this;
 
   //return new Promise(function(resolve) {
