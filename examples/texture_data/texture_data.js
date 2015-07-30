@@ -1,8 +1,6 @@
 /* globals Stats, dat*/
 'use strict';
 
-var vjsShadersData = require('../../src/shaders/shaders.data');
-
 var VJS = VJS || {};
 VJS.loaders = VJS.loaders || {};
 VJS.loaders.dicom = require('../../src/loaders/loaders.dicom');
@@ -123,7 +121,7 @@ window.onload = function() {
   // init threeJS...
   init();
 
-  var file = ['../../data/dcm/fruit.dcm.tar'];
+  var file = '../../data/dcm/fruit.dcm.tar';
 
   // instantiate the loader
   var loader = new VJS.loaders.dicom();
@@ -137,19 +135,20 @@ window.onload = function() {
           //http://jsfiddle.net/greggman/LMbhk/
 
           // merge images if needed!
-          // prepare images (generate convenience vars at all image/stack/frame levels)
-          // view the stack (N slices to start...)
           window.console.log('all parsed');
 
           // those operations could be async too!
           // prepare the texture!
           var stack = series._stack[0];
           window.console.log(stack);
+          // compute convenience vars (such as ijk2LPS matrix for the stack, re-order frames based on position)
           stack.prepare();
 
           // make a box!
-          var geometry = new THREE.BoxGeometry(896, 896, 60);
+          var geometry = new THREE.BoxGeometry(896, 896, 60); // box is centered on 0,0,0
+          // we want first voxel of the box to be centered on 0,0,0
           geometry.applyMatrix(new THREE.Matrix4().makeTranslation(448, 448, 30));
+          // go the LPS space
           geometry.applyMatrix(stack._ijk2LPS);
           var material = new THREE.MeshBasicMaterial({
             wireframe: true,
@@ -158,26 +157,26 @@ window.onload = function() {
           var cube = new THREE.Mesh(geometry, material);
           scene.add(cube);
 
+          // pass formated raw data from stack to webGL texture
           var textures = [];
           for (var m = 0; m < stack._rawData.length; m++) {
-            // always pass it as RGB
-            // in shaders handle it depending on how channels/bytes
-            //
             var tex = new THREE.DataTexture(stack._rawData[m], stack._textureSize, stack._textureSize, THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
             tex.needsUpdate = true;
             textures.push(tex);
           }
-
-          var uniforms = vjsShadersData.parameters.uniforms;
+          
+          // update uniforms
+          var uniforms = VJS.shaders.data.parameters.uniforms;
           uniforms.uTextureSize.value = stack._textureSize;
           uniforms.uTextureContainer.value = textures;
           uniforms.uDataDimensions.value = new THREE.Vector3(stack._columns, stack._rows, stack._numberOfFrames);
           uniforms.uWorldToData.value = stack._lps2IJK;
-          uniforms.uWindowLevel.value = stack._windowLevel;
           uniforms.uNumberOfChannels.value = stack._numberOfChannels;
           uniforms.uBitsAllocated.value = stack._bitsAllocated;
+          uniforms.uWindowLevel.value = stack._windowLevel;
           uniforms.uInvert.value = stack._invert;
 
+          // create material
           var sliceMaterial = new THREE.ShaderMaterial({
             // 'wireframe': true,
             'side': THREE.DoubleSide,
@@ -187,6 +186,8 @@ window.onload = function() {
             'fragmentShader': glslify('../../src/shaders/shaders.data.frag')
           });
 
+          // create all the spheres with a "slice material" material
+          // get LPS BBox to know where to position the sphere
           bboxMax = new THREE.Vector3(896, 896, 60).applyMatrix4(stack._ijk2LPS);
           bboxMin = new THREE.Vector3(0, 0, 0).applyMatrix4(stack._ijk2LPS);
           bbox = [

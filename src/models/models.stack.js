@@ -101,7 +101,6 @@ VJS.models.stack.prototype.prepare = function() {
   // dimensions of the stack
   this._numberOfFrames = this._frame.length;
 
-  window.console.log(this);
   this.orderFrames();
   var zSpacing = this.zSpacing();
 
@@ -191,14 +190,11 @@ VJS.models.stack.prototype.prepare = function() {
       );
 
   // Direction
-  window.console.log('first frame value!');
-  window.console.log(this._frame[0]._imageOrientation[0]);
   var xCosine = new THREE.Vector3(
       this._frame[0]._imageOrientation[0],
       this._frame[0]._imageOrientation[1],
       this._frame[0]._imageOrientation[2]
   );
-  window.console.log(xCosine);
 
   var yCosine = new THREE.Vector3(
       this._frame[0]._imageOrientation[3],
@@ -213,14 +209,10 @@ VJS.models.stack.prototype.prepare = function() {
       xCosine.z, yCosine.z, zCosine.z, 0,
       0, 0, 0, 1);
 
-  window.console.log(this._direction);
-
   this._spacing = new THREE.Vector3(
       this._pixelSpacing.row,
       this._pixelSpacing.column,
       zSpacing);
-
-  window.console.log(this._spacing);
 
   // half dimensions are useful for faster computations of intersection.
   this._halfDimensions = new THREE.Vector3(
@@ -245,31 +237,21 @@ VJS.models.stack.prototype.prepare = function() {
   this._lps2IJK = new THREE.Matrix4();
   this._lps2IJK.getInverse(this._ijk2LPS);
 
-  window.console.log(this._lps2IJK, this._ijk2LPS, this._direction);
-
-  // only works with 1 channel for now...
+  // Get total number of voxels
   var nbVoxels = this._dimensions.x * this._dimensions.y * this._dimensions.z;
-  window.console.log(this._dimensions);
 
-  // create 16 rgba textures
+  window.console.log('start packing data for WebGL texture...');
+  console.time('packData');
+
+  // create Uint8 array to be used to generate textures
   var requiredTextures = Math.ceil(nbVoxels / (this._textureSize * this._textureSize));
   for (var ii = 0; ii < requiredTextures; ii++) {
     // *3 because always create RGB
     this._rawData.push(new Uint8Array(this._textureSize * this._textureSize * 4));
   }
 
-  // http://stackoverflow.com/questions/6413744/looking-to-access-16-bit-image-data-in-javascript-webgl
-
-  // Can not just use subarray because we have to normalize the values (Uint* 0<x<255)
-  //var prevFrame = -1;
-  //var prevTexture = -1;
-
-  // ADD WARNING IF DATA TO BIG TO FIT IN MEMORY...!
-
   var frameDimension = this._dimensions.x * this._dimensions.y;
   var textureDimension = this._textureSize * this._textureSize;
-
-  console.time('arrangeDataForWebgl');
 
   for (var jj = 0; jj < nbVoxels; jj++) {
 
@@ -304,16 +286,14 @@ VJS.models.stack.prototype.prepare = function() {
       // add 
       this._rawData[textureIndex][4 * inTextureIndex] = msb;
       this._rawData[textureIndex][4 * inTextureIndex + 1] = lsb;
-
-      // can we add next msb/lsb to b/a - yes!
-      // or just forbid it?
-
       this._rawData[textureIndex][4 * inTextureIndex + 2] = frameIndex;
       this._rawData[textureIndex][4 * inTextureIndex + 3] = frameIndex;
 
     }
 
   }
+
+  console.timeEnd('packData');
 
   // default window level based on min/max for now...
   // could use the frame's windowWidth and center...
@@ -327,7 +307,7 @@ VJS.models.stack.prototype.prepare = function() {
   // need to pass min/max
   this._bitsAllocated = this._frame[0]._bitsAllocated;
 
-  window.console.log('window level: ', this._windowLevel);
+  window.console.log('Done preparing!');
 };
 
 /**
@@ -364,7 +344,6 @@ VJS.models.stack.prototype.orderFrames = function() {
   // 1,1,2,1 will be next
   // 1,1,2,3 will be next
   // 1,1,3,1 wil be next
-  window.console.log(this);
   if (this._frame[0]._dimensionIndexValues) {
     this._frame.sort(VJS.models.stack.prototype.orderFrameOnDimensionIndices);
   } else if (this._frame[0]._imagePosition && this._frame[0]._imageOrientation) {
@@ -409,7 +388,6 @@ VJS.models.stack.prototype.zSpacing = function() {
   // Spacing
   // can not be 0 if not matrix can not be inverted.
   var zSpacing = 1;
-  window.console.log(this._frame[0]);
 
   if (this._numberOfFrames > 1) {
     if (this._spacingBetweenSlices) {
@@ -511,8 +489,6 @@ VJS.models.stack.prototype.merge = function(stack) {
 
     }
   }
-
-  window.console.log(this);
 
   return sameStackID;
 };
