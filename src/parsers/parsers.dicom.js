@@ -37,6 +37,7 @@ VJS.parsers.dicom = function(arrayBuffer, id) {
 
   // catch error
   // throw error if any!
+  this._dataSet = null;
   try {
     this._dataSet = dicomParser.parseDicom(byteArray);
   }

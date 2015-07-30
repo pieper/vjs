@@ -1,12 +1,22 @@
 /* globals Stats*/
 'use strict';
 
-var vjsOrbitControl2D = require('../../src/controls/OrbitControls2D');
-var vjsProbePixelWidget = require('../../src/widgets/widgets.pixelProbe');
-var vjsOrientationWidget = require('../../src/widgets/widgets.orientation');
-var vjsLoaderDicom = require('../../src/loaders/loaders.dicom');
-
 var VJS = VJS || {};
+
+VJS.controls = VJS.controls || {};
+VJS.controls.orbitControls2D = require('../../src/controls/OrbitControls2D');
+
+VJS.widgets = VJS.widgets || {};
+VJS.widgets.pixelProbe = require('../../src/widgets/widgets.pixelProbe');
+VJS.widgets.orientation = require('../../src/widgets/widgets.orientation');
+
+VJS.loaders = VJS.loaders || {};
+VJS.loaders.dicom = require('../../src/loaders/loaders.dicom');
+
+VJS.helpers = VJS.helpers || {};
+VJS.helpers.slice = require('../../src/helpers/helpers.slice');
+
+
 
 // standard global variables
 var controls, renderer, stats, scene, camera, dat, probe, raycaster, mouse, orientation;
@@ -44,9 +54,7 @@ function init() {
   function onDocumentMouseDown(event) {
     event.preventDefault();
 
-    // create/select handle
     raycaster.setFromCamera(mouse, camera);
-    // name???
     var domElement = probe.mark(raycaster, mouse);
     if (domElement) {
       var threeD = document.getElementById('r3d');
@@ -82,9 +90,6 @@ function init() {
   renderer.setSize(threeD.offsetWidth, threeD.offsetHeight);
   renderer.setClearColor(0xFFFFFF, 1);
 
-  // var maxTextureSize = renderer.context.getParameter(renderer.context.MAX_TEXTURE_SIZE);
-  // var maxTextureImageUnits = renderer.context.getParameter(renderer.context.MAX_TEXTURE_IMAGE_UNITS);
-
   threeD.appendChild(renderer.domElement);
 
   // stats
@@ -100,10 +105,10 @@ function init() {
   camera.position.z = 100;
   camera.lookAt(scene.position);
   // controls
-  controls = new vjsOrbitControl2D(camera, renderer.domElement);
+  controls = new VJS.controls.orbitControls2D(camera, renderer.domElement);
 
   // orientation widget
-  orientation = new vjsOrientationWidget('r3d', camera, controls);
+  orientation = new VJS.widgets.orientation('r3d', camera, controls);
 
   //
   // mouse callbacks
@@ -120,8 +125,6 @@ window.onload = function() {
   // init threeJS...
   init();
 
-  window.console.log(dat);
-
   // Create Box
   var geometry = new THREE.BoxGeometry(500, 500, 500);
   var material = new THREE.MeshBasicMaterial({
@@ -135,38 +138,39 @@ window.onload = function() {
   // might not be useful with promises anymore.
 
   // can not promise do it for us??
-  var seriesHelper = [];
+  var seriesContainer = [];
   var manager = new THREE.LoadingManager();
   manager.onProgress = function(item, loaded, total) {
-    window.console.log('manager progress ----');
-    window.console.log(item);
+
     var fileContainer = document.getElementById(item);
     if (fileContainer) {
       fileContainer.innerHTML = ' ' + item + ' is ready! ' + '(' + loaded + '/' + total + ')';
     }
 
     if (loaded === total) {
-      window.console.log(seriesHelper);
-      var mergedHelpers = [seriesHelper[0]];
+      var mergedSeriesContainer = [seriesContainer[0]];
       // if all files loaded
-      for (var i = 0; i < seriesHelper.length; i++) {
+      for (var i = 0; i < seriesContainer.length; i++) {
         // test image against existing imagess
-        for (var j = 0; j < mergedHelpers.length; j++) {
-          if (mergedHelpers[j].merge(seriesHelper[i])) {
+        for (var j = 0; j < mergedSeriesContainer.length; j++) {
+          if (mergedSeriesContainer[j].merge(seriesContainer[i])) {
             // merged successfully
             break;
-          } else if (j === mergedHelpers.length - 1) {
+          } else if (j === mergedSeriesContainer.length - 1) {
             // last merge was not successful
             // this is a new image
-            mergedHelpers.push(seriesHelper[i]);
+            mergedSeriesContainer.push(seriesContainer[i]);
           }
         }
       }
+      
+      var dummySeries = mergedSeriesContainer[0];
+      var myHelper = new VJS.helpers.slice(dummySeries);
 
-      mergedHelpers[0].prepare();
-      scene.add(mergedHelpers[0]);
+      myHelper.prepare();
+      scene.add(myHelper);
 
-      probe = new vjsProbePixelWidget(mergedHelpers[0]._series, mergedHelpers[0].children);
+      probe = new VJS.widgets.pixelProbe(dummySeries, myHelper.children);
       scene.add(probe);
 
       var threeD = document.getElementById('r3d');
@@ -187,14 +191,14 @@ window.onload = function() {
   window.console.log(files);
 
   function loadClosure(filename) {
-    var loader = new vjsLoaderDicom(manager);
+    var loader = new VJS.loaders.dicom(manager);
     loader.load(
         filename,
         // on load
-            function(imageHelper) {
+            function(series) {
               // should it just return an image model?
               // add image helper to scene
-              seriesHelper.push(imageHelper);
+              seriesContainer.push(series);
             },
             // progress
             function() {

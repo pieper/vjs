@@ -1,11 +1,18 @@
 /* globals Stats*/
 'use strict';
 
-var vjsOrbitControl2D = require('../../src/controls/OrbitControls2D');
-var vjsProbePixelWidget = require('../../src/widgets/widgets.pixelProbe');
-var vjsLoaderDicom = require('../../src/loaders/loaders.dicom');
-
 var VJS = VJS || {};
+VJS.controls = VJS.controls || {};
+VJS.controls.orbitControls2D = require('../../src/controls/OrbitControls2D');
+
+VJS.widgets = VJS.widgets || {};
+VJS.widgets.pixelProbe = require('../../src/widgets/widgets.pixelProbe');
+
+VJS.loaders = VJS.loaders || {};
+VJS.loaders.dicom = require('../../src/loaders/loaders.dicom');
+
+VJS.helpers = VJS.helpers || {};
+VJS.helpers.slice = require('../../src/helpers/helpers.slice');
 
 // standard global variables
 var controls, renderer, stats, scene, camera, probe, raycaster, mouse, drag;
@@ -93,9 +100,6 @@ function init() {
   renderer.setSize(threeD.offsetWidth, threeD.offsetHeight);
   renderer.setClearColor(0xFFFFFF, 1);
 
-  var maxTextureSize = renderer.context.getParameter(renderer.context.MAX_TEXTURE_SIZE);
-  window.console.log(maxTextureSize);
-
   threeD.appendChild(renderer.domElement);
 
   // stats
@@ -112,7 +116,7 @@ function init() {
   camera.position.z = 100;
   camera.lookAt(scene.position);
   // controls
-  controls = new vjsOrbitControl2D(camera, renderer.domElement);
+  controls = new VJS.controls.orbitControls2D(camera, renderer.domElement);
 
   //
   // mouse callbacks
@@ -148,17 +152,17 @@ window.onload = function() {
   //var file = '../../data/dcm/fruit';
 
   // instantiate the loader
-  var loader = new vjsLoaderDicom(manager);
+  var loader = new VJS.loaders.dicom(manager);
   loader.load(
       file,
       // on load
-        function(imageHelper) {
-          // should it just return an image model?
-          // add image helper to scene
-          imageHelper.prepare();
-          scene.add(imageHelper);
+        function(series) {
+          var sliceHelper = new VJS.helpers.slice(series);
+          sliceHelper.prepare();
 
-          probe = new vjsProbePixelWidget(imageHelper._image, imageHelper.children);
+          scene.add(sliceHelper);
+
+          probe = new VJS.widgets.pixelProbe(series, sliceHelper.children);
           scene.add(probe);
 
           var threeD = document.getElementById('r3d');
@@ -173,8 +177,4 @@ window.onload = function() {
           window.console.log('error: ', message);
         }
     );
-
-  // use manager to deal with "all loaded"
-  // similar to promise all
-
 };

@@ -29,6 +29,7 @@ VJS.helpers.slice = function(series) {
   // -> show/hide
   // -> color
   // -> update()
+  
   this._bBox = {
     visible: true,
     color: 0x61F2F3,

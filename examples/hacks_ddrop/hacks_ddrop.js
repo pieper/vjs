@@ -31,9 +31,6 @@ function init() {
   renderer.setSize(threeD.offsetWidth, threeD.offsetHeight);
   renderer.setClearColor(0xFFFFFF, 1);
 
-  //var maxTextureSize = renderer.context.getParameter(renderer.context.MAX_TEXTURE_SIZE);
-  //var maxTextureImageUnits = renderer.context.getParameter(renderer.context.MAX_TEXTURE_IMAGE_UNITS);
-
   threeD.appendChild(renderer.domElement);
 
   // stats

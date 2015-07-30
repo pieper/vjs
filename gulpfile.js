@@ -71,63 +71,70 @@ gulp.task('css', function() {
     .pipe($.size({title: 'css'}));
 });
 
-// Javascript task browserify and babelify
-// http://www.forbeslindesay.co.uk/post/46324645400/standalone-browserify-builds
-gulp.task('javascript', function(cb) {
+// JS examples task
+gulp.task('js-examples', function(cb) {
   // process files of interest
-  // 'src/vjs.js', 
   globby(['examples/**/*.js'], function(err, files) {
     if (err) {
       cb(err);
     }
-
     var tasks = files.map(function(entry) {
           // to remove /app layer
           var index = entry.indexOf('/');
-
           return browserify(
-            {entries: [entry],
-             debug: true,
-             // could add babelify there...
-             // standalone: 'VJSROX',
-             transform: [glslify],
-            })
-          .bundle()
-          .pipe(source(entry.substring(index + 1)))
-          .pipe(buffer())
-          .pipe(sourcemaps.init({loadMaps: true}))
-              .pipe(babel())
-              //.pipe(gulpif(options.env === 'production', uglify()))
-              .on('error', gutil.log)
-          .pipe(sourcemaps.write('./'))
-          .pipe(gulp.dest('gh-pages/examples'));
-          //var b = watchify(browserify(
-          //    {entries: [entry],
-          //      debug: true,
-          //      // could add babelify there...
-          //      // standalone: 'VJSROX',
-          //      transform: [glslify],
-          //    }));
-
-          //b.on('update', bundle);
-          //b.on('log', gutil.log);
-
-          //function bundle(){
-          //  return b.bundle()
-          //  .pipe(source(entry.substring(index + 1)))
-          //  .pipe(buffer())
-          //  .pipe(sourcemaps.init({loadMaps: true}))
-          //      .pipe(babel())
-          //      //.pipe(gulpif(options.env === 'production', uglify()))
-          //      .on('error', gutil.log)
-          //  .pipe(sourcemaps.write('./'))
-          //  .pipe(gulp.dest('gh-pages/examples'));
-          //  //.pipe(reload({stream: true, once: true}));;
-          //}
-
-          //return bundle();
+              {entries: [entry],
+                debug: true,
+                transform: [glslify]
+              })
+            .bundle()
+            .pipe(source(entry.substring(index + 1)))
+            .pipe(buffer())
+            .pipe(sourcemaps.init({loadMaps: true}))
+                .pipe(babel())
+                .on('error', gutil.log)
+            .pipe(sourcemaps.write('./'))
+            .pipe(gulp.dest('gh-pages/examples')); 
         });
 
+    // create a merged stream
+    es.merge(tasks).on('end', cb);
+  });
+});
+
+gulp.task('js-examples-watchify', function(cb) {
+  // process files of interest
+  globby(['examples/**/*.js'], function(err, files) {
+    if (err) {
+      cb(err);
+    }
+    var tasks = files.map(function(entry) {
+      // to remove /app layer
+      var index = entry.indexOf('/');
+          
+      var b = watchify(browserify(
+        {entries: [entry],
+          debug: true,
+          // could add babelify there...
+          transform: [glslify]
+          }));
+
+      b.on('update', bundle);
+      b.on('log', gutil.log);
+
+      function bundle() {
+            return b.bundle()
+            .pipe(source(entry.substring(index + 1)))
+            .pipe(buffer())
+            .pipe(sourcemaps.init({loadMaps: true}))
+                .pipe(babel())
+                .on('error', gutil.log)
+            .pipe(sourcemaps.write('./'))
+            .pipe(gulp.dest('gh-pages/examples'))
+            .pipe(reload({stream: true, once: true}));;
+          }
+
+      return bundle();
+    });
     // create a merged stream
     es.merge(tasks).on('end', cb);
   });
@@ -190,7 +197,7 @@ gulp.task('test', function(done) {
   }, done);
 });
 
-// Lint JavaScript
+// Lint js
 gulp.task('jshint', function() {
   return gulp.src([
       'src/**/*.js',
@@ -203,13 +210,12 @@ gulp.task('jshint', function() {
 });
 
 // no test anymore... too slow...
-gulp.task('js-watch', ['jshint', 'javascript'], reload);
+gulp.task('js-watch', ['jshint']);
 gulp.task('html-watch', ['html'], reload);
 gulp.task('css-watch', ['css'], reload);
 
-// Serve task for devs
-gulp.task('serve', ['default'], function() {
-  // gh-pages mode, no route to web components
+gulp.task('browsersync', function(){
+    // gh-pages mode, no route to web components
   browserSync({
     server: {
       baseDir: ['gh-pages']
@@ -217,18 +223,25 @@ gulp.task('serve', ['default'], function() {
   });
 
   gulp.watch(['src/**/*.js', 'examples/**/*.js'], ['js-watch']);
-  gulp.watch(['examples/**/*.html'], ['html-watch']);
+  gulp.watch(['index.html', 'examples/**/*.html'], ['html-watch']);
   gulp.watch(['examples/**/*.css'], ['html-css']);
+});
+
+// Serve task for devs
+gulp.task('serve', ['default'], function(cb) {
+  runSequence(
+    // takes care
+    ['browsersync','js-examples-watchify'],
+    cb);
 });
 
 // Gh-pages task is the default task
 gulp.task('default', ['clean'], function(cb) {
   runSequence(
     'jshint',
-    'test',
+    //'test',
     'copy', // copy the data over!
-    ['html', 'css'],
-    'javascript',
+    ['html', 'css', 'js-examples'],
     'doc',
     cb);
 });
