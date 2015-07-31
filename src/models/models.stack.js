@@ -253,21 +253,22 @@ VJS.models.stack.prototype.prepare = function() {
   var frameDimension = this._dimensions.x * this._dimensions.y;
   var textureDimension = this._textureSize * this._textureSize;
 
+  // we can compute frame index before hand and have N loops
   for (var jj = 0; jj < nbVoxels; jj++) {
 
-    var frameIndex = Math.floor(jj / frameDimension);
+    var frameIndex = ~~(jj / frameDimension);
     var inFrameIndex = jj % (frameDimension);
 
-    var textureIndex = Math.floor(jj / textureDimension);
+    var textureIndex = ~~(jj / textureDimension);
     var inTextureIndex = jj % (textureDimension);
-    if (this._numberOfChannels === 3) {
+    //if (this._numberOfChannels === 3) {
 
-      this._rawData[textureIndex][4 * inTextureIndex] = this._frame[frameIndex]._pixelData[4 * inFrameIndex];
-      this._rawData[textureIndex][4 * inTextureIndex + 1] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 1];
-      this._rawData[textureIndex][4 * inTextureIndex + 2] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 2];
-      this._rawData[textureIndex][4 * inTextureIndex + 3] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 3];
+    //  this._rawData[textureIndex][4 * inTextureIndex] = this._frame[frameIndex]._pixelData[4 * inFrameIndex];
+    //  this._rawData[textureIndex][4 * inTextureIndex + 1] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 1];
+    //  this._rawData[textureIndex][4 * inTextureIndex + 2] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 2];
+    //  this._rawData[textureIndex][4 * inTextureIndex + 3] = this._frame[frameIndex]._pixelData[4 * inFrameIndex + 3];
 
-    } else {
+    //} else {
       //
 
       var rawValue = this._frame[frameIndex]._pixelData[inFrameIndex];
@@ -286,10 +287,10 @@ VJS.models.stack.prototype.prepare = function() {
       // add 
       this._rawData[textureIndex][4 * inTextureIndex] = msb;
       this._rawData[textureIndex][4 * inTextureIndex + 1] = lsb;
-      this._rawData[textureIndex][4 * inTextureIndex + 2] = frameIndex;
-      this._rawData[textureIndex][4 * inTextureIndex + 3] = frameIndex;
+      //this._rawData[textureIndex][4 * inTextureIndex + 2] = frameIndex;
+      //this._rawData[textureIndex][4 * inTextureIndex + 3] = frameIndex;
 
-    }
+    //}
 
   }
 
@@ -307,7 +308,7 @@ VJS.models.stack.prototype.prepare = function() {
   // need to pass min/max
   this._bitsAllocated = this._frame[0]._bitsAllocated;
 
-  window.console.log('Done preparing!');
+  window.console.log('done preparing stack');
 };
 
 /**

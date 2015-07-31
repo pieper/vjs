@@ -22,6 +22,15 @@ VJS.helpers.slice = require('../../src/helpers/helpers.slice');
 
 // standard global variables
 var controls, renderer, scene, camera, statsyay, threeD;
+var camUtils = {
+  up: null,
+  // front back
+  start : null,
+  stop : null,
+  invertRows: false,
+  invertColumns: false
+};
+
 var received = 0;
 var total = -1;
 // FUNCTIONS
@@ -133,6 +142,50 @@ window.onload = function() {
     frameIndex.onChange(function() {sliceHelper.updateSlice();});
 
     stackFolder.open();
+
+    // camera
+    function cameraHelper() {
+      if (camUtils.invertRows) {
+        if (camUtils.invertColumns) {
+          camera.up.set(-camUtils.up.x, -camUtils.up.y, -camUtils.up.z);
+          camera.position.set(camUtils.start.x, camUtils.start.y, camUtils.start.z);
+          camera.lookAt(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
+
+          controls.target.set(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
+        } else {
+          camera.up.set(-camUtils.up.x, -camUtils.up.y, -camUtils.up.z);
+          camera.position.set(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
+          camera.lookAt(camUtils.start.x, camUtils.start.y, camUtils.start.z);
+
+          controls.target.set(camUtils.start.x, camUtils.start.y, camUtils.start.z);
+        }
+      } else {
+        if (camUtils.invertColumns) {
+          camera.up.set(camUtils.up.x, camUtils.up.y, camUtils.up.z);
+          camera.position.set(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
+          camera.lookAt(camUtils.start.x, camUtils.start.y, camUtils.start.z);
+
+          controls.target.set(camUtils.start.x, camUtils.start.y, camUtils.start.z);
+        } else {
+          camera.up.set(camUtils.up.x, camUtils.up.y, camUtils.up.z);
+          camera.position.set(camUtils.start.x, camUtils.start.y, camUtils.start.z);
+          camera.lookAt(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
+
+          controls.target.set(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
+        }
+      }
+
+      camera.updateProjectionMatrix();
+    }
+    var cameraFolder = gui.addFolder('Camera');
+    var invertRows = cameraFolder.add(camUtils, 'invertRows');
+    invertRows.onChange(cameraHelper);
+
+    var invertColumns = cameraFolder.add(camUtils, 'invertColumns');
+    invertColumns.onChange(cameraHelper);
+
+    cameraFolder.open();
+
   }
 
   function handleFile(e) {
@@ -177,7 +230,7 @@ window.onload = function() {
       window.console.log(upEnd.x - upStart.x, upEnd.y - upStart.y, upEnd.z - upStart.z);
 
       // update camera's up
-      var up = new THREE.Vector3(stack._direction.elements[4], stack._direction.elements[5], stack._direction.elements[6]);
+      camUtils.up = new THREE.Vector3(stack._direction.elements[4], stack._direction.elements[5], stack._direction.elements[6]);
       //camera.up.set(up.x, up.y, up.z);
       // camera.up.set(0, 1, 0);
 
@@ -221,18 +274,19 @@ window.onload = function() {
       window.console.log(box);
 
       var intersections = VJS.core.intersections.rayBox(ray, box);
-      window.console.log(intersections);
+      camUtils.start = intersections[0];
+      camUtils.stop = intersections[1];
       // camera.position.set(intersections[0].x, intersections[0].y, intersections[0].z);
       //camera.position.set(lpsCenter.x, lpsCenter.y, lpsCenter.z);
 
       window.console.log('POSITION:', camera.position);
 
-      camera.position.set(intersections[0].x, intersections[0].y, intersections[0].z);
-      camera.up.set(up.x, up.y, up.z);
-      camera.lookAt(intersections[1].x, intersections[1].y, intersections[1].z);
+      camera.position.set(camUtils.start.x, camUtils.start.y, camUtils.start.z);
+      camera.up.set(camUtils.up.x, camUtils.up.y, camUtils.up.z);
+      camera.lookAt(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
       camera.updateProjectionMatrix();
 
-      controls.target.set(intersections[1].x, intersections[1].y, intersections[1].z);
+      controls.target.set(camUtils.stop.x, camUtils.stop.y, camUtils.stop.z);
 
       buildGUI(sliceHelper);
     }
