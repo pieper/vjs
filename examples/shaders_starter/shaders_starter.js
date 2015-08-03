@@ -69,6 +69,7 @@ window.onload = function() {
   // need to finish with tar for karma testings
   // if not, it doesn't load the raw data and encapsulates it
   var file = '../../data/dcm/fruit.dcm.tar';
+  //var file = '../../data/dcm/tomato.dcm.tar';
 
   // instantiate the loader
   // it loads and parses the dicom image
@@ -128,11 +129,16 @@ window.onload = function() {
           // sphere material
           var textures = [];
           for (var m = 0; m < stack._rawData.length; m++) {
-            var tex = new THREE.DataTexture(stack._rawData[m], stack._textureSize, stack._textureSize, THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+            var tex = new THREE.DataTexture(
+                                  stack._rawData[m],
+                                  stack._textureSize, stack._textureSize,
+                                  THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping,
+                                  THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
+                                  THREE.NearestFilter, THREE.NearestFilter);
             tex.needsUpdate = true;
             textures.push(tex);
           }
-          
+
           // update uniforms
           var uniforms = VJS.shaders.data.parameters.uniforms;
           uniforms.uTextureSize.value = stack._textureSize;
@@ -145,7 +151,7 @@ window.onload = function() {
           uniforms.uInvert.value = stack._invert;
 
           // create material
-          var sphereMaterial = new THREE.ShaderMaterial({
+          var volumeMaterial = new THREE.ShaderMaterial({
             // 'wireframe': true,
             'side': THREE.DoubleSide,
             'transparency': true,
@@ -161,7 +167,7 @@ window.onload = function() {
             ).applyMatrix4(stack._ijk2LPS);
 
           // sphere geometry
-          var sphereGeometry = new THREE.SphereGeometry(40, 32, 32);
+          var sphereGeometry = new THREE.SphereGeometry(30, 10, 10);
           sphereGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(
             centerLPS.x,
             centerLPS.y,
@@ -169,8 +175,29 @@ window.onload = function() {
           );
 
           // sphere mesh
-          var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+          var sphere = new THREE.Mesh(sphereGeometry, volumeMaterial);
           scene.add(sphere);
+
+          // cutting planes
+          var rotations = [
+              [ [0,0,0], 0 ],
+              [ [1,0,0], Math.PI / 2],
+              [ [0,1,0], Math.PI / 2],
+          ];
+          for (var rotationIndex in rotations) {
+            var rotation = rotations[rotationIndex];
+            var planeGeometry = new THREE.PlaneGeometry(160, 160);
+            var r = rotation[0];
+            var rotationAxis = new THREE.Vector3(r[0],r[1],r[2]);
+            var rotationMatrix = new THREE.Matrix4().makeRotationAxis(rotationAxis, rotation[1]);
+            planeGeometry.applyMatrix(rotationMatrix);
+            planeGeometry.applyMatrix(new THREE.Matrix4()
+              .makeTranslation( centerLPS.x, centerLPS.y, centerLPS.z));
+            var plane = new THREE.Mesh(planeGeometry, volumeMaterial);
+            scene.add(plane);
+          }
+
+
         },
         // progress
         function() {},
