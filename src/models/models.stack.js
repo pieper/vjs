@@ -281,7 +281,8 @@ VJS.models.stack.prototype.prepare = function() {
 
       /*jshint bitwise: false*/
       var lsb = rawValue & 0xFF;
-      var msb = (rawValue >> 8) & 0xFF;
+      //var msb = (rawValue >> 8) & 0xFF;
+      var msb = (rawValue & 0xFF00) >>> 8;
 
       // add 
       this._rawData[textureIndex][4 * inTextureIndex] = msb;

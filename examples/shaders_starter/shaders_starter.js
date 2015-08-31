@@ -69,7 +69,7 @@ window.onload = function() {
   // need to finish with tar for karma testings
   // if not, it doesn't load the raw data and encapsulates it
   var file = '../../data/dcm/fruit.dcm.tar';
-  //var file = '../../data/dcm/tomato.dcm.tar';
+  var file = '../../data/dcm/tomato.dcm.tar';
 
   // instantiate the loader
   // it loads and parses the dicom image

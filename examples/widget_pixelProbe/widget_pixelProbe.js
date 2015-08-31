@@ -149,7 +149,6 @@ window.onload = function() {
   };
 
   var file = '/data/dcm/adi/36749894';
-  //var file = '../../data/dcm/fruit';
 
   // instantiate the loader
   var loader = new VJS.loaders.dicom(manager);

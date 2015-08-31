@@ -21,7 +21,7 @@ varying vec4 vPos;
 
 vec4 sampleAs3DTexture(in vec3 textureCoordinate) {
 
-  float slicePixelSize = 1.0 / (uTextureSize - 1.);
+  float slicePixelSize = 1.0 / uTextureSize;
   // Model coordinate (IJK) to data index
   float index = textureCoordinate.x * uDataDimensions.x
               + textureCoordinate.y * uDataDimensions.y * uDataDimensions.x
